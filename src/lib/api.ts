@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1'
 
 export interface User {
   id: string
@@ -241,7 +241,11 @@ export class ApiClient {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ login, password }),
+      body: JSON.stringify({ 
+        login, 
+        password,
+        role: 'DIRECTOR' // Director фронтенд всегда использует роль DIRECTOR
+      }),
     })
 
     if (!response.ok) {
@@ -261,7 +265,16 @@ export class ApiClient {
       throw new Error(errorMessage)
     }
 
-    return response.json()
+    // Новый формат ответа: { success, message, data: { user, access_token } }
+    const result = await response.json()
+    // Адаптируем к старому формату для совместимости
+    if (result.success && result.data) {
+      return {
+        access_token: result.data.accessToken,
+        user: result.data.user
+      }
+    }
+    return result
   }
 
   async getProfile(): Promise<User> {
@@ -287,7 +300,9 @@ export class ApiClient {
       throw new Error(errorMessage)
     }
 
-    return response.json()
+    // Новый формат: { success, data: { ...user, role } }
+    const result = await response.json()
+    return result.success && result.data ? result.data : result
   }
 
   async logout(): Promise<void> {
