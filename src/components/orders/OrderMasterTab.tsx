@@ -1,0 +1,250 @@
+/**
+ * Компонент таба "Мастер" - управление результатами заказа
+ */
+
+import React from 'react';
+import CustomSelect from '@/components/optimized/CustomSelect';
+import { Master } from '@/lib/api';
+
+interface OrderMasterTabProps {
+  orderStatus: string;
+  selectedMaster: string;
+  setSelectedMaster: (value: string) => void;
+  masters: Master[];
+  result: string;
+  setResult: (value: string) => void;
+  expenditure: string;
+  setExpenditure: (value: string) => void;
+  clean: string;
+  masterChange: string;
+  comment: string;
+  setComment: (value: string) => void;
+  prepayment: string;
+  setPrepayment: (value: string) => void;
+  dateClosmod: string;
+  setDateClosmod: (value: string) => void;
+  bsoFile: File | null;
+  expenditureFile: File | null;
+  bsoPreview: string | null;
+  expenditurePreview: string | null;
+  handleFile: (file: File, type: 'bso' | 'expenditure') => void;
+  removeFile: (type: 'bso' | 'expenditure') => void;
+  isFieldsDisabled: () => boolean;
+  shouldHideFinancialFields: () => boolean;
+  openSelect: string | null;
+  setOpenSelect: (id: string | null) => void;
+  setBsoDragOver: (value: boolean) => void;
+  setExpenditureDragOver: (value: boolean) => void;
+  bsoDragOver: boolean;
+  expenditureDragOver: boolean;
+}
+
+export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
+  orderStatus,
+  selectedMaster,
+  setSelectedMaster,
+  masters,
+  result,
+  setResult,
+  expenditure,
+  setExpenditure,
+  clean,
+  masterChange,
+  comment,
+  setComment,
+  prepayment,
+  setPrepayment,
+  dateClosmod,
+  setDateClosmod,
+  bsoFile,
+  expenditureFile,
+  bsoPreview,
+  expenditurePreview,
+  handleFile,
+  removeFile,
+  isFieldsDisabled,
+  shouldHideFinancialFields,
+  openSelect,
+  setOpenSelect,
+  setBsoDragOver,
+  setExpenditureDragOver,
+  bsoDragOver,
+  expenditureDragOver,
+}) => {
+  return (
+    <div className="space-y-6">
+      {/* Назначить мастера */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Назначить мастера</label>
+        <CustomSelect
+          value={selectedMaster}
+          onChange={setSelectedMaster}
+          options={[
+            { value: '', label: 'Выберите мастера' },
+            ...masters.map(master => ({ value: master.id.toString(), label: master.name }))
+          ]}
+          placeholder="Выберите мастера"
+          disabled={isFieldsDisabled()}
+          selectId="master"
+          openSelect={openSelect}
+          setOpenSelect={setOpenSelect}
+        />
+      </div>
+
+      {orderStatus === 'Модерн' ? (
+        // Поля для статуса "Модерн"
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Сумма предоплаты</label>
+            <input 
+              type="number" 
+              value={prepayment}
+              onChange={(e) => setPrepayment(e.target.value)}
+              disabled={isFieldsDisabled()}
+              className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
+              onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+              placeholder="Введите сумму предоплаты"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Дата закрытия</label>
+            <input 
+              type="date" 
+              value={dateClosmod}
+              onChange={(e) => setDateClosmod(e.target.value)}
+              disabled={isFieldsDisabled()}
+              className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
+              onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Комментарий</label>
+            <textarea 
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              disabled={isFieldsDisabled()}
+              className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
+              onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+              rows={3}
+              placeholder="Введите комментарий"
+            />
+          </div>
+        </>
+      ) : (
+        // Поля для остальных статусов
+        <>
+          {/* Итог и Расход */}
+          {!shouldHideFinancialFields() && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Итог</label>
+                <input 
+                  type="number" 
+                  value={result}
+                  onChange={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? undefined : (e) => setResult(e.target.value)}
+                  disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
+                  className={`w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                    orderStatus === 'Отказ' || orderStatus === 'Незаказ'
+                      ? 'bg-gray-700 text-gray-300 cursor-not-allowed' 
+                      : isFieldsDisabled() 
+                        ? 'bg-gray-800 text-white opacity-50 cursor-not-allowed' 
+                        : 'bg-gray-800 text-white'
+                  }`}
+                  onFocus={(e) => !isFieldsDisabled() && orderStatus !== 'Отказ' && orderStatus !== 'Незаказ' && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
+                  onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+                  placeholder={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? "Автоматически 0" : "Введите итоговую сумму"}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Расход</label>
+                <input 
+                  type="number" 
+                  value={expenditure}
+                  onChange={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? undefined : (e) => setExpenditure(e.target.value)}
+                  disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
+                  className={`w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                    orderStatus === 'Отказ' || orderStatus === 'Незаказ'
+                      ? 'bg-gray-700 text-gray-300 cursor-not-allowed' 
+                      : isFieldsDisabled() 
+                        ? 'bg-gray-800 text-white opacity-50 cursor-not-allowed' 
+                        : 'bg-gray-800 text-white'
+                  }`}
+                  onFocus={(e) => !isFieldsDisabled() && orderStatus !== 'Отказ' && orderStatus !== 'Незаказ' && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
+                  onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+                  placeholder={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? "Автоматически 0" : "Введите сумму расхода"}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Дополнительные поля для "Готово" */}
+          {orderStatus === 'Готово' && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Чистыми</label>
+                  <input 
+                    type="number" 
+                    value={clean || ''}
+                    readOnly
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-300 cursor-not-allowed"
+                    placeholder={clean ? '' : 'Автоматически рассчитывается'}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Сдача мастера</label>
+                  <input 
+                    type="number" 
+                    value={masterChange || ''}
+                    readOnly
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-300 cursor-not-allowed"
+                    placeholder={masterChange ? '' : 'Автоматически рассчитывается'}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Комментарий</label>
+                <textarea 
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  disabled={isFieldsDisabled()}
+                  className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
+                  onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+                  rows={3}
+                  placeholder="Введите комментарий"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Комментарий для "В работе" */}
+          {orderStatus === 'В работе' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Комментарий</label>
+              <textarea 
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                disabled={isFieldsDisabled()}
+                className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
+                onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+                rows={3}
+                placeholder="Введите комментарий"
+              />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
