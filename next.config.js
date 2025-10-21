@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Standalone режим для Docker
+  output: 'standalone',
   
   // Отключаем ESLint и TypeScript проверки во время сборки для Docker
   eslint: {
