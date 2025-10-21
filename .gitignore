@@ -46,7 +46,6 @@ next-env.d.ts
 Thumbs.db
 
 # Docker
-.dockerignore
 
 # Logs
 logs
@@ -109,7 +108,6 @@ dist
 
 # Gatsby files
 .cache/
-public
 
 # Storybook build outputs
 .out
