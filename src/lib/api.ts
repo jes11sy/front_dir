@@ -436,7 +436,7 @@ export class ApiClient {
     return response.json()
   }
 
-  // Masters API
+  // Masters API (Users Service)
   async getMasters(): Promise<Master[]> {
     const response = await fetch(`${this.baseURL}/masters`, {
       method: 'GET',
@@ -448,7 +448,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения мастеров')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   // Employees API
@@ -510,9 +511,9 @@ export class ApiClient {
     return response.json()
   }
 
-  // Cash API
+  // Cash API (Cash Service)
   async getCashTransactions(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash/transactions`, {
+    const response = await fetch(`${this.baseURL}/cash`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -522,11 +523,12 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения транзакций')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   async getCashIncome(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash/income`, {
+    const response = await fetch(`${this.baseURL}/cash?type=предоплата`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -536,11 +538,12 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения приходов')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   async getCashExpense(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash/expense`, {
+    const response = await fetch(`${this.baseURL}/cash?type=расход`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -550,16 +553,23 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения расходов')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   async createCashTransaction(data: Partial<CashTransaction>): Promise<CashTransaction> {
     console.log('Creating cash transaction with data:', data)
     
-    const response = await fetch(`${this.baseURL}/cash/transaction`, {
+    const response = await fetch(`${this.baseURL}/cash`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        orderId: data.orderId,
+        amount: data.amount || 0,
+        type: data.type || 'расход',
+        note: data.note,
+        receiptDoc: data.receiptDoc,
+      }),
     })
 
     if (!response.ok) {
@@ -573,11 +583,12 @@ export class ApiClient {
       }
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   async checkCashTransactionByOrder(orderId: number): Promise<CashTransaction | null> {
-    const response = await fetch(`${this.baseURL}/cash/transaction/by-order/${orderId}`, {
+    const response = await fetch(`${this.baseURL}/cash?orderId=${orderId}`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -602,7 +613,15 @@ export class ApiClient {
   async updateCashTransactionByOrder(orderId: number, data: Partial<CashTransaction>): Promise<CashTransaction> {
     console.log('Updating cash transaction for order:', orderId, 'with data:', data)
     
-    const response = await fetch(`${this.baseURL}/cash/transaction/by-order/${orderId}`, {
+    // Сначала найти транзакцию по orderId
+    const transactions = await this.getCashTransactions()
+    const transaction = transactions.find((t: any) => t.orderId === orderId)
+    
+    if (!transaction) {
+      throw new Error('Транзакция не найдена')
+    }
+    
+    const response = await fetch(`${this.baseURL}/cash/${transaction.id}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
@@ -629,6 +648,24 @@ export class ApiClient {
   }
 
   async getCashBalance(): Promise<{ income: number; expense: number; balance: number }> {
+    // Получаем все транзакции и считаем баланс на фронте
+    const transactions = await this.getCashTransactions()
+    
+    const income = transactions
+      .filter((t: any) => t.type === 'предоплата' && t.status === 'approved')
+      .reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
+    
+    const expense = transactions
+      .filter((t: any) => t.type === 'расход' && t.status === 'approved')
+      .reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
+    
+    return {
+      income,
+      expense,
+      balance: income - expense,
+    }
+    
+    /* Старый код с отдельным endpoint
     const response = await fetch(`${this.baseURL}/cash/balance`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
@@ -657,6 +694,7 @@ export class ApiClient {
   }
 
   // Master Handover API
+  // Master Handover API (Cash Service - Handover)
   async getMasterHandoverSummary(): Promise<{ masters: any[], totalAmount: number }> {
     const response = await fetch(`${this.baseURL}/master-handover/summary`, {
       method: 'GET',
