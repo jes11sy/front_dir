@@ -106,9 +106,6 @@ const nextConfig = {
   // React strict mode
   reactStrictMode: true,
 
-  // Оптимизация шрифтов
-  optimizeFonts: true,
-
   // Экспериментальные фичи для оптимизации
   experimental: {
     optimizePackageImports: ['lucide-react'],
