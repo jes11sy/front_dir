@@ -244,7 +244,7 @@ export class ApiClient {
       body: JSON.stringify({ 
         login, 
         password,
-        role: 'DIRECTOR' // Director фронтенд всегда использует роль DIRECTOR
+        role: 'director' // Director фронтенд всегда использует роль director
       }),
     })
 
