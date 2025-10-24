@@ -707,7 +707,10 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения сводки сдачи мастеров')
     }
 
-    return response.json()
+    const result = await response.json()
+    // API возвращает {success: true, data: {masters: [...], totalAmount: ...}}
+    // Нужно извлечь data
+    return result.data || result
   }
 
   async getMasterHandoverDetails(masterId: number): Promise<{ master: any, orders: any[] }> {
