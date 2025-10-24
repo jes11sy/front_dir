@@ -36,7 +36,8 @@ function CityReportContent() {
       setFilteredReports(data)
       
       // Обновляем список доступных городов из данных отчета
-      const citiesFromData = data.map(report => ({
+      const safeData = Array.isArray(data) ? data : []
+      const citiesFromData = safeData.map(report => ({
         id: report.city,
         name: report.city
       }))
@@ -91,7 +92,7 @@ function CityReportContent() {
       // Заголовки колонок
       ['Город', 'Закрытых заказов', 'Средний чек (₽)', 'Оборот (₽)', 'Доход компании (₽)', 'Касса (₽)'],
       // Данные
-      ...filteredReports.map(report => {
+      ...(Array.isArray(filteredReports) ? filteredReports : []).map(report => {
         const turnover = report.orders.totalClean;
         const companyIncome = report.orders.totalMasterChange;
         
@@ -151,7 +152,7 @@ function CityReportContent() {
     });
 
     // Стилизация данных
-    filteredReports.forEach((_, index) => {
+    (Array.isArray(filteredReports) ? filteredReports : []).forEach((_, index) => {
       const rowIndex = 4 + index;
       ['A', 'B', 'C', 'D', 'E', 'F'].forEach(col => {
         const cell = `${col}${rowIndex}`;
@@ -319,7 +320,7 @@ function CityReportContent() {
               <div className="bg-gray-800 rounded-lg p-6 border" style={{borderColor: '#114643'}}>
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2" style={{color: '#2a6b68'}}>
-                    {formatNumber(filteredReports.reduce((sum, city) => sum + city.orders.closedOrders, 0))}
+                    {formatNumber((Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + city.orders.closedOrders, 0))}
                   </div>
                   <div className="text-gray-300 text-sm">Закрытых заказов</div>
                 </div>
@@ -328,7 +329,7 @@ function CityReportContent() {
               <div className="bg-gray-800 rounded-lg p-6 border" style={{borderColor: '#dc143c'}}>
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2" style={{color: '#dc143c'}}>
-                    {formatNumber(filteredReports.reduce((sum, city) => sum + city.orders.refusals, 0))}
+                    {formatNumber((Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + city.orders.refusals, 0))}
                   </div>
                   <div className="text-gray-300 text-sm">Всего отказов</div>
                 </div>
@@ -337,7 +338,7 @@ function CityReportContent() {
               <div className="bg-gray-800 rounded-lg p-6 border" style={{borderColor: '#f59e0b'}}>
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2" style={{color: '#f59e0b'}}>
-                    {formatNumber(filteredReports.reduce((sum, city) => sum + city.orders.notOrders, 0))}
+                    {formatNumber((Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + city.orders.notOrders, 0))}
                   </div>
                   <div className="text-gray-300 text-sm">Всего Незаказов</div>
                 </div>
@@ -346,7 +347,7 @@ function CityReportContent() {
               <div className="bg-gray-800 rounded-lg p-6 border" style={{borderColor: '#8b5cf6'}}>
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2" style={{color: '#8b5cf6'}}>
-                    {filteredReports.length > 0 
+                    {Array.isArray(filteredReports) && filteredReports.length > 0 
                       ? formatNumber(filteredReports.reduce((sum, city) => sum + city.orders.avgCheck, 0) / filteredReports.length) + ' ₽'
                       : '0 ₽'
                     }
@@ -371,7 +372,7 @@ function CityReportContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredReports.map((cityReport) => {
+                    {Array.isArray(filteredReports) && filteredReports.map((cityReport) => {
                       // Оборот = сумма чистыми
                       const turnover = cityReport.orders.totalClean
                       

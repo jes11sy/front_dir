@@ -793,7 +793,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения отчета по городам')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   async getCityDetailedReport(city: string): Promise<any> {
