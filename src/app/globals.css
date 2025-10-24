@@ -293,3 +293,18 @@
   transform: translateX(4px);
   background-color: rgba(20, 184, 166, 0.1);
 }
+
+/* Force remove outline for login inputs */
+input:focus,
+input:focus-visible,
+input:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Custom focus styles for login form */
+.login-input:focus {
+  outline: none !important;
+  border-color: #14b8a6 !important;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2) !important;
+}
