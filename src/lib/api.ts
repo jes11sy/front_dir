@@ -275,7 +275,7 @@ export class ApiClient {
   }
 
   async getProfile(): Promise<User> {
-    const response = await this.safeFetch(`${this.baseURL}/auth/profile`, {
+    const response = await this.safeFetch(`${this.baseURL}/users/profile`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -846,7 +846,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения профиля')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.success && result.data ? result.data : result
   }
 
   async updateUserProfile(data: {
