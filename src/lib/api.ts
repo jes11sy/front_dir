@@ -359,8 +359,8 @@ export class ApiClient {
     if (params.city) searchParams.append('city', params.city)
     if (params.search) searchParams.append('search', params.search)
     if (params.master) searchParams.append('master', params.master)
-
-    const response = await fetch(`${this.baseURL}/orders?${searchParams}`, {
+    
+    const response = await this.safeFetch(`${this.baseURL}/orders?${searchParams}`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -374,7 +374,7 @@ export class ApiClient {
   }
 
   async getOrder(id: number): Promise<Order> {
-    const response = await fetch(`${this.baseURL}/orders/${id}`, {
+    const response = await this.safeFetch(`${this.baseURL}/orders/${id}`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -388,7 +388,7 @@ export class ApiClient {
   }
 
   async updateOrder(id: number, data: Partial<Order>): Promise<Order> {
-    const response = await fetch(`${this.baseURL}/orders/${id}`, {
+    const response = await this.safeFetch(`${this.baseURL}/orders/${id}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
@@ -423,7 +423,7 @@ export class ApiClient {
   }
 
   async getOrderStatuses(): Promise<string[]> {
-    const response = await fetch(`${this.baseURL}/orders/statuses`, {
+    const response = await this.safeFetch(`${this.baseURL}/orders/statuses`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -438,7 +438,7 @@ export class ApiClient {
 
   // Masters API (Users Service)
   async getMasters(): Promise<Master[]> {
-    const response = await fetch(`${this.baseURL}/masters`, {
+    const response = await this.safeFetch(`${this.baseURL}/masters`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
