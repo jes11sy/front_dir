@@ -77,7 +77,7 @@ export default function LoginPage() {
                   placeholder="Введите логин"
                   value={login}
                   onChange={(e) => setLogin(sanitizeString(e.target.value))}
-                  className="bg-white text-gray-800 placeholder:text-gray-400 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-300 hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover"
+                  className="bg-white text-gray-800 placeholder:text-gray-400 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-all duration-300 hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover"
                   required
                   autoComplete="username"
                   maxLength={50}
@@ -92,7 +92,7 @@ export default function LoginPage() {
                   placeholder="Введите пароль"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white text-gray-800 placeholder:text-gray-400 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-300 hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover"
+                  className="bg-white text-gray-800 placeholder:text-gray-400 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-all duration-300 hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover"
                   required
                   autoComplete="current-password"
                   maxLength={100}
