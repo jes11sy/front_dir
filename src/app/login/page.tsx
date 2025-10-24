@@ -104,7 +104,8 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 rounded border-2 border-gray-300 text-teal-600 focus:ring-teal-500 focus:ring-2 transition-all duration-200"
+                  className="h-4 w-4 rounded border-2 border-gray-300 focus:ring-2 transition-all duration-200"
+                  style={{accentColor: '#114643'}}
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200 cursor-pointer">
                   Запомнить меня
