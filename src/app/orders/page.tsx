@@ -158,24 +158,24 @@ function OrdersContent() {
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-4 md:p-12 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-4 md:p-12 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
 
             {/* Состояние загрузки */}
             {loading && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                <p className="text-white">Загрузка заказов...</p>
+              <div className="text-center py-8 animate-fade-in">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+                <p className="text-gray-700 font-medium">Загрузка заказов...</p>
               </div>
             )}
 
             {/* Ошибка */}
             {error && (
-              <div className="bg-red-900/20 border border-red-500 rounded-lg p-4 mb-6">
-                <p className="text-red-400">{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 animate-slide-in-left">
+                <p className="text-red-600 font-medium">{error}</p>
                 <button 
                   onClick={loadOrders}
-                  className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                  className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 hover:shadow-md"
                 >
                   Попробовать снова
                 </button>
@@ -183,26 +183,23 @@ function OrdersContent() {
             )}
 
             {/* Фильтры */}
-            <div className="mb-6">
+            <div className="mb-6 animate-slide-in-left">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white">Фильтр</h2>
+                <h2 className="text-lg font-semibold text-gray-700">Фильтр</h2>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="px-3 py-1.5 text-white rounded transition-colors text-sm"
-                  style={{backgroundColor: '#2a6b68'}}
-                  onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                  onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                  className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
                 >
                   {showFilters ? 'Скрыть' : 'Показать'}
                 </button>
               </div>
               
               {showFilters && (
-                <div className="space-y-4">
+                <div className="space-y-4 animate-slide-in-right">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Поиск */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-300 mb-1">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Поиск (№, телефон, адрес)
                       </label>
                       <input
@@ -210,15 +207,13 @@ function OrdersContent() {
                         value={searchTerm}
                         onChange={(e) => handleSearchChange(e.target.value)}
                         placeholder="Введите номер, телефон или адрес..."
-                        className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 text-sm focus:outline-none transition-colors"
-                        onFocus={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'}
-                        onBlur={(e) => (e.target as HTMLElement).style.borderColor = '#4b5563'}
+                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
                       />
                     </div>
                     
                     {/* Статус */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-300 mb-1">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Статус
                       </label>
                       <CustomSelect
@@ -240,7 +235,7 @@ function OrdersContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Город */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-300 mb-1">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Город
                       </label>
                       <CustomSelect
@@ -260,7 +255,7 @@ function OrdersContent() {
                     
                     {/* Мастер */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-300 mb-1">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Мастер
                       </label>
                       <CustomSelect
@@ -283,10 +278,7 @@ function OrdersContent() {
                   <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       onClick={resetFilters}
-                      className="px-3 py-1.5 text-white rounded transition-colors text-sm"
-                      style={{backgroundColor: '#2a6b68'}}
-                      onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                      onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                      className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
                     >
                       Сбросить
                     </button>
@@ -297,62 +289,62 @@ function OrdersContent() {
 
             {/* Десктопная таблица */}
             {!loading && !error && safeOrders.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-400">Нет заказов для отображения</p>
+              <div className="text-center py-8 animate-fade-in">
+                <p className="text-gray-500 font-medium">Нет заказов для отображения</p>
               </div>
             )}
             
             {!loading && !error && safeOrders.length > 0 && (
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full border-collapse text-[11px]">
+            <div className="hidden md:block overflow-x-auto animate-fade-in">
+              <table className="w-full border-collapse text-[11px] bg-white rounded-lg shadow-lg">
                 <thead>
-                  <tr className="border-b-2" style={{borderColor: '#114643'}}>
-                    <th className="text-left py-2 px-2 font-semibold text-white">ID</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Тип заказа</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">РК</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Город</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Имя мастера</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Телефон</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Клиент</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Адрес</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Дата встречи</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Направление</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Проблема</th>
-                    <th className="text-center py-2 px-2 font-semibold text-white">Статус</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Мастер</th>
-                    <th className="text-left py-2 px-2 font-semibold text-white">Итог</th>
+                  <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">ID</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Тип заказа</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">РК</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Город</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Имя мастера</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Телефон</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Клиент</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Адрес</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Дата встречи</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Направление</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Проблема</th>
+                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Статус</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Мастер</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Итог</th>
                   </tr>
                 </thead>
                 <tbody>
                   {Array.isArray(safeOrders) && safeOrders.map((order) => (
                     <tr 
                       key={order.id}
-                      className="border-b hover:bg-white/10 transition-colors cursor-pointer" 
-                      style={{borderColor: '#114643'}}
+                      className="border-b hover:bg-teal-50 transition-colors cursor-pointer" 
+                      style={{borderColor: '#e5e7eb'}}
                       onClick={() => handleOrderClick(order.id)}
                     >
-                      <td className="py-2 px-2 text-white">{order.id}</td>
-                      <td className="py-2 px-2">
-                        <span className="px-2 py-1 rounded-full text-[11px] font-medium text-white" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
+                      <td className="py-3 px-3 text-gray-800 font-medium">{order.id}</td>
+                      <td className="py-3 px-3">
+                        <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
                           {order.typeOrder}
                         </span>
                       </td>
-                      <td className="py-2 px-2 text-white">{order.rk}</td>
-                      <td className="py-2 px-2 text-white">{order.city}</td>
-                      <td className="py-2 px-2 text-white">{order.avitoName || '-'}</td>
-                      <td className="py-2 px-2 text-white">{order.phone}</td>
-                      <td className="py-2 px-2 text-white">{order.clientName}</td>
-                      <td className="py-2 px-2 text-white">{order.address}</td>
-                      <td className="py-2 px-2 text-white">{formatDate(order.dateMeeting)}</td>
-                      <td className="py-2 px-2 text-white">{order.typeEquipment}</td>
-                      <td className="py-2 px-2 text-white">{order.problem}</td>
-                      <td className="py-2 px-2 text-center">
-                        <span className="inline-block px-2 py-1 rounded-full text-[11px] font-medium text-white" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
+                      <td className="py-3 px-3 text-gray-800">{order.rk}</td>
+                      <td className="py-3 px-3 text-gray-800">{order.city}</td>
+                      <td className="py-3 px-3 text-gray-800">{order.avitoName || '-'}</td>
+                      <td className="py-3 px-3 text-gray-800">{order.phone}</td>
+                      <td className="py-3 px-3 text-gray-800">{order.clientName}</td>
+                      <td className="py-3 px-3 text-gray-800">{order.address}</td>
+                      <td className="py-3 px-3 text-gray-800">{formatDate(order.dateMeeting)}</td>
+                      <td className="py-3 px-3 text-gray-800">{order.typeEquipment}</td>
+                      <td className="py-3 px-3 text-gray-800">{order.problem}</td>
+                      <td className="py-3 px-3 text-center">
+                        <span className="inline-block px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
                           {order.statusOrder}
                         </span>
                       </td>
-                      <td className="py-2 px-2 text-white">{order.master?.name || '-'}</td>
-                      <td className="py-2 px-2 text-white font-semibold">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</td>
+                      <td className="py-3 px-3 text-gray-800">{order.master?.name || '-'}</td>
+                      <td className="py-3 px-3 text-gray-800 font-semibold">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -362,42 +354,42 @@ function OrdersContent() {
 
             {/* Мобильные карточки */}
             {!loading && !error && safeOrders.length > 0 && (
-            <div className="md:hidden space-y-4">
+            <div className="md:hidden space-y-4 animate-fade-in">
               {Array.isArray(safeOrders) && safeOrders.map((order) => (
                 <div 
                   key={order.id}
-                  className="bg-gray-800/50 rounded-lg p-4 border border-gray-600 cursor-pointer hover:bg-gray-700/50 transition-colors"
+                  className="bg-white rounded-lg p-4 border border-gray-200 cursor-pointer hover:bg-teal-50 transition-all duration-200 shadow-sm hover:shadow-md"
                   onClick={() => handleOrderClick(order.id)}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-white font-semibold">#{order.id}</span>
-                      <span className="px-2 py-1 rounded-full text-xs font-medium text-white" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
+                      <span className="text-gray-800 font-semibold">#{order.id}</span>
+                      <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
                         {order.typeOrder}
                       </span>
                     </div>
-                    <span className="text-white font-semibold">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</span>
+                    <span className="text-gray-800 font-semibold">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</span>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-300">Клиент:</span>
-                      <span className="text-white">{order.clientName}</span>
+                      <span className="text-gray-600">Клиент:</span>
+                      <span className="text-gray-800">{order.clientName}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-300">Город:</span>
-                      <span className="text-white">{order.city}</span>
+                      <span className="text-gray-600">Город:</span>
+                      <span className="text-gray-800">{order.city}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-300">Мастер:</span>
-                      <span className="text-white">{order.master?.name || '-'}</span>
+                      <span className="text-gray-600">Мастер:</span>
+                      <span className="text-gray-800">{order.master?.name || '-'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-300">Проблема:</span>
-                      <span className="text-white">{order.problem}</span>
+                      <span className="text-gray-600">Проблема:</span>
+                      <span className="text-gray-800">{order.problem}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-300">Статус:</span>
-                      <span className="px-2 py-1 rounded-full text-xs font-medium text-white" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
+                      <span className="text-gray-600">Статус:</span>
+                      <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
                         {order.statusOrder}
                       </span>
                     </div>
@@ -409,11 +401,11 @@ function OrdersContent() {
 
             {/* Пагинация */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap">
+              <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap animate-fade-in">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded transition-colors text-xs sm:text-sm"
+                  className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:text-gray-300 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   ←
                 </button>
@@ -432,14 +424,14 @@ function OrdersContent() {
                       <button
                         key={1}
                         onClick={() => setCurrentPage(1)}
-                        className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors text-xs sm:text-sm"
+                        className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                       >
                         1
                       </button>
                     )
                     if (adjustedStartPage > 2) {
                       pages.push(
-                        <span key="ellipsis1" className="px-1 sm:px-2 text-gray-400 text-xs sm:text-sm">
+                        <span key="ellipsis1" className="px-2 text-gray-500 text-sm">
                           ...
                         </span>
                       )
@@ -452,14 +444,11 @@ function OrdersContent() {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`px-2 py-1 sm:px-3 rounded transition-colors text-xs sm:text-sm ${
+                        className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
                           currentPage === page
-                            ? 'text-white'
-                            : 'bg-gray-600 hover:bg-gray-700 text-white'
+                            ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-md'
+                            : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white hover:shadow-md'
                         }`}
-                        style={currentPage === page ? {backgroundColor: '#2a6b68'} : {}}
-                        onMouseEnter={currentPage !== page ? (e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57' : undefined}
-                        onMouseLeave={currentPage !== page ? (e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68' : undefined}
                       >
                         {page}
                       </button>
@@ -479,7 +468,7 @@ function OrdersContent() {
                       <button
                         key={pagination?.totalPages || 0}
                         onClick={() => setCurrentPage(pagination?.totalPages || 0)}
-                        className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors text-xs sm:text-sm"
+                        className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                       >
                         {pagination?.totalPages || 0}
                       </button>
@@ -492,7 +481,7 @@ function OrdersContent() {
                 <button
                   onClick={() => setCurrentPage(Math.min(pagination?.totalPages || 0, currentPage + 1))}
                   disabled={currentPage === (pagination?.totalPages || 0)}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded transition-colors text-xs sm:text-sm"
+                  className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:text-gray-300 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   →
                 </button>
