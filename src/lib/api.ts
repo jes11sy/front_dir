@@ -462,7 +462,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения сотрудников')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   async getEmployee(id: number): Promise<Employee> {
