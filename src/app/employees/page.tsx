@@ -25,12 +25,13 @@ function EmployeesContent() {
         const currentUser = apiClient.getCurrentUser()
         const directorCities = currentUser?.cities || []
         
-        const filteredEmployees = data.filter(employee => {
+        const safeData = Array.isArray(data) ? data : []
+        const filteredEmployees = safeData.filter(employee => {
           // Если у директора нет городов, показываем всех
           if (directorCities.length === 0) return true
           
           // Проверяем, есть ли пересечение городов сотрудника и директора
-          return employee.cities.some(city => directorCities.includes(city))
+          return employee.cities && Array.isArray(employee.cities) && employee.cities.some(city => directorCities.includes(city))
         })
         
         setEmployees(filteredEmployees)

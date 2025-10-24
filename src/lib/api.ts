@@ -463,7 +463,8 @@ export class ApiClient {
     }
 
     const result = await response.json()
-    return result.data || result
+    const data = result.data || result
+    return Array.isArray(data) ? data : []
   }
 
   async getEmployee(id: number): Promise<Employee> {
