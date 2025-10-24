@@ -259,50 +259,50 @@ function HistoryContent() {
 
             {/* Таблица */}
             {!loading && !error && (
-              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-                <table className="w-full border-collapse text-[11px] min-w-[600px]">
+              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
+                <table className="w-full border-collapse text-[11px] min-w-[600px] bg-white rounded-lg shadow-lg">
                   <thead>
-                    <tr className="border-b-2" style={{borderColor: '#114643'}}>
-                      <th className="text-left py-2 px-2 font-semibold text-white">ID</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Тип</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Город</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Назначение платежа</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Сумма</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Комментарий</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Дата</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Создатель</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Документ</th>
+                    <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">ID</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Тип</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Город</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Назначение платежа</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Сумма</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Комментарий</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Дата</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Создатель</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Документ</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentData.map((item) => {
                       const getTypeColor = (type: string) => {
                         switch (type) {
-                          case 'приход': return '#2a6b68'
+                          case 'приход': return '#14b8a6'
                           case 'расход': return '#ef4444'
                           default: return '#6b7280'
                         }
                       }
                       
                       return (
-                        <tr key={item.id} className="border-b hover:bg-white/10 transition-colors" style={{borderColor: '#114643'}}>
-                          <td className="py-2 px-2 text-white">{item.id}</td>
-                          <td className="py-2 px-2">
-                            <span className="px-2 py-1 rounded-full text-[11px] font-medium text-white" style={{backgroundColor: getTypeColor(item.name)}}>
+                        <tr key={item.id} className="border-b hover:bg-teal-50 transition-colors" style={{borderColor: '#e5e7eb'}}>
+                          <td className="py-3 px-3 text-gray-800 font-medium">{item.id}</td>
+                          <td className="py-3 px-3">
+                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(item.name)}}>
                               {item.name}
                             </span>
                           </td>
-                          <td className="py-2 px-2 text-white">{item.city || 'Москва'}</td>
-                          <td className="py-2 px-2 text-white">{item.paymentPurpose || '-'}</td>
-                          <td className={`py-2 px-2 text-white font-semibold ${item.name === 'приход' ? 'text-green-400' : 'text-red-400'}`}>
+                          <td className="py-3 px-3 text-gray-800">{item.city || 'Москва'}</td>
+                          <td className="py-3 px-3 text-gray-800">{item.paymentPurpose || '-'}</td>
+                          <td className={`py-3 px-3 text-gray-800 font-semibold ${item.name === 'приход' ? 'text-green-600' : 'text-red-600'}`}>
                             {Number(item.amount).toLocaleString()} ₽
                           </td>
-                          <td className="py-2 px-2 text-white">{item.note || '-'}</td>
-                          <td className="py-2 px-2 text-white">{formatDate(item.dateCreate)}</td>
-                          <td className="py-2 px-2 text-white">{item.nameCreate}</td>
-                          <td className="py-2 px-2 text-white">
+                          <td className="py-3 px-3 text-gray-800">{item.note || '-'}</td>
+                          <td className="py-3 px-3 text-gray-800">{formatDate(item.dateCreate)}</td>
+                          <td className="py-3 px-3 text-gray-800">{item.nameCreate}</td>
+                          <td className="py-3 px-3 text-gray-800">
                             {item.receiptDoc ? (
-                              <button className="text-blue-400 hover:text-blue-300 underline">
+                              <button className="text-blue-600 hover:text-blue-700 underline transition-colors">
                                 Скачать
                               </button>
                             ) : (
@@ -319,11 +319,11 @@ function HistoryContent() {
 
             {/* Пагинация */}
             {!loading && !error && totalPages > 1 && (
-              <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap">
+              <div className="mt-6 flex justify-center items-center gap-2 flex-wrap animate-fade-in">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded-lg transition-colors text-xs sm:text-sm"
+                  className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:text-gray-300 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   ←
                 </button>
@@ -332,24 +332,11 @@ function HistoryContent() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`px-2 py-1 sm:px-3 rounded-lg transition-colors text-xs sm:text-sm text-white ${
+                    className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
                       currentPage === page
-                        ? ''
-                        : 'bg-gray-600 hover:bg-gray-700'
+                        ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-md'
+                        : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white hover:shadow-md'
                     }`}
-                    style={{
-                      backgroundColor: currentPage === page ? '#2a6b68' : undefined
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentPage === page) {
-                        e.currentTarget.style.backgroundColor = '#1a5a57'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (currentPage === page) {
-                        e.currentTarget.style.backgroundColor = '#2a6b68'
-                      }
-                    }}
                   >
                     {page}
                   </button>
@@ -358,7 +345,7 @@ function HistoryContent() {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded-lg transition-colors text-xs sm:text-sm"
+                  className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:text-gray-300 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   →
                 </button>
