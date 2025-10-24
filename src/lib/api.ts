@@ -192,14 +192,11 @@ export interface MasterReport {
   masterId: number
   masterName: string
   city: string
-  orders: {
-    total: number
-    totalRevenue: number
-    totalExpenditure: number
-    totalClean: number
-    totalMasterChange: number
-    avgCheck: number
-  }
+  totalOrders: number
+  completedOrders: number
+  totalRevenue: number
+  totalExpenditure: number
+  profit: number
 }
 
 export class ApiClient {
@@ -831,7 +828,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения отчета по мастерам')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   // Методы для работы с профилем пользователя

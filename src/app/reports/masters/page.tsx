@@ -382,25 +382,25 @@ function MastersReportContent() {
                         <thead>
                           <tr className="border-b-2" style={{borderColor: '#114643'}}>
                             <th className="text-left py-3 px-4 font-semibold text-white">Мастер</th>
-                            <th className="text-left py-3 px-4 font-semibold text-white">Кол-во заказов</th>
-                            <th className="text-left py-3 px-4 font-semibold text-white">Оборот</th>
-                            <th className="text-left py-3 px-4 font-semibold text-white">Средний чек</th>
-                            <th className="text-left py-3 px-4 font-semibold text-white">Зарплата</th>
+                            <th className="text-left py-3 px-4 font-semibold text-white">Всего заказов</th>
+                            <th className="text-left py-3 px-4 font-semibold text-white">Выручка</th>
+                            <th className="text-left py-3 px-4 font-semibold text-white">Расходы</th>
+                            <th className="text-left py-3 px-4 font-semibold text-white">Прибыль</th>
                           </tr>
                         </thead>
                         <tbody>
                           {cityData.map((report) => (
                             <tr key={`${report.masterId}-${report.city}`} className="border-b hover:bg-white/10 transition-colors" style={{borderColor: '#114643'}}>
                               <td className="py-3 px-4 text-white font-semibold">{report.masterName}</td>
-                              <td className="py-3 px-4 text-white">{report.orders.total}</td>
+                              <td className="py-3 px-4 text-white">{report.totalOrders}</td>
                               <td className="py-3 px-4 text-white font-semibold" style={{color: '#2a6b68'}}>
-                                {formatNumber(report.orders.totalClean)} ₽
+                                {formatNumber(report.totalRevenue)} ₽
                               </td>
                               <td className="py-3 px-4 text-white">
-                                {formatNumber(report.orders.avgCheck)} ₽
+                                {formatNumber(report.totalExpenditure)} ₽
                               </td>
                               <td className="py-3 px-4 text-white font-semibold" style={{color: '#f59e0b'}}>
-                                {formatNumber(report.orders.totalMasterChange)} ₽
+                                {formatNumber(report.profit)} ₽
                               </td>
                             </tr>
                           ))}
