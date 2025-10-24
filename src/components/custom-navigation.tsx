@@ -126,7 +126,7 @@ export function CustomNavigation() {
                       }}
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <span className="flex-1 text-center">{item.name}</span>
+                      <span className="flex-1 text-left">{item.name}</span>
                       {item.dropdown && (
                         <svg className="ml-2 h-4 w-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -157,7 +157,7 @@ export function CustomNavigation() {
                         }}
                         onClick={() => setExpandedDropdown(expandedDropdown === item.name ? null : item.name)}
                       >
-                        <span className="flex-1 text-center">{item.name}</span>
+                        <span className="flex-1 text-left">{item.name}</span>
                         {item.dropdown && (
                           <svg 
                             className={`h-4 w-4 transition-transform duration-300 ${
@@ -200,7 +200,7 @@ export function CustomNavigation() {
                               }}
                               onClick={() => setMobileMenuOpen(false)}
                             >
-                              <span className="flex-1 text-center">{dropdownItem.name}</span>
+                              <span className="flex-1 text-left">{dropdownItem.name}</span>
                             </Link>
                           ))}
                         </div>
@@ -263,7 +263,7 @@ export function CustomNavigation() {
                       boxShadow: pathname === item.href ? '0 2px 4px rgba(20, 184, 166, 0.3)' : 'none'
                     }}
                   >
-                    <span className="flex-1">{item.name}</span>
+                    <span className="flex-1 text-left">{item.name}</span>
                     {item.dropdown && (
                       <svg className="ml-2 h-4 w-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -282,7 +282,7 @@ export function CustomNavigation() {
                       setExpandedDropdown(expandedDropdown === item.name ? null : item.name)
                     }}
                   >
-                    <span className="flex-1 text-center">{item.name}</span>
+                    <span className="flex-1 text-left">{item.name}</span>
                     {item.dropdown && (
                       <svg 
                         className={`ml-2 h-4 w-4 transition-transform duration-200 ${expandedDropdown === item.name ? 'rotate-180' : ''}`} 
