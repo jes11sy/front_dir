@@ -425,9 +425,7 @@ function AddEmployeeContent() {
                           onChange={handleInputChange}
                           placeholder="Введите логин"
                           required
-                          className="flex-1 bg-gray-800 border border-gray-600 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent"
-                          onFocus={(e) => (e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68'}
-                          onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+                          className="flex-1 bg-white border-2 border-gray-200 text-gray-800 placeholder-gray-500 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
                         />
                         <Button
                           type="button"
@@ -456,9 +454,7 @@ function AddEmployeeContent() {
                             onChange={handleInputChange}
                             placeholder="Введите пароль"
                             required
-                            className="w-full pr-10 bg-gray-800 border border-gray-600 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent"
-                            onFocus={(e) => (e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68'}
-                            onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+                            className="w-full pr-10 bg-white border-2 border-gray-200 text-gray-800 placeholder-gray-500 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
                           />
                           <button
                             type="button"
@@ -631,19 +627,19 @@ function AddEmployeeContent() {
               {/* Кнопки */}
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <Button
-                  type="submit"
-                  disabled={isSubmitting || availableCities.length === 0}
-                  className="flex-1 h-12 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-md"
-                >
-                  {isSubmitting ? 'Добавление...' : availableCities.length === 0 ? 'Нет доступных городов' : 'Добавить сотрудника'}
-                </Button>
-                <Button
                   type="button"
                   onClick={handleCancel}
                   disabled={isSubmitting}
                   className="flex-1 h-12 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-md"
                 >
                   Отмена
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || availableCities.length === 0}
+                  className="flex-1 h-12 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-md"
+                >
+                  {isSubmitting ? 'Добавление...' : availableCities.length === 0 ? 'Нет доступных городов' : 'Добавить сотрудника'}
                 </Button>
               </div>
             </form>

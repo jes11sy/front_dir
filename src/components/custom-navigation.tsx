@@ -126,7 +126,7 @@ export function CustomNavigation() {
                       }}
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <span className="flex-1">{item.name}</span>
+                      <span className="flex-1 text-center">{item.name}</span>
                       {item.dropdown && (
                         <svg className="ml-2 h-4 w-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -157,7 +157,7 @@ export function CustomNavigation() {
                         }}
                         onClick={() => setExpandedDropdown(expandedDropdown === item.name ? null : item.name)}
                       >
-                        <span className="flex-1">{item.name}</span>
+                        <span className="flex-1 text-center">{item.name}</span>
                         {item.dropdown && (
                           <svg 
                             className={`h-4 w-4 transition-transform duration-300 ${
@@ -174,12 +174,12 @@ export function CustomNavigation() {
                       
                       {/* Выпадающий список для мобильных */}
                       {item.dropdown && expandedDropdown === item.name && (
-                        <div className="pl-4 space-y-1 mt-2">
+                        <div className="space-y-1 mt-2">
                           {item.dropdown.map((dropdownItem) => (
                             <Link
                               key={dropdownItem.name}
                               href={dropdownItem.href}
-                              className="block px-4 py-2 text-sm transition-all duration-150"
+                              className="flex items-center w-full px-4 py-2 text-sm transition-all duration-150 rounded-lg"
                               style={{
                                 color: pathname === dropdownItem.href ? 'white' : '#6b7280',
                                 backgroundColor: pathname === dropdownItem.href ? '#14b8a6' : 'transparent',
@@ -200,7 +200,7 @@ export function CustomNavigation() {
                               }}
                               onClick={() => setMobileMenuOpen(false)}
                             >
-                              {dropdownItem.name}
+                              <span className="flex-1 text-center">{dropdownItem.name}</span>
                             </Link>
                           ))}
                         </div>
@@ -282,7 +282,7 @@ export function CustomNavigation() {
                       setExpandedDropdown(expandedDropdown === item.name ? null : item.name)
                     }}
                   >
-                    <span className="flex-1 text-left">{item.name}</span>
+                    <span className="flex-1 text-center">{item.name}</span>
                     {item.dropdown && (
                       <svg 
                         className={`ml-2 h-4 w-4 transition-transform duration-200 ${expandedDropdown === item.name ? 'rotate-180' : ''}`} 

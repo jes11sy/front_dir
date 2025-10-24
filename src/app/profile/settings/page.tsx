@@ -238,7 +238,7 @@ function SettingsContent() {
                       type="text"
                       value={settings.cities}
                       readOnly
-                      className="w-full px-3 py-2 bg-gray-600 text-gray-600 rounded-lg border border-gray-500 cursor-not-allowed"
+                      className="w-full px-3 py-2 bg-white border-2 border-gray-200 text-gray-800 rounded-lg cursor-not-allowed"
                     />
                   </div>
                   
@@ -248,7 +248,7 @@ function SettingsContent() {
                       type="text"
                       value={settings.name}
                       readOnly
-                      className="w-full px-3 py-2 bg-gray-600 text-gray-600 rounded-lg border border-gray-500 cursor-not-allowed"
+                      className="w-full px-3 py-2 bg-white border-2 border-gray-200 text-gray-800 rounded-lg cursor-not-allowed"
                     />
                   </div>
                   
@@ -258,7 +258,7 @@ function SettingsContent() {
                       type="text"
                       value={settings.login}
                       readOnly
-                      className="w-full px-3 py-2 bg-gray-600 text-gray-600 rounded-lg border border-gray-500 cursor-not-allowed"
+                      className="w-full px-3 py-2 bg-white border-2 border-gray-200 text-gray-800 rounded-lg cursor-not-allowed"
                     />
                   </div>
                   
@@ -276,8 +276,8 @@ function SettingsContent() {
               </div>
 
               {/* Документы */}
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Документы</h2>
+              <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Документы</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">
@@ -355,7 +355,7 @@ function SettingsContent() {
                         className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                           contractDragOver 
                             ? 'border-blue-400 bg-blue-900/20' 
-                            : 'border-gray-600 bg-gray-800/50'
+                            : 'border-gray-300 bg-gray-50'
                         }`}
                         onDragOver={(e) => {
                           e.preventDefault()
@@ -379,10 +379,10 @@ function SettingsContent() {
                           }}
                         />
                         <div className="space-y-3">
-                          <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto">
-                            <span className="text-gray-600 text-2xl">📄</span>
+                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                            <span className="text-gray-500 text-2xl">📄</span>
                           </div>
-                          <div className="text-gray-600 font-medium">
+                          <div className="text-gray-700 font-medium">
                             {contractDragOver ? 'Отпустите файл' : 'Перетащите файл сюда'}
                           </div>
                           <div className="text-sm text-gray-400">или нажмите для выбора</div>
@@ -466,7 +466,7 @@ function SettingsContent() {
                         className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                           passportDragOver 
                             ? 'border-blue-400 bg-blue-900/20' 
-                            : 'border-gray-600 bg-gray-800/50'
+                            : 'border-gray-300 bg-gray-50'
                         }`}
                         onDragOver={(e) => {
                           e.preventDefault()
@@ -490,10 +490,10 @@ function SettingsContent() {
                           }}
                         />
                         <div className="space-y-3">
-                          <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto">
-                            <span className="text-gray-600 text-2xl">📄</span>
+                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                            <span className="text-gray-500 text-2xl">📄</span>
                           </div>
-                          <div className="text-gray-600 font-medium">
+                          <div className="text-gray-700 font-medium">
                             {passportDragOver ? 'Отпустите файл' : 'Перетащите файл сюда'}
                           </div>
                           <div className="text-sm text-gray-400">или нажмите для выбора</div>

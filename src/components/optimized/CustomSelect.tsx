@@ -68,23 +68,26 @@ const CustomSelect = React.memo<CustomSelectProps>(({
         type="button"
         onClick={handleToggle}
         disabled={disabled}
-        className={`w-full text-left bg-gray-700 border border-gray-600 text-white focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`w-full text-left bg-white border-2 text-gray-800 focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
           compact ? 'px-2 py-1.5 text-sm rounded' : 'px-3 py-2 rounded-lg'
         }`}
-        style={{ borderColor: isOpen ? '#2a6b68' : '#4b5563' }}
+        style={{ 
+          borderColor: isOpen ? '#14b8a6' : '#d1d5db',
+          boxShadow: isOpen ? '0 0 0 2px rgba(20, 184, 166, 0.2)' : 'none'
+        }}
       >
-        <span className={selectedOption ? 'text-white' : 'text-gray-400'}>
+        <span className={selectedOption ? 'text-gray-800' : 'text-gray-500'}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
+        <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500">
           {isOpen ? '▲' : '▼'}
         </span>
       </button>
       
       {isOpen && (
         <div 
-          className="absolute z-10 w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto"
-          style={{ borderColor: '#2a6b68' }}
+          className="absolute z-10 w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+          style={{ borderColor: '#14b8a6' }}
         >
           {options.map((option) => (
             <SelectOption
@@ -122,18 +125,21 @@ const SelectOption = React.memo<SelectOptionProps>(({ option, isSelected, compac
     onSelect(option.value)
   }, [option.value, onSelect])
 
-  const bgColor = hover ? (isSelected ? '#1a5a57' : '#4b5563') : (isSelected ? '#2a6b68' : 'transparent')
-
   return (
     <button
       type="button"
       onClick={handleClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className={`w-full text-left px-3 py-2 text-white transition-colors ${
+      className={`w-full text-left px-3 py-2 transition-colors ${
         compact ? 'text-sm' : ''
+      } ${
+        isSelected 
+          ? 'bg-teal-600 text-white' 
+          : hover 
+            ? 'bg-teal-50 text-teal-600' 
+            : 'text-gray-800 hover:bg-teal-50 hover:text-teal-600'
       }`}
-      style={{ backgroundColor: bgColor }}
     >
       {option.label}
     </button>

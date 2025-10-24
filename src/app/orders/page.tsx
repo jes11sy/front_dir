@@ -409,19 +409,75 @@ function OrdersContent() {
                   ←
                 </button>
                 
-                {Array.from({ length: pagination?.totalPages || 0 }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                      currentPage === page
-                        ? 'bg-teal-600 text-white shadow-md'
-                        : 'bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                {(() => {
+                  const totalPages = pagination?.totalPages || 0
+                  const pages = []
+                  
+                  // Показываем максимум 7 страниц
+                  const maxVisible = 7
+                  let startPage = Math.max(1, currentPage - 3)
+                  let endPage = Math.min(totalPages, startPage + maxVisible - 1)
+                  
+                  // Корректируем если не хватает страниц в конце
+                  if (endPage - startPage + 1 < maxVisible) {
+                    startPage = Math.max(1, endPage - maxVisible + 1)
+                  }
+                  
+                  // Добавляем первую страницу и многоточие если нужно
+                  if (startPage > 1) {
+                    pages.push(
+                      <button
+                        key={1}
+                        onClick={() => setCurrentPage(1)}
+                        className="px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md"
+                      >
+                        1
+                      </button>
+                    )
+                    if (startPage > 2) {
+                      pages.push(
+                        <span key="ellipsis1" className="px-2 text-gray-500">...</span>
+                      )
+                    }
+                  }
+                  
+                  // Добавляем видимые страницы
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
+                          currentPage === i
+                            ? 'bg-teal-600 text-white shadow-md'
+                            : 'bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+                  
+                  // Добавляем последнюю страницу и многоточие если нужно
+                  if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                      pages.push(
+                        <span key="ellipsis2" className="px-2 text-gray-500">...</span>
+                      )
+                    }
+                    pages.push(
+                      <button
+                        key={totalPages}
+                        onClick={() => setCurrentPage(totalPages)}
+                        className="px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md"
+                      >
+                        {totalPages}
+                      </button>
+                    )
+                  }
+                  
+                  return pages
+                })()}
                 
                 <button
                   onClick={() => setCurrentPage(Math.min(pagination?.totalPages || 0, currentPage + 1))}
