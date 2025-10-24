@@ -40,11 +40,11 @@ export function Navigation() {
   const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null)
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-lg" style={{backgroundColor: '#15282f'}}>
+    <nav className="fixed top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-lg border-b" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Логотип */}
-          <Link href="/orders" className="text-xl font-bold text-white nav-item-hover animate-fade-in-scale">
+          <Link href="/orders" className="text-xl font-bold text-white nav-item-hover animate-fade-in-scale hover:text-teal-300 transition-colors duration-300">
             Новые Схемы
           </Link>
 
@@ -71,10 +71,10 @@ export function Navigation() {
                 {item.href ? (
                   <Link
                     href={item.href}
-                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-all duration-300 nav-item-hover ${
+                    className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-300 nav-item-hover rounded-lg ${
                       pathname === item.href
-                        ? 'text-white animate-pulse-glow'
-                        : 'text-white/80 hover:text-white'
+                        ? 'text-white bg-teal-600/20 border border-teal-500/30'
+                        : 'text-white/80 hover:text-white hover:bg-white/10 hover:border hover:border-teal-500/20'
                     }`}
                   >
                     {item.name}
@@ -85,7 +85,7 @@ export function Navigation() {
                     )}
                   </Link>
                 ) : (
-                  <div className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-all duration-300 nav-item-hover text-white/80 hover:text-white cursor-pointer`}>
+                  <div className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-300 nav-item-hover text-white/80 hover:text-white hover:bg-white/10 hover:border hover:border-teal-500/20 cursor-pointer rounded-lg`}>
                     {item.name}
                     {item.dropdown && (
                       <svg className="ml-1 h-4 w-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,7 +98,8 @@ export function Navigation() {
                 {/* Выпадающий список для десктопа */}
                 {item.dropdown && hoveredItem === item.name && (
                   <div 
-                    className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-200 z-50 animate-slide-down"
+                    className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white rounded-lg shadow-xl border border-teal-200 z-50 animate-slide-down"
+                    style={{backgroundColor: '#f8fffe', borderColor: '#14b8a6'}}
                     onMouseEnter={() => {
                       if (hoverTimeout) {
                         clearTimeout(hoverTimeout)
@@ -117,13 +118,12 @@ export function Navigation() {
                         <Link
                           key={dropdownItem.name}
                           href={dropdownItem.href}
-                          className={`block px-4 py-2 text-sm transition-all duration-200 dropdown-hover ${
+                          className={`block px-4 py-2 text-sm transition-all duration-200 dropdown-hover rounded mx-2 ${
                             pathname === dropdownItem.href
-                              ? 'text-white'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              ? 'text-white bg-teal-600 border border-teal-500'
+                              : 'text-gray-700 hover:bg-teal-50 hover:text-teal-700 hover:border hover:border-teal-200'
                           }`}
                           style={{
-                            backgroundColor: pathname === dropdownItem.href ? '#2a6b68' : '',
                             animationDelay: `${index * 0.1}s`
                           }}
                         >
@@ -139,7 +139,7 @@ export function Navigation() {
 
           {/* Кнопка гамбургер-меню для мобильных */}
           <button
-            className="md:hidden text-white hover:text-white/80 transition-all duration-300 nav-item-hover"
+            className="md:hidden text-white hover:text-teal-300 hover:bg-white/10 transition-all duration-300 nav-item-hover p-2 rounded-lg"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <svg className="h-6 w-6 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,17 +154,17 @@ export function Navigation() {
 
         {/* Мобильное меню */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-600 animate-slide-up">
+          <div className="md:hidden border-t animate-slide-up" style={{borderColor: '#114643'}}>
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navigationItems.map((item, index) => (
                 <div key={item.name} style={{animationDelay: `${index * 0.1}s`}} className="animate-fade-in-scale">
                   {item.href ? (
                     <Link
                       href={item.href}
-                      className={`block px-3 py-2 text-base font-medium transition-all duration-300 nav-item-hover ${
+                      className={`block px-3 py-2 text-base font-medium transition-all duration-300 nav-item-hover rounded-lg ${
                         pathname === item.href
-                          ? 'text-white bg-white/10'
-                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                          ? 'text-white bg-teal-600/20 border border-teal-500/30'
+                          : 'text-white/80 hover:text-white hover:bg-white/10 hover:border hover:border-teal-500/20'
                       }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -173,10 +173,10 @@ export function Navigation() {
                   ) : (
                     <div>
                       <button
-                        className={`w-full text-left px-3 py-2 text-base font-medium transition-all duration-300 nav-item-hover flex items-center justify-between ${
+                        className={`w-full text-left px-3 py-2 text-base font-medium transition-all duration-300 nav-item-hover flex items-center justify-between rounded-lg ${
                           expandedDropdown === item.name
-                            ? 'text-white bg-white/10'
-                            : 'text-white/80 hover:text-white hover:bg-white/10'
+                            ? 'text-white bg-teal-600/20 border border-teal-500/30'
+                            : 'text-white/80 hover:text-white hover:bg-white/10 hover:border hover:border-teal-500/20'
                         }`}
                         onClick={() => setExpandedDropdown(expandedDropdown === item.name ? null : item.name)}
                       >
@@ -202,10 +202,10 @@ export function Navigation() {
                             <Link
                               key={dropdownItem.name}
                               href={dropdownItem.href}
-                              className={`block px-3 py-2 text-sm transition-all duration-300 dropdown-hover ${
+                              className={`block px-3 py-2 text-sm transition-all duration-300 dropdown-hover rounded-lg ${
                                 pathname === dropdownItem.href
-                                  ? 'text-white bg-white/10'
-                                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                                  ? 'text-white bg-teal-600 border border-teal-500'
+                                  : 'text-white/70 hover:text-white hover:bg-teal-50/10 hover:border hover:border-teal-500/20'
                               }`}
                               style={{animationDelay: `${dropdownIndex * 0.1}s`}}
                               onClick={() => setMobileMenuOpen(false)}
