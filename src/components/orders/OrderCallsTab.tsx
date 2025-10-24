@@ -23,7 +23,7 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
         <div className="text-center py-2">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto"></div>
         </div>
-      ) : calls.length > 0 ? (
+      ) : Array.isArray(calls) && calls.length > 0 ? (
         <div className="space-y-2">
           {calls.map((call) => (
             <div key={call.id} className="bg-gray-700 rounded p-3">

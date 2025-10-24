@@ -126,10 +126,11 @@ function ExpenseContent() {
   }
 
   // Вычисляем данные для текущей страницы
-  const totalPages = Math.ceil(expenseData.length / itemsPerPage)
+  const safeExpenseData = Array.isArray(expenseData) ? expenseData : []
+  const totalPages = Math.ceil(safeExpenseData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentData = expenseData.slice(startIndex, endIndex)
+  const currentData = safeExpenseData.slice(startIndex, endIndex)
 
   // Форматирование даты
   const formatDate = (dateString: string) => {

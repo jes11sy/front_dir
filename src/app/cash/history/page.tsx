@@ -43,8 +43,9 @@ function HistoryContent() {
       setLoading(true)
       setError(null)
       const data = await apiClient.getCashTransactions()
-      setHistoryData(data)
-      setFilteredData(data)
+      const safeData = Array.isArray(data) ? data : []
+      setHistoryData(safeData)
+      setFilteredData(safeData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки данных')
     } finally {
@@ -93,10 +94,11 @@ function HistoryContent() {
   }, [historyData, typeFilter, cityFilter, startDate, endDate])
 
   // Вычисляем данные для текущей страницы
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
+  const safeFilteredData = Array.isArray(filteredData) ? filteredData : []
+  const totalPages = Math.ceil(safeFilteredData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentData = filteredData.slice(startIndex, endIndex)
+  const currentData = safeFilteredData.slice(startIndex, endIndex)
 
   // Форматирование даты
   const formatDate = (dateString: string) => {

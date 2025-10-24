@@ -52,7 +52,7 @@ function OrdersContent() {
         apiClient.getMasters().catch(() => [])
       ])
       
-      setOrders(response.data || [])
+      setOrders(Array.isArray(response.data) ? response.data : [])
       setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
       setAllMasters(Array.isArray(masters) ? masters : [])
       setPagination(response.pagination)
@@ -93,7 +93,8 @@ function OrdersContent() {
   }
 
   // Получаем уникальные значения для фильтров из загруженных данных
-  const uniqueCities = Array.from(new Set(orders.map(order => order.city)))
+  const safeOrders = Array.isArray(orders) ? orders : []
+  const uniqueCities = Array.from(new Set(safeOrders.map(order => order.city)))
 
   // Сброс фильтров
   const resetFilters = () => {
@@ -216,7 +217,7 @@ function OrdersContent() {
                         onChange={handleStatusChange}
                         options={[
                           { value: '', label: 'Все статусы' },
-                          ...allStatuses.map(status => ({ value: status, label: status }))
+                          ...(Array.isArray(allStatuses) ? allStatuses : []).map(status => ({ value: status, label: status }))
                         ]}
                         placeholder="Все статусы"
                         compact={true}
@@ -238,7 +239,7 @@ function OrdersContent() {
                         onChange={handleCityChange}
                         options={[
                           { value: '', label: 'Все города' },
-                          ...uniqueCities.map(city => ({ value: city, label: city }))
+                          ...(Array.isArray(uniqueCities) ? uniqueCities : []).map(city => ({ value: city, label: city }))
                         ]}
                         placeholder="Все города"
                         compact={true}
@@ -258,7 +259,7 @@ function OrdersContent() {
                         onChange={handleMasterChange}
                         options={[
                           { value: '', label: 'Все мастера' },
-                          ...allMasters.map(master => ({ value: master.id.toString(), label: master.name }))
+                          ...(Array.isArray(allMasters) ? allMasters : []).map(master => ({ value: master.id.toString(), label: master.name }))
                         ]}
                         placeholder="Все мастера"
                         compact={true}
@@ -344,7 +345,7 @@ function OrdersContent() {
 
             {/* Мобильные карточки */}
             <div className="md:hidden space-y-4">
-              {orders.map((order) => (
+              {Array.isArray(orders) && orders.map((order) => (
                 <div 
                   key={order.id}
                   className="bg-gray-800/50 rounded-lg p-4 border border-gray-600 cursor-pointer hover:bg-gray-700/50 transition-colors"

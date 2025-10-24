@@ -20,8 +20,8 @@ function MasterHandoverContent() {
       try {
         setLoading(true)
         const data = await apiClient.getMasterHandoverSummary()
-        setMastersData(data.masters)
-        setTotalAmount(data.totalAmount)
+        setMastersData(Array.isArray(data.masters) ? data.masters : [])
+        setTotalAmount(data.totalAmount || 0)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ошибка загрузки данных')
         logger.error('Error loading master handover data', err)
@@ -79,7 +79,7 @@ function MasterHandoverContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mastersData.filter(master => master.totalAmount > 0).map((master, index) => (
+                    {Array.isArray(mastersData) && mastersData.filter(master => master.totalAmount > 0).map((master, index) => (
                       <tr 
                         key={master.id} 
                         className="border-b hover:bg-white/10 transition-colors cursor-pointer" 

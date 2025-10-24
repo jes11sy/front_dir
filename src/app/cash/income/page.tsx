@@ -122,10 +122,11 @@ function IncomeContent() {
   }
 
   // Вычисляем данные для текущей страницы
-  const totalPages = Math.ceil(incomeData.length / itemsPerPage)
+  const safeIncomeData = Array.isArray(incomeData) ? incomeData : []
+  const totalPages = Math.ceil(safeIncomeData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentData = incomeData.slice(startIndex, endIndex)
+  const currentData = safeIncomeData.slice(startIndex, endIndex)
 
   // Форматирование даты
   const formatDate = (dateString: string) => {

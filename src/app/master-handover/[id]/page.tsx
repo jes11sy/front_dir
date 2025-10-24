@@ -24,7 +24,7 @@ function MasterHandoverDetailContent() {
         setLoading(true)
         const data = await apiClient.getMasterHandoverDetails(Number(masterId))
         setMasterData(data.master)
-        setOrders(data.orders)
+        setOrders(Array.isArray(data.orders) ? data.orders : [])
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ошибка загрузки данных')
         logger.error('Error loading master handover details', err)
@@ -145,7 +145,7 @@ function MasterHandoverDetailContent() {
               <p className="text-gray-400 text-center py-8">Нет заказов для сдачи</p>
             ) : (
               <div className="space-y-3">
-                {orders.map((order: any) => (
+                {Array.isArray(orders) && orders.map((order: any) => (
                   <div 
                     key={order.id}
                     className="bg-gray-800 rounded p-3 border" 

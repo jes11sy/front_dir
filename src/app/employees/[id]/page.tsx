@@ -42,7 +42,7 @@ function EmployeeViewContent() {
 
   // Получаем города текущего директора
   const currentUser = apiClient.getCurrentUser()
-  const availableCities = currentUser?.cities || []
+  const availableCities = Array.isArray(currentUser?.cities) ? currentUser.cities : []
 
   useEffect(() => {
     const fetchEmployee = async () => {

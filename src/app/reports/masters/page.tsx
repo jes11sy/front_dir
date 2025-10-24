@@ -40,16 +40,17 @@ function MastersReportContent() {
       setLoading(true)
       setError(null)
       const data = await apiClient.getMastersReport(filters)
-      setMasterReports(data)
+      const safeData = Array.isArray(data) ? data : []
+      setMasterReports(safeData)
       
       // Обновляем список доступных мастеров и городов из данных отчета
-      const mastersFromData = data.map(report => ({
+      const mastersFromData = safeData.map(report => ({
         id: report.masterId.toString(),
         name: report.masterName
       }))
       setAvailableMasters(mastersFromData)
       
-      const citiesFromData = Array.from(new Set(data.map(report => report.city))).map(city => ({
+      const citiesFromData = Array.from(new Set(safeData.map(report => report.city))).map(city => ({
         id: city,
         name: city
       }))
@@ -200,10 +201,11 @@ function MastersReportContent() {
   }
 
   // Вычисляем данные для текущей страницы
-  const totalPages = Math.ceil(masterReports.length / itemsPerPage)
+  const safeMasterReports = Array.isArray(masterReports) ? masterReports : []
+  const totalPages = Math.ceil(safeMasterReports.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentData = masterReports.slice(startIndex, endIndex)
+  const currentData = safeMasterReports.slice(startIndex, endIndex)
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
       <div className="container mx-auto px-4 py-8">

@@ -45,7 +45,8 @@ function EmployeesContent() {
   }, [])
 
   // Сортируем данные: сначала работающие, потом уволенные, внутри группы по дате создания (новые сначала)
-  const sortedData = employees.sort((a, b) => {
+  const safeEmployees = Array.isArray(employees) ? employees : []
+  const sortedData = safeEmployees.sort((a, b) => {
     const aStatus = a.statusWork.toLowerCase()
     const bStatus = b.statusWork.toLowerCase()
     
