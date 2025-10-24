@@ -156,9 +156,9 @@ function OrdersContent() {
   }
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-4 md:p-12 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
 
             {/* Состояние загрузки */}
@@ -296,23 +296,23 @@ function OrdersContent() {
             
             {!loading && !error && safeOrders.length > 0 && (
             <div className="hidden md:block overflow-x-auto animate-fade-in">
-              <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
+              <table className="w-full border-collapse text-base bg-white rounded-lg shadow-lg">
                 <thead>
                   <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">ID</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Тип заказа</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">РК</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Город</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Имя мастера</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Телефон</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Клиент</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Адрес</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Дата встречи</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Направление</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Проблема</th>
-                    <th className="text-center py-4 px-4 font-semibold text-gray-700">Статус</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Мастер</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Итог</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">ID</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Тип заказа</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">РК</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Город</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Имя мастера</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Телефон</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Клиент</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Адрес</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Дата встречи</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Направление</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Проблема</th>
+                    <th className="text-center py-6 px-6 font-semibold text-gray-700 text-lg">Статус</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Мастер</th>
+                    <th className="text-left py-6 px-6 font-semibold text-gray-700 text-lg">Итог</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -323,28 +323,28 @@ function OrdersContent() {
                       style={{borderColor: '#e5e7eb'}}
                       onClick={() => handleOrderClick(order.id)}
                     >
-                      <td className="py-4 px-4 text-gray-800 font-medium">{order.id}</td>
-                      <td className="py-4 px-4">
-                        <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
+                      <td className="py-6 px-6 text-gray-800 font-medium text-base">{order.id}</td>
+                      <td className="py-6 px-6">
+                        <span className="px-4 py-2 rounded-full text-sm font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
                           {order.typeOrder}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-gray-800">{order.rk}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.city}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.avitoName || '-'}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.phone}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.clientName}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.address}</td>
-                      <td className="py-4 px-4 text-gray-800">{formatDate(order.dateMeeting)}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.typeEquipment}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.problem}</td>
-                      <td className="py-4 px-4 text-center">
-                        <span className="inline-block px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
+                      <td className="py-6 px-6 text-gray-800 text-base">{order.rk}</td>
+                      <td className="py-6 px-6 text-gray-800 text-base">{order.city}</td>
+                      <td className="py-6 px-6 text-gray-800 text-base">{order.avitoName || '-'}</td>
+                      <td className="py-6 px-6 text-gray-800 text-base">{order.phone}</td>
+                      <td className="py-6 px-6 text-gray-800 text-base">{order.clientName}</td>
+                      <td className="py-6 px-6 text-gray-800 text-base">{order.address}</td>
+                      <td className="py-6 px-6 text-gray-800 text-base">{formatDate(order.dateMeeting)}</td>
+                      <td className="py-6 px-6 text-gray-800 text-base">{order.typeEquipment}</td>
+                      <td className="py-6 px-6 text-gray-800 text-base">{order.problem}</td>
+                      <td className="py-6 px-6 text-center">
+                        <span className="inline-block px-4 py-2 rounded-full text-sm font-medium text-white shadow-sm" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
                           {order.statusOrder}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-gray-800">{order.master?.name || '-'}</td>
-                      <td className="py-4 px-4 text-gray-800 font-semibold">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</td>
+                      <td className="py-6 px-6 text-gray-800 text-base">{order.master?.name || '-'}</td>
+                      <td className="py-6 px-6 text-gray-800 font-semibold text-base">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</td>
                     </tr>
                   ))}
                 </tbody>
