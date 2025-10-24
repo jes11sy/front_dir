@@ -43,14 +43,14 @@ export function CustomNavigation() {
     <>
       {/* Мобильная навигация сверху */}
       <nav 
-        className="md:hidden fixed top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-lg border-b rounded-b-2xl"
+        className="md:hidden fixed top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-lg border-b"
         style={{
           backgroundColor: 'white',
           borderColor: '#14b8a6',
           borderBottomWidth: '2px'
         }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-4">
           <Link 
             href="/orders" 
             className="text-lg font-bold transition-colors duration-200"
@@ -96,19 +96,19 @@ export function CustomNavigation() {
         {/* Мобильное меню */}
         {mobileMenuOpen && (
           <div 
-            className="border-t bg-white rounded-b-2xl"
+            className="border-t bg-white"
             style={{
               borderColor: '#14b8a6',
               borderTopWidth: '2px'
             }}
           >
-            <div className="px-4 py-3 space-y-2">
+            <div className="px-4 py-4 space-y-1">
               {navigationItems.map((item) => (
                 <div key={item.name}>
                   {item.href ? (
                     <Link
                       href={item.href}
-                      className="flex items-center w-full px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg"
+                      className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200"
                       style={{
                         color: pathname === item.href ? 'white' : '#374151',
                         backgroundColor: pathname === item.href ? '#14b8a6' : 'transparent',
@@ -139,7 +139,7 @@ export function CustomNavigation() {
                   ) : (
                     <div>
                       <button
-                        className="flex items-center w-full px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg"
+                        className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200"
                         style={{
                           color: expandedDropdown === item.name ? 'white' : '#374151',
                           backgroundColor: expandedDropdown === item.name ? '#14b8a6' : 'transparent',
@@ -182,7 +182,7 @@ export function CustomNavigation() {
                             <Link
                               key={dropdownItem.name}
                               href={dropdownItem.href}
-                              className="block px-3 py-2 text-sm transition-all duration-150 rounded-lg"
+                              className="block px-4 py-2 text-sm transition-all duration-150"
                               style={{
                                 color: pathname === dropdownItem.href ? 'white' : '#6b7280',
                                 backgroundColor: pathname === dropdownItem.href ? '#14b8a6' : 'transparent',
