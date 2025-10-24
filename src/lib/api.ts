@@ -708,9 +708,12 @@ export class ApiClient {
     }
 
     const result = await response.json()
+    console.log('API Response:', result)
     // API возвращает {success: true, data: {masters: [...], totalAmount: ...}}
     // Нужно извлечь data
-    return result.data || result
+    const data = result.data || result
+    console.log('Extracted data:', data)
+    return data
   }
 
   async getMasterHandoverDetails(masterId: number): Promise<{ master: any, orders: any[] }> {
