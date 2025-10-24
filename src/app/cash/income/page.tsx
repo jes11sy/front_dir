@@ -327,13 +327,13 @@ function IncomeContent() {
 
       {/* Модальное окно добавления прихода */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl animate-fade-in-scale">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">Добавить приход</h2>
+              <h2 className="text-xl font-semibold text-gray-800">Добавить приход</h2>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-white text-2xl"
+                className="text-gray-400 hover:text-gray-600 text-2xl transition-colors duration-200"
               >
                 ×
               </button>
@@ -342,7 +342,7 @@ function IncomeContent() {
             <div className="space-y-4">
               {/* Город */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Город</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Город</label>
                 <CustomSelect
                   value={formData.city}
                   onChange={(value) => handleInputChange('city', value)}
@@ -356,13 +356,13 @@ function IncomeContent() {
 
               {/* Сумма */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Сумма</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Сумма</label>
                 <input
                   type="text"
                   value={formData.amount}
                   onChange={(e) => handleInputChange('amount', e.target.value)}
                   placeholder="Введите сумму"
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
                   onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px #2a6b68'}
                   onBlur={(e) => e.target.style.boxShadow = 'none'}
                 />
@@ -370,7 +370,7 @@ function IncomeContent() {
 
               {/* Назначение платежа */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Назначение платежа</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Назначение платежа</label>
                 <CustomSelect
                   value={formData.purpose}
                   onChange={(value) => handleInputChange('purpose', value)}
@@ -384,13 +384,13 @@ function IncomeContent() {
 
               {/* Комментарий */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Комментарий</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Комментарий</label>
                 <textarea
                   value={formData.comment}
                   onChange={(e) => handleInputChange('comment', e.target.value)}
                   placeholder="Введите комментарий"
                   rows={3}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
                   onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px #2a6b68'}
                   onBlur={(e) => e.target.style.boxShadow = 'none'}
                 />
@@ -398,7 +398,7 @@ function IncomeContent() {
 
               {/* Чек */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Чек</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Чек</label>
                 <div className="relative">
                   <input
                     type="file"
@@ -409,7 +409,7 @@ function IncomeContent() {
                   />
                   <label
                     htmlFor="receipt-upload"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer bg-gray-700/50 hover:bg-gray-600/50 transition-colors"
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
                     onMouseEnter={(e) => e.currentTarget.style.borderColor = '#2a6b68'}
                     onMouseLeave={(e) => e.currentTarget.style.borderColor = '#4b5563'}
                     onDragOver={handleDragOver}
@@ -454,16 +454,13 @@ function IncomeContent() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
               >
                 Отмена
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-1 px-4 py-2 text-white rounded-lg transition-colors"
-                style={{backgroundColor: '#2a6b68'}}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a5a57'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a6b68'}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
               >
                 Добавить
               </button>

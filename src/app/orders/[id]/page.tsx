@@ -286,10 +286,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   if (loading) {
     return (
       <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-white">Загрузка данных заказа...</p>
+        <div className="container mx-auto px-2 sm:px-4 py-8">
+          <div className="text-center py-8 animate-fade-in">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+            <p className="text-gray-700 text-lg">Загрузка данных заказа...</p>
           </div>
         </div>
       </div>
@@ -299,9 +299,9 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   if (error || !order) {
     return (
       <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-4 py-8">
-          <div className="bg-red-900/20 border border-red-500 rounded-lg p-4">
-            <p className="text-red-400">{error instanceof Error ? error.message : error || 'Заказ не найден'}</p>
+        <div className="container mx-auto px-2 sm:px-4 py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 animate-slide-in-left">
+            <p className="text-red-600">{error instanceof Error ? error.message : error || 'Заказ не найден'}</p>
           </div>
         </div>
       </div>
@@ -312,15 +312,15 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
     <>
       <OrderPageStyles />
       <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
             {/* Навигация */}
             <div className="mb-6">
               <button
                 onClick={() => router.push('/orders')}
-                className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg transition-colors text-sm sm:text-base"
+                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm sm:text-base font-medium"
               >
                 ← Назад
               </button>
@@ -330,7 +330,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-4">
-                  <h1 className="text-2xl font-bold text-white">Заказ №{resolvedParams.id}</h1>
+                  <h1 className="text-2xl font-bold text-gray-800 animate-slide-down">Заказ №{resolvedParams.id}</h1>
                   <CustomSelect
                     value={orderStatus}
                     onChange={setOrderStatus}
@@ -346,10 +346,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
                 <button 
                   onClick={handleSave}
                   disabled={updating || isFieldsDisabled()}
-                  className="hidden md:block px-6 py-2 text-white rounded-lg transition-colors font-medium disabled:opacity-50" 
-                  style={{backgroundColor: '#114643'}} 
-                  onMouseEnter={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.backgroundColor = '#0f3d3a')} 
-                  onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#114643'}
+                  className="hidden md:block px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {updating ? 'Сохранение...' : isFieldsDisabled() ? 'Заказ завершен' : 'Сохранить'}
                 </button>
@@ -357,18 +354,17 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
             </div>
 
             {/* Вкладки */}
-            <div className="border-b border-gray-600 mb-6">
+            <div className="border-b border-gray-200 mb-6 animate-fade-in">
               <nav className="flex space-x-8">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                       activeTab === tab.id
-                        ? 'text-gray-300'
-                        : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                        ? 'text-teal-600 border-teal-600'
+                        : 'border-transparent text-gray-600 hover:text-teal-600 hover:border-teal-300'
                     }`}
-                    style={activeTab === tab.id ? {borderBottomColor: '#4a8b88', color: '#4a8b88'} : {}}
                   >
                     {tab.label}
                   </button>
@@ -378,16 +374,16 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
             {/* Состояние загрузки */}
             {loading && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                <p className="text-white">Загрузка данных заказа...</p>
+              <div className="text-center py-8 animate-fade-in">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+                <p className="text-gray-700 text-lg">Загрузка данных заказа...</p>
               </div>
             )}
 
             {/* Ошибка */}
             {error && (
-              <div className="bg-red-900/20 border border-red-500 rounded-lg p-4 mb-6">
-                <p className="text-red-400">{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 animate-slide-in-left">
+                <p className="text-red-600">{error}</p>
               </div>
             )}
 
@@ -471,10 +467,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
           <button 
             onClick={handleSave}
             disabled={updating || isFieldsDisabled()}
-            className="px-8 py-3 text-white rounded-lg transition-colors font-medium shadow-lg disabled:opacity-50" 
-            style={{backgroundColor: '#114643'}} 
-            onMouseEnter={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.backgroundColor = '#0f3d3a')} 
-            onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#114643'}
+            className="px-8 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {updating ? 'Сохранение...' : isFieldsDisabled() ? 'Заказ завершен' : 'Сохранить'}
           </button>
