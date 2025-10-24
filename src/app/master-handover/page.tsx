@@ -101,9 +101,9 @@ function MasterHandoverContent() {
                         </td>
                         <td className="py-4 px-4 text-white align-top">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
-                            master.requestsCount > 0 ? 'bg-orange-500' : 'bg-gray-500'
+                            master.ordersCount > 0 ? 'bg-orange-500' : 'bg-gray-500'
                           }`}>
-                            {master.requestsCount}
+                            {master.ordersCount}
                           </span>
                         </td>
                       </tr>
