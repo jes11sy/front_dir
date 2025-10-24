@@ -54,10 +54,11 @@ function OrdersContent() {
       
       console.log('Orders response:', response)
       console.log('Orders data:', response.data?.orders)
+      console.log('Pagination data:', response.data?.pagination || response.pagination)
       setOrders(Array.isArray(response.data?.orders) ? response.data.orders : [])
       setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
       setAllMasters(Array.isArray(masters) ? masters : [])
-      setPagination(response.pagination || {
+      setPagination(response.data?.pagination || response.pagination || {
         page: 1,
         limit: 10,
         total: 0,
@@ -402,7 +403,10 @@ function OrdersContent() {
             {/* Отладка пагинации */}
             {process.env.NODE_ENV === 'development' && (
               <div className="mt-4 p-4 bg-yellow-100 border border-yellow-400 rounded text-sm">
-                <p>Debug: loading={loading.toString()}, error={error}, orders={safeOrders.length}, pagination={JSON.stringify(pagination)}</p>
+                <p>Debug: loading={loading.toString()}, error={error}, orders={safeOrders.length}</p>
+                <p>Pagination: {JSON.stringify(pagination)}</p>
+                <p>Status filter: {statusFilter || 'none'}</p>
+                <p>Current page: {currentPage}</p>
               </div>
             )}
 

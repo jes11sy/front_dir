@@ -178,27 +178,30 @@ function CityReportContent() {
   }
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
             {/* Состояние загрузки */}
             {loading && (
-              <div className="text-center py-8">
-                <div className="text-white text-xl">Загрузка отчета...</div>
+              <div className="text-center py-8 animate-fade-in">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                <div className="text-gray-700 text-xl mt-4">Загрузка отчета...</div>
               </div>
             )}
 
             {/* Состояние ошибки */}
             {error && (
-              <div className="text-center py-8">
-                <div className="text-red-400 text-xl mb-4">Ошибка: {error}</div>
-                <button 
-                  onClick={() => loadCityReport()}
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                >
-                  Попробовать снова
-                </button>
+              <div className="text-center py-8 animate-slide-in-left">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                  <div className="text-red-600 text-xl mb-4">Ошибка: {error}</div>
+                  <button 
+                    onClick={() => loadCityReport()}
+                    className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md"
+                  >
+                    Попробовать снова
+                  </button>
+                </div>
               </div>
             )}
 
@@ -220,12 +223,12 @@ function CityReportContent() {
                 </button>
               </div>
               
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 animate-slide-in-left">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-white font-semibold">Фильтр</h3>
+                  <h3 className="text-gray-700 font-semibold text-lg">Фильтр</h3>
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors text-sm"
+                    className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                   >
                     {showFilters ? 'Скрыть' : 'Показать'}
                   </button>
@@ -233,21 +236,18 @@ function CityReportContent() {
                 {/* Кнопка экспорта для десктопной версии */}
                 <button 
                   onClick={exportToExcel}
-                  className="hidden md:block px-3 py-1 text-white rounded transition-colors text-sm"
-                  style={{backgroundColor: '#2a6b68'}}
-                  onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                  onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                  className="hidden md:block px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   Экспорт в Excel
                 </button>
               </div>
               
               {showFilters && (
-                <div className="p-3 bg-gray-800 rounded-lg">
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in">
                   <div className="space-y-4">
                     {/* Первая строка - Город */}
                     <div>
-                      <label className="block text-xs text-gray-300 mb-1">Город</label>
+                      <label className="block text-sm text-gray-600 mb-1">Город</label>
                       <CustomSelect
                         value={selectedCity}
                         onChange={setSelectedCity}
@@ -263,27 +263,21 @@ function CityReportContent() {
                     {/* Вторая строка - Даты */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs text-gray-300 mb-1">От даты</label>
+                        <label className="block text-sm text-gray-600 mb-1">От даты</label>
                         <input
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm"
-                          style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
-                          onFocus={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'}
-                          onBlur={(e) => (e.target as HTMLElement).style.borderColor = '#334155'}
+                          className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none text-sm shadow-sm hover:shadow-md transition-all duration-200"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-300 mb-1">До даты</label>
+                        <label className="block text-sm text-gray-600 mb-1">До даты</label>
                         <input
                           type="date"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
-                          className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm"
-                          style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
-                          onFocus={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'}
-                          onBlur={(e) => (e.target as HTMLElement).style.borderColor = '#334155'}
+                          className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none text-sm shadow-sm hover:shadow-md transition-all duration-200"
                         />
                       </div>
                     </div>
@@ -296,16 +290,13 @@ function CityReportContent() {
                           setEndDate('')
                           setSelectedCity('all')
                         }}
-                        className="w-full sm:w-auto px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm transition-colors"
+                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
                       >
                         Сбросить
                       </button>
                       <button 
                         onClick={applyFilters}
-                        className="w-full sm:w-auto px-3 py-1.5 text-white rounded text-sm transition-colors"
-                        style={{backgroundColor: '#2a6b68'}}
-                        onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                        onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
                       >
                         Сформировать отчет
                       </button>
@@ -317,58 +308,58 @@ function CityReportContent() {
 
             {/* Статистические карточки */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-gray-800 rounded-lg p-6 border" style={{borderColor: '#114643'}}>
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
                 <div className="text-center">
-                  <div className="text-3xl font-bold mb-2" style={{color: '#2a6b68'}}>
+                  <div className="text-3xl font-bold mb-2 text-teal-600">
                     {formatNumber((Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.closedOrders || 0), 0))}
                   </div>
-                  <div className="text-gray-300 text-sm">Закрытых заказов</div>
+                  <div className="text-gray-600 text-sm">Закрытых заказов</div>
                 </div>
               </div>
               
-              <div className="bg-gray-800 rounded-lg p-6 border" style={{borderColor: '#dc143c'}}>
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
                 <div className="text-center">
-                  <div className="text-3xl font-bold mb-2" style={{color: '#dc143c'}}>
+                  <div className="text-3xl font-bold mb-2 text-red-600">
                     {formatNumber((Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.refusals || 0), 0))}
                   </div>
-                  <div className="text-gray-300 text-sm">Всего отказов</div>
+                  <div className="text-gray-600 text-sm">Всего отказов</div>
                 </div>
               </div>
               
-              <div className="bg-gray-800 rounded-lg p-6 border" style={{borderColor: '#f59e0b'}}>
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
                 <div className="text-center">
-                  <div className="text-3xl font-bold mb-2" style={{color: '#f59e0b'}}>
+                  <div className="text-3xl font-bold mb-2 text-yellow-600">
                     {formatNumber((Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.notOrders || 0), 0))}
                   </div>
-                  <div className="text-gray-300 text-sm">Всего Незаказов</div>
+                  <div className="text-gray-600 text-sm">Всего Незаказов</div>
                 </div>
               </div>
               
-              <div className="bg-gray-800 rounded-lg p-6 border" style={{borderColor: '#8b5cf6'}}>
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
                 <div className="text-center">
-                  <div className="text-3xl font-bold mb-2" style={{color: '#8b5cf6'}}>
+                  <div className="text-3xl font-bold mb-2 text-purple-600">
                     {Array.isArray(filteredReports) && filteredReports.length > 0 
                       ? formatNumber(filteredReports.reduce((sum, city) => sum + (city?.orders?.avgCheck || 0), 0) / filteredReports.length) + ' ₽'
                       : '0 ₽'
                     }
                   </div>
-                  <div className="text-gray-300 text-sm">Средний чек</div>
+                  <div className="text-gray-600 text-sm">Средний чек</div>
                 </div>
               </div>
             </div>
 
             {/* Таблица по городам */}
-            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
               <div className="min-w-[600px]">
-                <table className="w-full border-collapse text-sm">
+                <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
                   <thead>
-                    <tr className="border-b-2" style={{borderColor: '#114643'}}>
-                      <th className="text-left py-3 px-4 font-semibold text-white">Город</th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">Закрытых заказов</th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">Средний чек</th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">Оборот</th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">Доход компании</th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">Касса</th>
+                    <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Город</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Закрытых заказов</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Средний чек</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Оборот</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Доход компании</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Касса</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -380,17 +371,17 @@ function CityReportContent() {
                       const companyIncome = cityReport?.orders?.totalMasterChange || 0
                       
                       return (
-                        <tr key={cityReport.city} className="border-b hover:bg-white/10 transition-colors" style={{borderColor: '#114643'}}>
-                          <td className="py-3 px-4 text-white font-semibold">{cityReport.city}</td>
-                          <td className="py-3 px-4 text-white">{formatNumber(cityReport?.orders?.closedOrders || 0)}</td>
-                          <td className="py-3 px-4 text-white">{formatNumber(cityReport?.orders?.avgCheck || 0)} ₽</td>
-                          <td className="py-3 px-4 text-white font-semibold" style={{color: '#2a6b68'}}>
+                        <tr key={cityReport.city} className="border-b hover:bg-teal-50 transition-colors" style={{borderColor: '#e5e7eb'}}>
+                          <td className="py-3 px-4 text-gray-800 font-semibold">{cityReport.city}</td>
+                          <td className="py-3 px-4 text-gray-800">{formatNumber(cityReport?.orders?.closedOrders || 0)}</td>
+                          <td className="py-3 px-4 text-gray-800">{formatNumber(cityReport?.orders?.avgCheck || 0)} ₽</td>
+                          <td className="py-3 px-4 text-gray-800 font-semibold text-teal-600">
                             {formatNumber(turnover)} ₽
                           </td>
-                          <td className="py-3 px-4 text-white font-semibold" style={{color: '#3b82f6'}}>
+                          <td className="py-3 px-4 text-gray-800 font-semibold text-teal-600">
                             {formatNumber(companyIncome)} ₽
                           </td>
-                          <td className="py-3 px-4 text-white font-semibold" style={{color: '#f59e0b'}}>
+                          <td className="py-3 px-4 text-gray-800 font-semibold text-teal-600">
                             {formatNumber(cityReport?.cash?.totalAmount || 0)} ₽
                           </td>
                         </tr>
