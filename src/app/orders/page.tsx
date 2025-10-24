@@ -52,7 +52,9 @@ function OrdersContent() {
         apiClient.getMasters().catch(() => [])
       ])
       
-      setOrders(Array.isArray(response.data) ? response.data : [])
+      console.log('Orders response:', response)
+      console.log('Orders data:', response.data?.orders)
+      setOrders(Array.isArray(response.data?.orders) ? response.data.orders : [])
       setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
       setAllMasters(Array.isArray(masters) ? masters : [])
       setPagination(response.pagination || {
@@ -99,6 +101,8 @@ function OrdersContent() {
 
   // Получаем уникальные значения для фильтров из загруженных данных
   const safeOrders = Array.isArray(orders) ? orders : []
+  console.log('Orders state:', orders)
+  console.log('Safe orders:', safeOrders)
   const uniqueCities = Array.from(new Set(safeOrders.map(order => order.city)))
 
   // Сброс фильтров
@@ -292,6 +296,13 @@ function OrdersContent() {
             </div>
 
             {/* Десктопная таблица */}
+            {!loading && !error && safeOrders.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-400">Нет заказов для отображения</p>
+              </div>
+            )}
+            
+            {!loading && !error && safeOrders.length > 0 && (
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full border-collapse text-[11px]">
                 <thead>
@@ -313,7 +324,7 @@ function OrdersContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {Array.isArray(orders) && orders.map((order) => (
+                  {Array.isArray(safeOrders) && safeOrders.map((order) => (
                     <tr 
                       key={order.id}
                       className="border-b hover:bg-white/10 transition-colors cursor-pointer" 
@@ -347,10 +358,12 @@ function OrdersContent() {
                 </tbody>
               </table>
             </div>
+            )}
 
             {/* Мобильные карточки */}
+            {!loading && !error && safeOrders.length > 0 && (
             <div className="md:hidden space-y-4">
-              {Array.isArray(orders) && orders.map((order) => (
+              {Array.isArray(safeOrders) && safeOrders.map((order) => (
                 <div 
                   key={order.id}
                   className="bg-gray-800/50 rounded-lg p-4 border border-gray-600 cursor-pointer hover:bg-gray-700/50 transition-colors"
@@ -392,6 +405,7 @@ function OrdersContent() {
                 </div>
               ))}
             </div>
+            )}
 
             {/* Пагинация */}
             {pagination && pagination.totalPages > 1 && (
