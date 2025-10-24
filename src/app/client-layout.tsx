@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Navigation } from '@/components/navigation'
+import { CustomNavigation } from '@/components/custom-navigation'
 import { ErrorBoundary } from '@/components/error-boundary'
 import React from 'react'
 
@@ -24,7 +24,7 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
 
   return (
     <ErrorBoundary>
-      <Navigation />
+      <CustomNavigation />
       <main className="pt-16">{children}</main>
     </ErrorBoundary>
   )

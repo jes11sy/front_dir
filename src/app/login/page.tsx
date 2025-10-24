@@ -40,7 +40,6 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(data.user))
       
       logger.info('Пользователь успешно авторизован')
-      toast.success('Вход выполнен успешно!')
       
       // Перенаправляем на страницу заказов
       router.push('/orders')
@@ -105,7 +104,7 @@ export default function LoginPage() {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 rounded border-2 border-gray-300 focus:ring-2 transition-all duration-200"
-                  style={{accentColor: '#14b8a6'}}
+                  style={{accentColor: '#6b7280'}}
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200 cursor-pointer">
                   Запомнить меня
