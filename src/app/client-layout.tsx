@@ -40,7 +40,7 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
   return (
     <ErrorBoundary>
       <CustomNavigation />
-      <main className="ml-0 md:ml-64">{children}</main>
+      <main className="pt-16 md:pt-0 md:ml-64">{children}</main>
     </ErrorBoundary>
   )
 })
