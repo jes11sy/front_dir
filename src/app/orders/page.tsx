@@ -401,11 +401,11 @@ function OrdersContent() {
 
             {/* Пагинация */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap animate-fade-in">
+              <div className="mt-6 flex justify-center items-center gap-2 flex-wrap animate-fade-in">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:text-gray-300 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                  className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   ←
                 </button>
@@ -424,7 +424,7 @@ function OrdersContent() {
                       <button
                         key={1}
                         onClick={() => setCurrentPage(1)}
-                        className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                        className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                       >
                         1
                       </button>
@@ -446,8 +446,8 @@ function OrdersContent() {
                         onClick={() => setCurrentPage(page)}
                         className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
                           currentPage === page
-                            ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-md'
-                            : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white hover:shadow-md'
+                            ? 'bg-teal-600 text-white shadow-md'
+                            : 'bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md'
                         }`}
                       >
                         {page}
@@ -468,7 +468,7 @@ function OrdersContent() {
                       <button
                         key={pagination?.totalPages || 0}
                         onClick={() => setCurrentPage(pagination?.totalPages || 0)}
-                        className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                        className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                       >
                         {pagination?.totalPages || 0}
                       </button>
@@ -481,7 +481,7 @@ function OrdersContent() {
                 <button
                   onClick={() => setCurrentPage(Math.min(pagination?.totalPages || 0, currentPage + 1))}
                   disabled={currentPage === (pagination?.totalPages || 0)}
-                  className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:text-gray-300 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                  className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   →
                 </button>
