@@ -149,41 +149,44 @@ function HistoryContent() {
 
             {/* Состояние загрузки и ошибки */}
             {loading && (
-              <div className="text-center py-8">
-                <div className="text-white">Загрузка...</div>
+              <div className="text-center py-8 animate-fade-in">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                <div className="text-gray-700 text-lg mt-4">Загрузка...</div>
               </div>
             )}
 
             {error && (
-              <div className="text-center py-8">
-                <div className="text-red-400">Ошибка: {error}</div>
-                <button 
-                  onClick={loadHistoryData}
-                  className="mt-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
-                >
-                  Попробовать снова
-                </button>
+              <div className="text-center py-8 animate-slide-in-left">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                  <div className="text-red-600 text-lg mb-4">Ошибка: {error}</div>
+                  <button 
+                    onClick={loadHistoryData}
+                    className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
+                  >
+                    Попробовать снова
+                  </button>
+                </div>
               </div>
             )}
 
             {/* Фильтры */}
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-white font-semibold">Фильтры</h3>
+                <h3 className="text-gray-700 font-semibold">Фильтры</h3>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
+                  className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   {showFilters ? 'Скрыть' : 'Показать'}
                 </button>
               </div>
               
               {showFilters && (
-                <div className="p-3 bg-gray-800 rounded-lg">
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                     {/* Тип транзакции */}
                     <div>
-                      <label className="block text-xs text-gray-300 mb-1">Тип</label>
+                      <label className="block text-xs text-gray-600 mb-1">Тип</label>
                       <CustomSelect
                         value={typeFilter}
                         onChange={setTypeFilter}
@@ -198,7 +201,7 @@ function HistoryContent() {
 
                     {/* Город */}
                     <div>
-                      <label className="block text-xs text-gray-300 mb-1">Город</label>
+                      <label className="block text-xs text-gray-600 mb-1">Город</label>
                       <CustomSelect
                         value={cityFilter}
                         onChange={setCityFilter}
@@ -213,12 +216,12 @@ function HistoryContent() {
 
                     {/* От даты */}
                     <div>
-                      <label className="block text-xs text-gray-300 mb-1">От даты</label>
+                      <label className="block text-xs text-gray-600 mb-1">От даты</label>
                       <input
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm w-full"
+                        className="px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200 text-sm w-full"
                         style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
                         onFocus={(e) => e.target.style.borderColor = '#2a6b68'}
                         onBlur={(e) => e.target.style.borderColor = '#334155'}
@@ -227,12 +230,12 @@ function HistoryContent() {
 
                     {/* До даты */}
                     <div>
-                      <label className="block text-xs text-gray-300 mb-1">До даты</label>
+                      <label className="block text-xs text-gray-600 mb-1">До даты</label>
                       <input
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm w-full"
+                        className="px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200 text-sm w-full"
                         style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
                         onFocus={(e) => e.target.style.borderColor = '#2a6b68'}
                         onBlur={(e) => e.target.style.borderColor = '#334155'}
@@ -248,7 +251,7 @@ function HistoryContent() {
                         setTypeFilter('all')
                         setCityFilter('all')
                       }}
-                      className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm transition-colors"
+                      className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
                     >
                       Сбросить все
                     </button>
