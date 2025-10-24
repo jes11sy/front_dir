@@ -50,7 +50,7 @@ export function CustomNavigation() {
           borderBottomWidth: '2px'
         }}
       >
-        <div className="flex items-center justify-between px-4 py-4">
+        <div className="flex items-center justify-between px-4 py-3">
           <Link 
             href="/orders" 
             className="text-lg font-bold transition-colors duration-200"
@@ -108,7 +108,7 @@ export function CustomNavigation() {
                   {item.href ? (
                     <Link
                       href={item.href}
-                      className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200"
+                      className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
                       style={{
                         color: pathname === item.href ? 'white' : '#374151',
                         backgroundColor: pathname === item.href ? '#14b8a6' : 'transparent',
@@ -139,7 +139,7 @@ export function CustomNavigation() {
                   ) : (
                     <div>
                       <button
-                        className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200"
+                        className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
                         style={{
                           color: expandedDropdown === item.name ? 'white' : '#374151',
                           backgroundColor: expandedDropdown === item.name ? '#14b8a6' : 'transparent',

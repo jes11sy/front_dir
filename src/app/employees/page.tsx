@@ -78,7 +78,10 @@ function EmployeesContent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
-        <div className="text-white text-lg">Загрузка сотрудников...</div>
+        <div className="text-center py-8 animate-fade-in">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+          <div className="text-gray-700 text-lg mt-4">Загрузка сотрудников...</div>
+        </div>
       </div>
     )
   }
@@ -86,30 +89,29 @@ function EmployeesContent() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
-        <div className="text-red-400 text-lg">Ошибка: {error}</div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 animate-slide-in-left">
+          <div className="text-red-600 text-lg">Ошибка: {error}</div>
+        </div>
       </div>
     )
   }
   
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
             {/* Заголовок */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-white">Сотрудники</h1>
+            <div className="mb-6 animate-slide-down">
+              <h1 className="text-2xl font-bold text-gray-800">Сотрудники</h1>
             </div>
             
             {/* Кнопка добавления */}
             <div className="mb-6 flex justify-end">
               <Button 
                 onClick={() => router.push('/employees/add')}
-                className="px-4 py-2 sm:px-3 sm:py-1.5 text-white rounded transition-colors text-sm sm:text-sm w-full sm:w-auto"
-                style={{backgroundColor: '#2a6b68'}}
-                onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium w-full sm:w-auto"
               >
                 + Добавить сотрудника
               </Button>
@@ -118,15 +120,15 @@ function EmployeesContent() {
             {/* Таблица */}
             <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
               <div className="min-w-[500px]">
-                <table className="w-full border-collapse text-sm">
+                <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
                   <thead>
-                    <tr className="border-b-2" style={{borderColor: '#114643'}}>
-                      <th className="text-left py-4 px-4 font-semibold text-white">ID</th>
-                      <th className="text-left py-4 px-4 font-semibold text-white">Имя</th>
-                      <th className="text-left py-4 px-4 font-semibold text-white">Логин</th>
-                      <th className="text-left py-4 px-4 font-semibold text-white">Города</th>
-                      <th className="text-left py-4 px-4 font-semibold text-white">Статус</th>
-                      <th className="text-left py-4 px-4 font-semibold text-white">Дата создания</th>
+                    <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-700">ID</th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Имя</th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Логин</th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Города</th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Статус</th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Дата создания</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -145,16 +147,16 @@ function EmployeesContent() {
                       return (
                         <tr 
                           key={item.id} 
-                          className="border-b hover:bg-white/10 transition-colors cursor-pointer" 
-                          style={{borderColor: '#114643'}}
+                          className="border-b hover:bg-teal-50 transition-colors cursor-pointer" 
+                          style={{borderColor: '#e5e7eb'}}
                           onClick={() => router.push(`/employees/${item.id}`)}
                         >
-                          <td className="py-4 px-4 text-white align-top">{item.id}</td>
-                          <td className="py-4 px-4 text-white font-semibold align-top">
+                          <td className="py-4 px-4 text-gray-800 align-top">{item.id}</td>
+                          <td className="py-4 px-4 text-gray-800 font-semibold align-top">
                             <div className="whitespace-nowrap">{item.name}</div>
                           </td>
-                          <td className="py-4 px-4 text-white align-top">{item.login || '-'}</td>
-                          <td className="py-4 px-4 text-white align-top">
+                          <td className="py-4 px-4 text-gray-800 align-top">{item.login || '-'}</td>
+                          <td className="py-4 px-4 text-gray-800 align-top">
                             <div className="whitespace-nowrap">{item.cities.join(', ')}</div>
                           </td>
                           <td className="py-4 px-4 align-top">
@@ -162,7 +164,7 @@ function EmployeesContent() {
                               {item.statusWork}
                             </span>
                           </td>
-                          <td className="py-4 px-4 text-white align-top">{formatDate(item.dateCreate)}</td>
+                          <td className="py-4 px-4 text-gray-800 align-top">{formatDate(item.dateCreate)}</td>
                         </tr>
                       )
                     })}
@@ -173,11 +175,11 @@ function EmployeesContent() {
 
             {/* Пагинация */}
             {totalPages > 1 && (
-              <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap">
+              <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap animate-fade-in">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded transition-colors text-xs sm:text-sm"
+                  className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   ←
                 </button>
@@ -186,14 +188,11 @@ function EmployeesContent() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`px-2 py-1 sm:px-3 rounded transition-colors text-xs sm:text-sm ${
+                    className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
                       currentPage === page
-                        ? 'text-white'
-                        : 'bg-gray-600 hover:bg-gray-700 text-white'
+                        ? 'bg-teal-600 text-white'
+                        : 'bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md'
                     }`}
-                    style={currentPage === page ? {backgroundColor: '#2a6b68'} : {}}
-                    onMouseEnter={currentPage !== page ? (e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57' : undefined}
-                    onMouseLeave={currentPage !== page ? (e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68' : undefined}
                   >
                     {page}
                   </button>
@@ -202,7 +201,7 @@ function EmployeesContent() {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded transition-colors text-xs sm:text-sm"
+                  className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   →
                 </button>

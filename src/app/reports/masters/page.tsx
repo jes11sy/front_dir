@@ -208,27 +208,30 @@ function MastersReportContent() {
   const currentData = safeMasterReports.slice(startIndex, endIndex)
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
             {/* Состояние загрузки */}
             {loading && (
-              <div className="text-center py-8">
-                <div className="text-white text-xl">Загрузка отчета...</div>
+              <div className="text-center py-8 animate-fade-in">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                <div className="text-gray-700 text-xl mt-4">Загрузка отчета...</div>
               </div>
             )}
 
             {/* Состояние ошибки */}
             {error && (
-              <div className="text-center py-8">
-                <div className="text-red-400 text-xl mb-4">Ошибка: {error}</div>
-                <button 
-                  onClick={() => loadMastersReport()}
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                >
-                  Попробовать снова
-                </button>
+              <div className="text-center py-8 animate-slide-in-left">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                  <div className="text-red-600 text-xl mb-4">Ошибка: {error}</div>
+                  <button 
+                    onClick={() => loadMastersReport()}
+                    className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-gray-700 rounded-lg transition-all duration-200 hover:shadow-md"
+                  >
+                    Попробовать снова
+                  </button>
+                </div>
               </div>
             )}
 
@@ -241,10 +244,7 @@ function MastersReportContent() {
               <div className="block md:hidden mb-3">
                 <button 
                   onClick={exportToExcel}
-                  className="w-full px-3 py-2 text-white rounded transition-colors text-sm"
-                  style={{backgroundColor: '#2a6b68'}}
-                  onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                  onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                  className="w-full px-3 py-2 text-gray-700 rounded transition-colors text-sm"
                 >
                   Экспорт в Excel
                 </button>
@@ -252,10 +252,10 @@ function MastersReportContent() {
               
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-white font-semibold">Фильтр</h3>
+                  <h3 className="text-gray-700 font-semibold">Фильтр</h3>
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors text-sm"
+                    className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                   >
                     {showFilters ? 'Скрыть' : 'Показать'}
                   </button>
@@ -263,10 +263,7 @@ function MastersReportContent() {
                 {/* Кнопка экспорта для десктопной версии */}
                 <button 
                   onClick={exportToExcel}
-                  className="hidden md:block px-3 py-1 text-white rounded transition-colors text-sm"
-                  style={{backgroundColor: '#2a6b68'}}
-                  onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                  onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                  className="hidden md:block px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   Экспорт в Excel
                 </button>
@@ -313,7 +310,7 @@ function MastersReportContent() {
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm"
+                          className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200 text-sm"
                           style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
                           onFocus={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'}
                           onBlur={(e) => (e.target as HTMLElement).style.borderColor = '#334155'}
@@ -325,7 +322,7 @@ function MastersReportContent() {
                           type="date"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
-                          className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm"
+                          className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200 text-sm"
                           style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
                           onFocus={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'}
                           onBlur={(e) => (e.target as HTMLElement).style.borderColor = '#334155'}
@@ -342,16 +339,13 @@ function MastersReportContent() {
                           setSelectedMaster('all')
                           setSelectedCity('all')
                         }}
-                        className="w-full sm:w-auto px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm transition-colors"
+                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
                       >
                         Сбросить
                       </button>
                       <button 
                         onClick={applyFilters}
-                        className="w-full sm:w-auto px-3 py-1.5 text-white rounded text-sm transition-colors"
-                        style={{backgroundColor: '#2a6b68'}}
-                        onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                        onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
                       >
                         Сформировать отчет
                       </button>
@@ -375,31 +369,31 @@ function MastersReportContent() {
 
               return Object.entries(dataByCity).map(([city, cityData]) => (
                 <div key={city} className="mb-8">
-                  <h3 className="text-xl font-semibold text-white mb-4">{city}</h3>
+                  <h3 className="text-xl font-semibold text-gray-700 mb-4">{city}</h3>
                   <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
                     <div className="min-w-[600px]">
-                      <table className="w-full border-collapse text-sm">
+                      <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
                         <thead>
-                          <tr className="border-b-2" style={{borderColor: '#114643'}}>
-                            <th className="text-left py-3 px-4 font-semibold text-white">Мастер</th>
-                            <th className="text-left py-3 px-4 font-semibold text-white">Всего заказов</th>
-                            <th className="text-left py-3 px-4 font-semibold text-white">Выручка</th>
-                            <th className="text-left py-3 px-4 font-semibold text-white">Расходы</th>
-                            <th className="text-left py-3 px-4 font-semibold text-white">Прибыль</th>
+                          <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Мастер</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Всего заказов</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Выручка</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Расходы</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Прибыль</th>
                           </tr>
                         </thead>
                         <tbody>
                           {cityData.map((report) => (
-                            <tr key={`${report.masterId}-${report.city}`} className="border-b hover:bg-white/10 transition-colors" style={{borderColor: '#114643'}}>
-                              <td className="py-3 px-4 text-white font-semibold">{report.masterName}</td>
-                              <td className="py-3 px-4 text-white">{report.totalOrders}</td>
-                              <td className="py-3 px-4 text-white font-semibold" style={{color: '#2a6b68'}}>
+                            <tr key={`${report.masterId}-${report.city}`} className="border-b hover:bg-teal-50 transition-colors" style={{borderColor: '#e5e7eb'}}>
+                              <td className="py-3 px-4 text-gray-700 font-semibold">{report.masterName}</td>
+                              <td className="py-3 px-4 text-gray-700">{report.totalOrders}</td>
+                              <td className="py-3 px-4 text-gray-700 font-semibold text-teal-600">
                                 {formatNumber(report.totalRevenue)} ₽
                               </td>
-                              <td className="py-3 px-4 text-white">
+                              <td className="py-3 px-4 text-gray-700">
                                 {formatNumber(report.totalExpenditure)} ₽
                               </td>
-                              <td className="py-3 px-4 text-white font-semibold" style={{color: '#f59e0b'}}>
+                              <td className="py-3 px-4 text-gray-700 font-semibold text-yellow-600">
                                 {formatNumber(report.profit)} ₽
                               </td>
                             </tr>
@@ -418,7 +412,7 @@ function MastersReportContent() {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded transition-colors text-xs sm:text-sm"
+                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-gray-700 rounded transition-colors text-xs sm:text-sm"
                 >
                   ←
                 </button>
@@ -429,8 +423,8 @@ function MastersReportContent() {
                     onClick={() => setCurrentPage(page)}
                     className={`px-2 py-1 sm:px-3 rounded transition-colors text-xs sm:text-sm ${
                       currentPage === page
-                        ? 'text-white'
-                        : 'bg-gray-600 hover:bg-gray-700 text-white'
+                        ? 'text-gray-700'
+                        : 'bg-gray-600 hover:bg-gray-700 text-gray-700'
                     }`}
                     style={currentPage === page ? {backgroundColor: '#2a6b68'} : {}}
                     onMouseEnter={currentPage !== page ? (e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57' : undefined}
@@ -443,7 +437,7 @@ function MastersReportContent() {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded transition-colors text-xs sm:text-sm"
+                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-gray-700 rounded transition-colors text-xs sm:text-sm"
                 >
                   →
                 </button>

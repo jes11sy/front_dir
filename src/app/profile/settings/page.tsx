@@ -184,90 +184,91 @@ function SettingsContent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
-        <div className="text-white text-lg">Загрузка профиля...</div>
+        <div className="text-center py-8 animate-fade-in">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+          <div className="text-gray-700 text-lg mt-4">Загрузка профиля...</div>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
             {/* Навигация */}
             <div className="mb-6">
               <button
                 onClick={() => router.push('/profile')}
-                className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg transition-colors text-sm sm:text-base"
+                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm sm:text-base font-medium"
               >
                 ← Назад
               </button>
             </div>
 
             {/* Заголовок */}
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold text-white mb-2">Настройки профиля</h1>
-              <p className="text-gray-300">Управление настройками вашего аккаунта</p>
+            <div className="mb-8 animate-slide-down">
+              <h1 className="text-2xl font-bold text-gray-800 mb-2">Настройки профиля</h1>
+              <p className="text-gray-600">Управление настройками вашего аккаунта</p>
             </div>
 
             {/* Сообщения об ошибках и успехе */}
             {error && (
-              <div className="mb-6 p-4 bg-red-900/20 border border-red-500 rounded-lg">
-                <p className="text-red-400 text-sm">{error}</p>
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg animate-slide-in-left">
+                <p className="text-red-600 text-sm">{error}</p>
               </div>
             )}
 
             {success && (
-              <div className="mb-6 p-4 bg-green-900/20 border border-green-500 rounded-lg">
-                <p className="text-green-400 text-sm">{success}</p>
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-slide-in-left">
+                <p className="text-green-600 text-sm">{success}</p>
               </div>
             )}
 
             <div className="space-y-8">
               {/* Информация профиля */}
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Информация профиля</h2>
+              <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Информация профиля</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Города</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Города</label>
                     <input
                       type="text"
                       value={settings.cities}
                       readOnly
-                      className="w-full px-3 py-2 bg-gray-600 text-gray-300 rounded-lg border border-gray-500 cursor-not-allowed"
+                      className="w-full px-3 py-2 bg-gray-600 text-gray-600 rounded-lg border border-gray-500 cursor-not-allowed"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Имя</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Имя</label>
                     <input
                       type="text"
                       value={settings.name}
                       readOnly
-                      className="w-full px-3 py-2 bg-gray-600 text-gray-300 rounded-lg border border-gray-500 cursor-not-allowed"
+                      className="w-full px-3 py-2 bg-gray-600 text-gray-600 rounded-lg border border-gray-500 cursor-not-allowed"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Логин</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Логин</label>
                     <input
                       type="text"
                       value={settings.login}
                       readOnly
-                      className="w-full px-3 py-2 bg-gray-600 text-gray-300 rounded-lg border border-gray-500 cursor-not-allowed"
+                      className="w-full px-3 py-2 bg-gray-600 text-gray-600 rounded-lg border border-gray-500 cursor-not-allowed"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Telegram ID</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Telegram ID</label>
                     <input
                       type="text"
                       value={settings.telegramId}
                       onChange={(e) => setSettings({...settings, telegramId: e.target.value})}
-                      className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none transition-colors"
-                      onFocus={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'}
-                      onBlur={(e) => (e.target as HTMLElement).style.borderColor = '#4b5563'}
+                      className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
                       placeholder="@username"
                     />
                   </div>
@@ -279,7 +280,7 @@ function SettingsContent() {
                 <h2 className="text-xl font-semibold text-white mb-4">Документы</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-600 mb-2">
                       Договор
                       <span className="text-xs text-gray-500 ml-2">(макс. 50MB)</span>
                     </label>
@@ -343,7 +344,7 @@ function SettingsContent() {
                               </button>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-300 text-center">
+                          <div className="text-sm text-gray-600 text-center">
                             {contractFile?.name || 'Загруженный файл'}
                           </div>
                         </div>
@@ -379,9 +380,9 @@ function SettingsContent() {
                         />
                         <div className="space-y-3">
                           <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto">
-                            <span className="text-gray-300 text-2xl">📄</span>
+                            <span className="text-gray-600 text-2xl">📄</span>
                           </div>
-                          <div className="text-gray-300 font-medium">
+                          <div className="text-gray-600 font-medium">
                             {contractDragOver ? 'Отпустите файл' : 'Перетащите файл сюда'}
                           </div>
                           <div className="text-sm text-gray-400">или нажмите для выбора</div>
@@ -391,7 +392,7 @@ function SettingsContent() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-600 mb-2">
                       Паспорт
                       <span className="text-xs text-gray-500 ml-2">(макс. 50MB)</span>
                     </label>
@@ -454,7 +455,7 @@ function SettingsContent() {
                               </button>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-300 text-center">
+                          <div className="text-sm text-gray-600 text-center">
                             {passportFile?.name || 'Загруженный файл'}
                           </div>
                         </div>
@@ -490,9 +491,9 @@ function SettingsContent() {
                         />
                         <div className="space-y-3">
                           <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto">
-                            <span className="text-gray-300 text-2xl">📄</span>
+                            <span className="text-gray-600 text-2xl">📄</span>
                           </div>
-                          <div className="text-gray-300 font-medium">
+                          <div className="text-gray-600 font-medium">
                             {passportDragOver ? 'Отпустите файл' : 'Перетащите файл сюда'}
                           </div>
                           <div className="text-sm text-gray-400">или нажмите для выбора</div>
@@ -508,17 +509,14 @@ function SettingsContent() {
                 <button 
                   onClick={() => router.push('/profile')}
                   disabled={saving}
-                  className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors disabled:opacity-50"
+                  className="px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium disabled:opacity-50"
                 >
                   Отмена
                 </button>
                 <button 
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-6 py-2 text-white rounded transition-colors disabled:opacity-50"
-                  style={{backgroundColor: '#2a6b68'}}
-                  onMouseEnter={(e) => !saving && ((e.target as HTMLElement).style.backgroundColor = '#1a5a57')}
-                  onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                  className="px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium disabled:opacity-50"
                 >
                   {saving ? 'Сохранение...' : 'Сохранить изменения'}
                 </button>
