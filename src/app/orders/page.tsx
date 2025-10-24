@@ -296,23 +296,23 @@ function OrdersContent() {
             
             {!loading && !error && safeOrders.length > 0 && (
             <div className="hidden md:block overflow-x-auto animate-fade-in">
-              <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
+              <table className="w-full border-collapse text-xs bg-white rounded-lg shadow-lg">
                 <thead>
                   <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">ID</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Тип заказа</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">РК</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Город</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Имя мастера</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Телефон</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Клиент</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Адрес</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Дата встречи</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Направление</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Проблема</th>
-                    <th className="text-center py-4 px-4 font-semibold text-gray-700">Статус</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Мастер</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Итог</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">ID</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Тип заказа</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">РК</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Город</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Имя мастера</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Телефон</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Клиент</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Адрес</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Дата встречи</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Направление</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Проблема</th>
+                    <th className="text-center py-2 px-2 font-semibold text-gray-700">Статус</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Мастер</th>
+                    <th className="text-left py-2 px-2 font-semibold text-gray-700">Итог</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -323,28 +323,28 @@ function OrdersContent() {
                       style={{borderColor: '#e5e7eb'}}
                       onClick={() => handleOrderClick(order.id)}
                     >
-                      <td className="py-4 px-4 text-gray-800 font-medium">{order.id}</td>
-                      <td className="py-4 px-4">
-                        <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
+                      <td className="py-2 px-2 text-gray-800 font-medium">{order.id}</td>
+                      <td className="py-2 px-2">
+                        <span className="px-2 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
                           {order.typeOrder}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-gray-800">{order.rk}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.city}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.avitoName || '-'}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.phone}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.clientName}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.address}</td>
-                      <td className="py-4 px-4 text-gray-800">{formatDate(order.dateMeeting)}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.typeEquipment}</td>
-                      <td className="py-4 px-4 text-gray-800">{order.problem}</td>
-                      <td className="py-4 px-4 text-center">
-                        <span className="inline-block px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
+                      <td className="py-2 px-2 text-gray-800">{order.rk}</td>
+                      <td className="py-2 px-2 text-gray-800">{order.city}</td>
+                      <td className="py-2 px-2 text-gray-800">{order.avitoName || '-'}</td>
+                      <td className="py-2 px-2 text-gray-800">{order.phone}</td>
+                      <td className="py-2 px-2 text-gray-800">{order.clientName}</td>
+                      <td className="py-2 px-2 text-gray-800">{order.address}</td>
+                      <td className="py-2 px-2 text-gray-800">{formatDate(order.dateMeeting)}</td>
+                      <td className="py-2 px-2 text-gray-800">{order.typeEquipment}</td>
+                      <td className="py-2 px-2 text-gray-800">{order.problem}</td>
+                      <td className="py-2 px-2 text-center">
+                        <span className="inline-block px-2 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
                           {order.statusOrder}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-gray-800">{order.master?.name || '-'}</td>
-                      <td className="py-4 px-4 text-gray-800 font-semibold">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</td>
+                      <td className="py-2 px-2 text-gray-800">{order.master?.name || '-'}</td>
+                      <td className="py-2 px-2 text-gray-800 font-semibold">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -407,7 +407,7 @@ function OrdersContent() {
             )}
 
             {/* Пагинация */}
-            {!loading && !error && safeOrders.length > 0 && (pagination?.totalPages || 0) > 1 && (
+            {!loading && !error && safeOrders.length > 0 && (
               <div className="mt-6 flex justify-center items-center gap-2 flex-wrap animate-fade-in">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
@@ -417,73 +417,9 @@ function OrdersContent() {
                   ←
                 </button>
                 
-                {(() => {
-                  const maxVisiblePages = 5 // Уменьшил количество видимых страниц для мобильных
-                  const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-                  const endPage = Math.min(pagination?.totalPages || 0, startPage + maxVisiblePages - 1)
-                  const adjustedStartPage = Math.max(1, endPage - maxVisiblePages + 1)
-                  
-                  const pages = []
-                  
-                  // Показываем первую страницу и многоточие если нужно
-                  if (adjustedStartPage > 1) {
-                    pages.push(
-                      <button
-                        key={1}
-                        onClick={() => setCurrentPage(1)}
-                        className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
-                      >
-                        1
-                      </button>
-                    )
-                    if (adjustedStartPage > 2) {
-                      pages.push(
-                        <span key="ellipsis1" className="px-2 text-gray-500 text-sm">
-                          ...
-                        </span>
-                      )
-                    }
-                  }
-                  
-                  // Показываем видимые страницы
-                  for (let page = adjustedStartPage; page <= endPage; page++) {
-                    pages.push(
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                          currentPage === page
-                            ? 'bg-teal-600 text-white shadow-md'
-                            : 'bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    )
-                  }
-                  
-                  // Показываем многоточие и последнюю страницу если нужно
-                  if (endPage < (pagination?.totalPages || 0)) {
-                    if (endPage < (pagination?.totalPages || 0) - 1) {
-                      pages.push(
-                        <span key="ellipsis2" className="px-1 sm:px-2 text-gray-400 text-xs sm:text-sm">
-                          ...
-                        </span>
-                      )
-                    }
-                    pages.push(
-                      <button
-                        key={pagination?.totalPages || 0}
-                        onClick={() => setCurrentPage(pagination?.totalPages || 0)}
-                        className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
-                      >
-                        {pagination?.totalPages || 0}
-                      </button>
-                    )
-                  }
-                  
-                  return pages
-                })()}
+                <span className="px-3 py-2 text-gray-600 text-sm">
+                  Страница {currentPage} из {pagination?.totalPages || 1}
+                </span>
                 
                 <button
                   onClick={() => setCurrentPage(Math.min(pagination?.totalPages || 0, currentPage + 1))}
