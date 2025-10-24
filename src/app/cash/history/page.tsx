@@ -127,21 +127,21 @@ function HistoryContent() {
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
             {/* Статистика */}
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-800 rounded-lg p-4">
-                <div className="text-sm text-gray-300">Приходы</div>
-                <div className="text-xl font-bold text-green-400">{totalIncome.toLocaleString()} ₽</div>
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slide-in-left">
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-sm text-gray-600 font-medium">Приходы</div>
+                <div className="text-xl font-bold text-green-600">{totalIncome.toLocaleString()} ₽</div>
               </div>
-              <div className="bg-gray-800 rounded-lg p-4">
-                <div className="text-sm text-gray-300">Расходы</div>
-                <div className="text-xl font-bold text-red-400">{totalExpense.toLocaleString()} ₽</div>
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-sm text-gray-600 font-medium">Расходы</div>
+                <div className="text-xl font-bold text-red-600">{totalExpense.toLocaleString()} ₽</div>
               </div>
-              <div className="bg-gray-800 rounded-lg p-4">
-                <div className="text-sm text-gray-300">Баланс</div>
-                <div className={`text-xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-sm text-gray-600 font-medium">Баланс</div>
+                <div className={`text-xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {balance.toLocaleString()} ₽
                 </div>
               </div>

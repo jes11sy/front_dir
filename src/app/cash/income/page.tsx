@@ -143,78 +143,72 @@ function IncomeContent() {
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
 
             {/* Состояние загрузки и ошибки */}
             {loading && (
-              <div className="text-center py-8">
-                <div className="text-white">Загрузка...</div>
+              <div className="text-center py-8 animate-fade-in">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+                <p className="text-gray-700 font-medium">Загрузка...</p>
               </div>
             )}
 
             {error && (
-              <div className="text-center py-8">
-                <div className="text-red-400">Ошибка: {error}</div>
-                <button 
-                  onClick={loadIncomeData}
-                  className="mt-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
-                >
-                  Попробовать снова
-                </button>
+              <div className="text-center py-8 animate-slide-in-left">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <p className="text-red-600 font-medium">Ошибка: {error}</p>
+                  <button 
+                    onClick={loadIncomeData}
+                    className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 hover:shadow-md"
+                  >
+                    Попробовать снова
+                  </button>
+                </div>
               </div>
             )}
 
             {/* Кнопка добавить приход */}
-            <div className="mb-4">
+            <div className="mb-4 animate-slide-in-left">
               <button 
                 onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
-                style={{backgroundColor: '#2a6b68'}}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a5a57'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a6b68'}
+                className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
               >
                 + Добавить приход
               </button>
             </div>
 
             {/* Фильтрация по дате */}
-            <div className="mb-6">
+            <div className="mb-6 animate-slide-in-left">
               <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-white font-semibold">Фильтр</h3>
+                <h3 className="text-gray-700 font-semibold">Фильтр</h3>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
+                  className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
                 >
                   {showFilters ? 'Скрыть' : 'Показать'}
                 </button>
               </div>
               
               {showFilters && (
-                <div className="p-3 bg-gray-800 rounded-lg">
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 animate-slide-in-right">
                   <div className="flex flex-wrap gap-3 items-end">
                     <div>
-                      <label className="block text-xs text-gray-300 mb-1">От даты</label>
+                      <label className="block text-xs text-gray-600 mb-1 font-medium">От даты</label>
                       <input
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm"
-                        style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
-                        onFocus={(e) => e.target.style.borderColor = '#2a6b68'}
-                        onBlur={(e) => e.target.style.borderColor = '#334155'}
+                        className="px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-300 mb-1">До даты</label>
+                      <label className="block text-xs text-gray-600 mb-1 font-medium">До даты</label>
                       <input
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm"
-                        style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
-                        onFocus={(e) => e.target.style.borderColor = '#2a6b68'}
-                        onBlur={(e) => e.target.style.borderColor = '#334155'}
+                        className="px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md text-sm"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -223,7 +217,7 @@ function IncomeContent() {
                           setStartDate('')
                           setEndDate('')
                         }}
-                        className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm transition-colors"
+                        className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                       >
                         Сбросить
                       </button>
@@ -243,24 +237,24 @@ function IncomeContent() {
 
             {/* Таблица */}
             {!loading && !error && (
-              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-                <table className="w-full border-collapse text-[11px] min-w-[600px]">
+              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
+                <table className="w-full border-collapse text-[11px] min-w-[600px] bg-white rounded-lg shadow-lg">
                   <thead>
-                    <tr className="border-b-2" style={{borderColor: '#114643'}}>
-                      <th className="text-left py-2 px-2 font-semibold text-white">ID</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Тип</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Город</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Назначение платежа</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Сумма</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Комментарий</th>
-                      <th className="text-left py-2 px-2 font-semibold text-white">Дата</th>
+                    <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">ID</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Тип</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Город</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Назначение платежа</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Сумма</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Комментарий</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Дата</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentData.map((item) => {
                       const getTypeColor = (type: string) => {
                         switch (type) {
-                          case 'приход': return '#2a6b68'
+                          case 'приход': return '#14b8a6'
                           case 'расход': return '#ef4444'
                           default: return '#6b7280'
                         }
@@ -269,21 +263,21 @@ function IncomeContent() {
                       return (
                         <tr 
                           key={item.id} 
-                          className="border-b hover:bg-white/10 transition-colors cursor-pointer" 
-                          style={{borderColor: '#114643'}}
+                          className="border-b hover:bg-teal-50 transition-colors cursor-pointer" 
+                          style={{borderColor: '#e5e7eb'}}
                           onClick={() => router.push(`/cash/income/view/${item.id}`)}
                         >
-                          <td className="py-2 px-2 text-white">{item.id}</td>
-                          <td className="py-2 px-2">
-                            <span className="px-2 py-1 rounded-full text-[11px] font-medium text-white" style={{backgroundColor: getTypeColor(item.name)}}>
+                          <td className="py-3 px-3 text-gray-800 font-medium">{item.id}</td>
+                          <td className="py-3 px-3">
+                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(item.name)}}>
                               {item.name}
                             </span>
                           </td>
-                          <td className="py-2 px-2 text-white">{item.city || directorCities[0] || 'Москва'}</td>
-                          <td className="py-2 px-2 text-white">{item.paymentPurpose || '-'}</td>
-                          <td className="py-2 px-2 text-white font-semibold text-green-400">{Number(item.amount).toLocaleString()} ₽</td>
-                          <td className="py-2 px-2 text-white">{item.note || '-'}</td>
-                          <td className="py-2 px-2 text-white">{formatDate(item.dateCreate)}</td>
+                          <td className="py-3 px-3 text-gray-800">{item.city || directorCities[0] || 'Москва'}</td>
+                          <td className="py-3 px-3 text-gray-800">{item.paymentPurpose || '-'}</td>
+                          <td className="py-3 px-3 text-gray-800 font-semibold text-green-600">{Number(item.amount).toLocaleString()} ₽</td>
+                          <td className="py-3 px-3 text-gray-800">{item.note || '-'}</td>
+                          <td className="py-3 px-3 text-gray-800">{formatDate(item.dateCreate)}</td>
                         </tr>
                       )
                     })}
@@ -294,11 +288,11 @@ function IncomeContent() {
 
             {/* Пагинация */}
             {!loading && !error && totalPages > 1 && (
-              <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap">
+              <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap animate-fade-in">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded-lg transition-colors text-xs sm:text-sm"
+                  className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:text-gray-300 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   ←
                 </button>
@@ -307,24 +301,11 @@ function IncomeContent() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`px-2 py-1 sm:px-3 rounded-lg transition-colors text-xs sm:text-sm text-white ${
+                    className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
                       currentPage === page
-                        ? ''
-                        : 'bg-gray-600 hover:bg-gray-700'
+                        ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-md'
+                        : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white hover:shadow-md'
                     }`}
-                    style={{
-                      backgroundColor: currentPage === page ? '#2a6b68' : undefined
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentPage === page) {
-                        e.currentTarget.style.backgroundColor = '#1a5a57'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (currentPage === page) {
-                        e.currentTarget.style.backgroundColor = '#2a6b68'
-                      }
-                    }}
                   >
                     {page}
                   </button>
@@ -333,7 +314,7 @@ function IncomeContent() {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded-lg transition-colors text-xs sm:text-sm"
+                  className="px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:text-gray-300 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   →
                 </button>

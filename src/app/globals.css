@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Предотвращение автоматического скролла браузера */
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  scroll-behavior: auto;
+  scroll-padding-top: 0;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
