@@ -433,7 +433,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения статусов')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   // Masters API (Users Service)

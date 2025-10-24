@@ -52,9 +52,9 @@ function OrdersContent() {
         apiClient.getMasters().catch(() => [])
       ])
       
-      setOrders(response.data)
-      setAllStatuses(statuses)
-      setAllMasters(masters)
+      setOrders(response.data || [])
+      setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
+      setAllMasters(Array.isArray(masters) ? masters : [])
       setPagination(response.pagination)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки заказов')
@@ -307,7 +307,7 @@ function OrdersContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
+                  {Array.isArray(orders) && orders.map((order) => (
                     <tr 
                       key={order.id}
                       className="border-b hover:bg-white/10 transition-colors cursor-pointer" 
