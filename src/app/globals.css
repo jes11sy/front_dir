@@ -297,9 +297,12 @@
 /* Force remove outline for login inputs */
 input:focus,
 input:focus-visible,
-input:focus-within {
+input:focus-within,
+input[type="text"]:focus,
+input[type="password"]:focus {
   outline: none !important;
   box-shadow: none !important;
+  border: 2px solid #14b8a6 !important;
 }
 
 /* Custom focus styles for login form */
@@ -307,4 +310,14 @@ input:focus-within {
   outline: none !important;
   border-color: #14b8a6 !important;
   box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2) !important;
+}
+
+/* Nuclear option - remove all browser outlines */
+*:focus {
+  outline: none !important;
+}
+
+input:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }

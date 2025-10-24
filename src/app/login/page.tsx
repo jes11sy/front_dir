@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { CustomInput } from "@/components/ui/custom-input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { apiClient } from "@/lib/api"
@@ -71,13 +71,13 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2 animate-slide-in-left">
                 <Label htmlFor="login" className="font-medium text-gray-700 transition-colors duration-200">Логин</Label>
-                <Input
+                <CustomInput
                   id="login"
                   type="text"
                   placeholder="Введите логин"
                   value={login}
                   onChange={(e) => setLogin(sanitizeString(e.target.value))}
-                  className="bg-white text-gray-800 placeholder:text-gray-400 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-all duration-300 hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover login-input"
+                  className="bg-white text-gray-800 placeholder:text-gray-400 rounded-xl hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover"
                   required
                   autoComplete="username"
                   maxLength={50}
@@ -86,13 +86,13 @@ export default function LoginPage() {
               
               <div className="space-y-2 animate-slide-in-right">
                 <Label htmlFor="password" className="font-medium text-gray-700 transition-colors duration-200">Пароль</Label>
-                <Input
+                <CustomInput
                   id="password"
                   type="password"
                   placeholder="Введите пароль"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white text-gray-800 placeholder:text-gray-400 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-all duration-300 hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover login-input"
+                  className="bg-white text-gray-800 placeholder:text-gray-400 rounded-xl hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover"
                   required
                   autoComplete="current-password"
                   maxLength={100}
