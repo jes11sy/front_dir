@@ -399,7 +399,7 @@ function OrdersContent() {
 
 
             {/* Пагинация */}
-            {!loading && !error && safeOrders.length > 0 && (
+            {!loading && !error && safeOrders.length > 0 && (pagination?.totalPages || 0) > 1 && (
               <div className="mt-6 flex justify-center items-center gap-2 flex-wrap animate-fade-in">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
@@ -409,9 +409,19 @@ function OrdersContent() {
                   ←
                 </button>
                 
-                <span className="px-3 py-2 text-gray-600 text-sm">
-                  Страница {currentPage} из {pagination?.totalPages || 1}
-                </span>
+                {Array.from({ length: pagination?.totalPages || 0 }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
+                      currentPage === page
+                        ? 'bg-teal-600 text-white shadow-md'
+                        : 'bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
                 
                 <button
                   onClick={() => setCurrentPage(Math.min(pagination?.totalPages || 0, currentPage + 1))}

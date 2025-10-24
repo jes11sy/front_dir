@@ -69,12 +69,12 @@ function MasterHandoverDetailContent() {
   if (loading) {
     return (
       <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-2 sm:px-4 py-8">
           <div className="max-w-none mx-auto">
-            <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                <p className="text-white">Загрузка данных...</p>
+            <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
+              <div className="text-center py-8 animate-fade-in">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                <p className="text-gray-700 text-lg mt-4">Загрузка данных...</p>
               </div>
             </div>
           </div>
@@ -86,11 +86,11 @@ function MasterHandoverDetailContent() {
   if (error) {
     return (
       <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-2 sm:px-4 py-8">
           <div className="max-w-none mx-auto">
-            <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
-              <div className="bg-red-900/20 border border-red-500 rounded-lg p-4">
-                <p className="text-red-400">{error}</p>
+            <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 animate-slide-in-left">
+                <p className="text-red-600">{error}</p>
               </div>
             </div>
           </div>
@@ -102,10 +102,10 @@ function MasterHandoverDetailContent() {
   if (!masterData) {
     return (
       <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-2 sm:px-4 py-8">
           <div className="max-w-none mx-auto">
-            <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
-              <p className="text-white text-center">Мастер не найден</p>
+            <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
+              <p className="text-gray-700 text-center animate-fade-in">Мастер не найден</p>
             </div>
           </div>
         </div>
@@ -115,64 +115,60 @@ function MasterHandoverDetailContent() {
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
             {/* Кнопка назад */}
-            <div className="mb-4">
+            <div className="mb-4 animate-slide-in-left">
               <Button
                 onClick={handleBack}
-                className="px-4 py-2"
-                style={{backgroundColor: '#2a6b68', color: 'white'}}
-                onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 text-gray-800 rounded-lg hover:shadow-md transition-all duration-200"
               >
                 ← Назад
               </Button>
             </div>
 
             {/* Заголовок */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-white mb-2">
+            <div className="mb-6 animate-slide-down">
+              <h1 className="text-2xl font-bold text-gray-800 mb-2">
                 {masterData.name}
               </h1>
-              <p className="text-gray-300">{masterData.cities?.join(', ') || 'Не указано'}</p>
+              <p className="text-gray-600">{masterData.cities?.join(', ') || 'Не указано'}</p>
             </div>
 
             {/* Список заказов */}
             {orders.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">Нет заказов для сдачи</p>
+              <p className="text-gray-500 text-center py-8 animate-fade-in font-medium">Нет заказов для сдачи</p>
             ) : (
               <div className="space-y-3">
                 {Array.isArray(orders) && orders.map((order: any) => (
                   <div 
                     key={order.id}
-                    className="bg-gray-800 rounded p-3 border" 
-                    style={{borderColor: '#4b5563'}}
+                    className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-fade-in"
                   >
                     <div className="space-y-3 md:space-y-0">
                       <div className="flex items-center justify-between">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 flex-1">
                           <div>
-                            <p className="text-gray-400 text-xs">ID заказа</p>
-                            <p className="text-white font-semibold text-sm">#{order.id}</p>
+                            <p className="text-gray-600 text-xs">ID заказа</p>
+                            <p className="text-gray-800 font-semibold text-sm">#{order.id}</p>
                           </div>
                           <div>
-                            <p className="text-gray-400 text-xs">Адрес</p>
-                            <p className="text-white text-sm">{order.address || 'Не указан'}</p>
+                            <p className="text-gray-600 text-xs">Адрес</p>
+                            <p className="text-gray-800 text-sm">{order.address || 'Не указан'}</p>
                           </div>
                           <div>
-                            <p className="text-gray-400 text-xs">Проблема</p>
-                            <p className="text-white text-sm">{order.problem || 'Не указана'}</p>
+                            <p className="text-gray-600 text-xs">Проблема</p>
+                            <p className="text-gray-800 text-sm">{order.problem || 'Не указана'}</p>
                           </div>
                           <div>
-                            <p className="text-gray-400 text-xs">Сумма сдачи</p>
-                            <p className="text-white text-lg font-bold">{order.masterChange?.toLocaleString() || 0} ₽</p>
+                            <p className="text-gray-600 text-xs">Сумма сдачи</p>
+                            <p className="text-gray-800 text-lg font-bold">{order.masterChange?.toLocaleString() || 0} ₽</p>
                           </div>
                           <div>
-                            <p className="text-gray-400 text-xs">Статус сдачи</p>
-                            <p className="text-white text-sm">
+                            <p className="text-gray-600 text-xs">Статус сдачи</p>
+                            <p className="text-gray-800 text-sm">
                               {order.cashSubmissionStatus === 'На проверке' && 'На проверке'}
                               {order.cashSubmissionStatus === 'Одобрено' && 'Одобрено'}
                               {order.cashSubmissionStatus === 'Отклонено' && 'Отклонено'}
@@ -180,7 +176,7 @@ function MasterHandoverDetailContent() {
                             </p>
                           </div>
                           <div>
-                            <p className="text-gray-400 text-xs">Чек перевода</p>
+                            <p className="text-gray-600 text-xs">Чек перевода</p>
                             {order.cashReceiptDoc ? (
                               <button 
                                 className="text-blue-400 hover:text-blue-300 text-sm underline cursor-pointer"
@@ -202,10 +198,7 @@ function MasterHandoverDetailContent() {
                           <div className="hidden md:flex gap-2 ml-4">
                             <button
                               onClick={() => handleApproveRequest(order.id)}
-                              className="py-1 px-3 text-xs rounded border transition-colors"
-                              style={{backgroundColor: '#2a6b68', borderColor: '#2a6b68', color: 'white'}}
-                              onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                              onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                              className="py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-md transition-all duration-200"
                             >
                               ✓ Принять
                             </button>
@@ -219,10 +212,7 @@ function MasterHandoverDetailContent() {
                         <div className="flex gap-2 md:hidden">
                           <button
                             onClick={() => handleApproveRequest(order.id)}
-                            className="flex-1 py-1 px-3 text-xs rounded border transition-colors"
-                            style={{backgroundColor: '#2a6b68', borderColor: '#2a6b68', color: 'white'}}
-                            onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                            onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                            className="flex-1 py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-md transition-all duration-200"
                           >
                             ✓ Принять
                           </button>
