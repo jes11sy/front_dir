@@ -48,8 +48,8 @@ function EmployeesContent() {
   // Сортируем данные: сначала работающие, потом уволенные, внутри группы по дате создания (новые сначала)
   const safeEmployees = Array.isArray(employees) ? employees : []
   const sortedData = safeEmployees.sort((a, b) => {
-    const aStatus = a.statusWork.toLowerCase()
-    const bStatus = b.statusWork.toLowerCase()
+    const aStatus = (a.statusWork || '').toLowerCase()
+    const bStatus = (b.statusWork || '').toLowerCase()
     
     const aIsWorking = aStatus.includes('работает') || aStatus.includes('работающий') || aStatus === 'active'
     const bIsWorking = bStatus.includes('работает') || bStatus.includes('работающий') || bStatus === 'active'
@@ -59,8 +59,8 @@ function EmployeesContent() {
     if (!aIsWorking && bIsWorking) return 1
     
     // Если статус одинаковый, сортируем по дате создания (новые сначала)
-    const aDate = new Date(a.dateCreate).getTime()
-    const bDate = new Date(b.dateCreate).getTime()
+    const aDate = new Date(a.dateCreate || 0).getTime()
+    const bDate = new Date(b.dateCreate || 0).getTime()
     return bDate - aDate
   })
 
@@ -71,6 +71,7 @@ function EmployeesContent() {
   const currentData = sortedData.slice(startIndex, endIndex)
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'Не указана'
     return new Date(dateString).toLocaleDateString('ru-RU')
   }
 
