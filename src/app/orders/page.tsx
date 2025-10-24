@@ -55,7 +55,12 @@ function OrdersContent() {
       setOrders(Array.isArray(response.data) ? response.data : [])
       setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
       setAllMasters(Array.isArray(masters) ? masters : [])
-      setPagination(response.pagination)
+      setPagination(response.pagination || {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки заказов')
       logger.error('Error loading orders', err)
@@ -389,7 +394,7 @@ function OrdersContent() {
             </div>
 
             {/* Пагинация */}
-            {pagination.totalPages > 1 && (
+            {pagination && pagination.totalPages > 1 && (
               <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
@@ -402,7 +407,7 @@ function OrdersContent() {
                 {(() => {
                   const maxVisiblePages = 5 // Уменьшил количество видимых страниц для мобильных
                   const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-                  const endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1)
+                  const endPage = Math.min(pagination?.totalPages || 0, startPage + maxVisiblePages - 1)
                   const adjustedStartPage = Math.max(1, endPage - maxVisiblePages + 1)
                   
                   const pages = []
@@ -448,8 +453,8 @@ function OrdersContent() {
                   }
                   
                   // Показываем многоточие и последнюю страницу если нужно
-                  if (endPage < pagination.totalPages) {
-                    if (endPage < pagination.totalPages - 1) {
+                  if (endPage < (pagination?.totalPages || 0)) {
+                    if (endPage < (pagination?.totalPages || 0) - 1) {
                       pages.push(
                         <span key="ellipsis2" className="px-1 sm:px-2 text-gray-400 text-xs sm:text-sm">
                           ...
@@ -458,11 +463,11 @@ function OrdersContent() {
                     }
                     pages.push(
                       <button
-                        key={pagination.totalPages}
-                        onClick={() => setCurrentPage(pagination.totalPages)}
+                        key={pagination?.totalPages || 0}
+                        onClick={() => setCurrentPage(pagination?.totalPages || 0)}
                         className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors text-xs sm:text-sm"
                       >
-                        {pagination.totalPages}
+                        {pagination?.totalPages || 0}
                       </button>
                     )
                   }
@@ -471,8 +476,8 @@ function OrdersContent() {
                 })()}
                 
                 <button
-                  onClick={() => setCurrentPage(Math.min(pagination.totalPages, currentPage + 1))}
-                  disabled={currentPage === pagination.totalPages}
+                  onClick={() => setCurrentPage(Math.min(pagination?.totalPages || 0, currentPage + 1))}
+                  disabled={currentPage === (pagination?.totalPages || 0)}
                   className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded transition-colors text-xs sm:text-sm"
                 >
                   →
