@@ -45,8 +45,8 @@ const CustomSelect = React.memo<CustomSelectProps>(({
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
       setDropdownPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
+        top: rect.bottom + 4, // Небольшой отступ вниз
+        left: rect.left,
         width: rect.width
       })
     }
@@ -74,8 +74,8 @@ const CustomSelect = React.memo<CustomSelectProps>(({
       if (buttonRef.current) {
         const rect = buttonRef.current.getBoundingClientRect()
         setDropdownPosition({
-          top: rect.bottom + window.scrollY,
-          left: rect.left + window.scrollX,
+          top: rect.bottom + 4, // Небольшой отступ вниз
+          left: rect.left,
           width: rect.width
         })
       }
