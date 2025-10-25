@@ -155,36 +155,15 @@ export interface CashTransaction {
 export interface CityReport {
   city: string
   orders: {
-    total: number
-    totalRevenue: number
-    totalExpenditure: number
-    totalClean: number
-    totalMasterChange: number
-    totalPrepayment: number
-    totalCashSubmission: number
-    avgRevenue: number
-    avgExpenditure: number
-    avgClean: number
-    // Новая статистика по статусам
-    closedOrders: number
-    notOrders: number
-    refusals: number
-    ready: number
-    avgCheck: number
-  }
-  calls: {
-    total: number
+    closedOrders: number  // Количество заказов со статусом "Готово" или "Отказ"
+    refusals: number      // Заказы со статусом "Отказ"
+    notOrders: number     // Заказы со статусом "Незаказ"
+    totalClean: number    // Сумма чистыми по закрытым заказам
+    totalMasterChange: number  // Сумма сдача мастера
+    avgCheck: number      // Средний чек = totalClean / closedOrders
   }
   cash: {
-    totalTransactions: number
-    totalAmount: number
-    income: number
-    expense: number
-  }
-  masters: {
-    total: number
-    working: number
-    fired: number
+    totalAmount: number   // Касса (все приходы-расходы за все время)
   }
 }
 
@@ -193,10 +172,9 @@ export interface MasterReport {
   masterName: string
   city: string
   totalOrders: number
-  completedOrders: number
-  totalRevenue: number
-  totalExpenditure: number
-  profit: number
+  turnover: number        // Оборот (сумма чистыми)
+  avgCheck: number        // Средний чек
+  salary: number          // Зарплата (сумма сдача мастера)
 }
 
 export class ApiClient {
@@ -536,11 +514,18 @@ export class ApiClient {
     }
 
     const result = await response.json()
-    return result.data || result
+    const data = result.data || result
+    
+    // Сортируем по дате создания (новые сначала)
+    const sortedData = data.sort((a: CashTransaction, b: CashTransaction) => 
+      new Date(b.dateCreate).getTime() - new Date(a.dateCreate).getTime()
+    )
+    
+    return sortedData
   }
 
   async getCashIncome(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?name=приход`, {
+    const response = await fetch(`${this.baseURL}/cash?type=приход`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -551,11 +536,19 @@ export class ApiClient {
     }
 
     const result = await response.json()
-    return result.data || result
+    const data = result.data || result
+    
+    // Дополнительная фильтрация на уровне API клиента - только приходы
+    const incomeOnly = data.filter((item: CashTransaction) => 
+      item.name === 'приход' || 
+      Number(item.amount) > 0
+    )
+    
+    return incomeOnly
   }
 
   async getCashExpense(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?name=расход`, {
+    const response = await fetch(`${this.baseURL}/cash?type=расход`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -566,7 +559,15 @@ export class ApiClient {
     }
 
     const result = await response.json()
-    return result.data || result
+    const data = result.data || result
+    
+    // Дополнительная фильтрация на уровне API клиента - только расходы
+    const expenseOnly = data.filter((item: CashTransaction) => 
+      item.name === 'расход' || 
+      Number(item.amount) < 0
+    )
+    
+    return expenseOnly
   }
 
   async createCashTransaction(data: Partial<CashTransaction>): Promise<CashTransaction> {
@@ -576,12 +577,12 @@ export class ApiClient {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify({
-        name: data.name || 'расход',
+        name: data.name,
         amount: data.amount || 0,
         city: data.city,
         note: data.note,
-        receiptDoc: data.receiptDoc,
         paymentPurpose: data.paymentPurpose,
+        receiptDoc: data.receiptDoc,
       }),
     })
 

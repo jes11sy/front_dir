@@ -2,12 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import AuthGuard from "@/components/auth-guard"
 import { apiClient, CashTransaction } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
-
-export const dynamic = 'force-dynamic'
 
 function ExpenseContent() {
   const router = useRouter()
@@ -32,10 +29,11 @@ function ExpenseContent() {
     receipt: null as File | null
   })
 
-  // Получаем города директора для фильтрации
+  // Получаем города директора
   const currentUser = apiClient.getCurrentUser()
   const directorCities = currentUser?.cities || []
   
+  // Данные для выпадающих списков
   const cities = directorCities.map(city => ({
     value: city.toLowerCase().replace(/\s+/g, '_'),
     label: city
@@ -172,28 +170,35 @@ function ExpenseContent() {
               </div>
             )}
 
-            {/* Кнопка добавить расход */}
-            <div className="mb-4">
-              <button 
-                onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
-                style={{backgroundColor: '#ef4444'}}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
-              >
-                + Добавить расход
-              </button>
-            </div>
-
             {/* Фильтрация по дате */}
             <div className="mb-6">
-              <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-gray-700 font-semibold">Фильтр</h3>
+              <div className="flex items-center justify-between mb-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                  className="flex items-center gap-2 text-left cursor-pointer group"
                 >
-                  {showFilters ? 'Скрыть' : 'Показать'}
+                  <h3 className="text-gray-700 font-semibold group-hover:text-teal-600 transition-colors duration-200">
+                    Фильтр
+                  </h3>
+                  <svg
+                    className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
+                      showFilters ? 'rotate-180' : ''
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <button 
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
+                  style={{backgroundColor: '#ef4444'}}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+                >
+                  + Добавить расход
                 </button>
               </div>
               

@@ -58,12 +58,19 @@ function CityReportContent() {
       filters.city = selectedCity;
     }
     
-    // Фильтр по датам
-    if (startDate) {
-      filters.startDate = startDate;
-    }
-    if (endDate) {
-      filters.endDate = endDate;
+    // Фильтр по датам - если не указаны, используем текущий месяц
+    if (startDate || endDate) {
+      if (startDate) {
+        filters.startDate = startDate;
+      }
+      if (endDate) {
+        filters.endDate = endDate;
+      }
+    } else {
+      // По умолчанию - текущий месяц с 1 числа
+      const now = new Date()
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+      filters.startDate = firstDay.toISOString().split('T')[0]
     }
     
     // Загружаем данные с фильтрами
@@ -71,7 +78,13 @@ function CityReportContent() {
   }
 
   useEffect(() => {
-    loadCityReport()
+    // При загрузке устанавливаем фильтр по текущему месяцу
+    const now = new Date()
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+    
+    const startDateStr = firstDay.toISOString().split('T')[0]
+    
+    loadCityReport({ startDate: startDateStr })
   }, [])
 
   // Форматирование чисел
@@ -224,15 +237,24 @@ function CityReportContent() {
               </div>
               
               <div className="flex items-center justify-between mb-3 animate-slide-in-left">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-gray-700 font-semibold text-lg">Фильтр</h3>
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 text-left cursor-pointer group"
+                >
+                  <h3 className="text-gray-700 font-semibold text-lg group-hover:text-teal-600 transition-colors duration-200">
+                    Фильтр
+                  </h3>
+                  <svg
+                    className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
+                      showFilters ? 'rotate-180' : ''
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    {showFilters ? 'Скрыть' : 'Показать'}
-                  </button>
-                </div>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
                 {/* Кнопка экспорта для десктопной версии */}
                 <button 
                   onClick={exportToExcel}
@@ -288,6 +310,10 @@ function CityReportContent() {
                           setStartDate('')
                           setEndDate('')
                           setSelectedCity('all')
+                          // Сбрасываем к текущему месяцу
+                          const now = new Date()
+                          const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+                          loadCityReport({ startDate: firstDay.toISOString().split('T')[0] })
                         }}
                         className="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition-colors font-medium"
                       >
@@ -297,7 +323,7 @@ function CityReportContent() {
                         onClick={applyFilters}
                         className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
                       >
-                        Сформировать отчет
+                        Применить фильтры
                       </button>
                     </div>
                   </div>
@@ -337,10 +363,12 @@ function CityReportContent() {
               <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2 text-purple-600">
-                    {Array.isArray(filteredReports) && filteredReports.length > 0 
-                      ? formatNumber(filteredReports.reduce((sum, city) => sum + (city?.orders?.avgCheck || 0), 0) / filteredReports.length) + ' ₽'
-                      : '0 ₽'
-                    }
+                    {(() => {
+                      const totalClosed = (Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.closedOrders || 0), 0)
+                      const totalClean = (Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.totalClean || 0), 0)
+                      const avgCheck = totalClosed > 0 ? totalClean / totalClosed : 0
+                      return formatNumber(Math.round(avgCheck)) + ' ₽'
+                    })()}
                   </div>
                   <div className="text-gray-600 text-sm">Средний чек</div>
                 </div>

@@ -2,12 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import AuthGuard from "@/components/auth-guard"
 import { apiClient, CashTransaction } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
-
-export const dynamic = 'force-dynamic'
 
 function IncomeContent() {
   const router = useRouter()
@@ -32,7 +29,7 @@ function IncomeContent() {
     receipt: null as File | null
   })
 
-  // Получаем города директора для фильтрации
+  // Данные для выпадающих списков
   const currentUser = apiClient.getCurrentUser()
   const directorCities = currentUser?.cities || []
   
@@ -54,10 +51,23 @@ function IncomeContent() {
       setLoading(true)
       setError(null)
       const data = await apiClient.getCashIncome()
-      setIncomeData(data)
+      
+      // Отладочная информация
+      console.log('API вернул данные:', data)
+      console.log('Типы транзакций:', data.map(item => ({ id: item.id, name: item.name, amount: item.amount })))
+      
+      // Дополнительная фильтрация на фронтенде - показываем только приходы
+      const incomeOnly = data.filter(item => 
+        item.name === 'приход' || 
+        Number(item.amount) > 0
+      )
+      
+      console.log('После фильтрации (только приходы):', incomeOnly)
+      
+      setIncomeData(incomeOnly)
       
       // Вычисляем общую сумму
-      const total = data.reduce((sum, item) => sum + Number(item.amount), 0)
+      const total = incomeOnly.reduce((sum, item) => sum + Number(item.amount), 0)
       setTotalAmount(total)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки данных')
@@ -126,10 +136,17 @@ function IncomeContent() {
 
   // Вычисляем данные для текущей страницы
   const safeIncomeData = Array.isArray(incomeData) ? incomeData : []
-  const totalPages = Math.ceil(safeIncomeData.length / itemsPerPage)
+  
+  // Дополнительная фильтрация для пагинации - только приходы
+  const filteredIncomeData = safeIncomeData.filter(item => 
+    item.name === 'приход' || 
+    Number(item.amount) > 0
+  )
+  
+  const totalPages = Math.ceil(filteredIncomeData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentData = safeIncomeData.slice(startIndex, endIndex)
+  const currentData = filteredIncomeData.slice(startIndex, endIndex)
 
   // Форматирование даты
   const formatDate = (dateString: string) => {
@@ -171,25 +188,42 @@ function IncomeContent() {
               </div>
             )}
 
-            {/* Кнопка добавить приход */}
-            <div className="mb-4 animate-slide-in-left">
-              <button 
-                onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
-              >
-                + Добавить приход
-              </button>
-            </div>
-
-            {/* Фильтрация по дате */}
+            {/* Заголовок и информация */}
             <div className="mb-6 animate-slide-in-left">
-              <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-gray-700 font-semibold">Фильтр</h3>
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-800 mb-2">Приходы (Доходы)</h1>
+                  <p className="text-sm text-gray-600">
+                    Отображаются только приходы по городам директора. 
+                    Общая сумма: <span className="font-semibold text-green-600">{totalAmount.toLocaleString()} ₽</span>
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setShowAddModal(true)}
                   className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
                 >
-                  {showFilters ? 'Скрыть' : 'Показать'}
+                  + Добавить приход
+                </button>
+              </div>
+              
+              <div className="flex items-center justify-between mb-3">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 text-left cursor-pointer group"
+                >
+                  <h3 className="text-gray-700 font-semibold group-hover:text-teal-600 transition-colors duration-200">
+                    Фильтр
+                  </h3>
+                  <svg
+                    className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
+                      showFilters ? 'rotate-180' : ''
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
               </div>
               
@@ -238,51 +272,75 @@ function IncomeContent() {
             {/* Таблица */}
             {!loading && !error && (
               <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
-                <table className="w-full border-collapse text-[11px] min-w-[600px] bg-white rounded-lg shadow-lg">
-                  <thead>
-                    <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
-                      <th className="text-left py-3 px-3 font-semibold text-gray-700">ID</th>
-                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Тип</th>
-                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Город</th>
-                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Назначение платежа</th>
-                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Сумма</th>
-                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Комментарий</th>
-                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Дата</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentData.map((item) => {
-                      const getTypeColor = (type: string) => {
-                        switch (type) {
-                          case 'приход': return '#14b8a6'
-                          case 'расход': return '#ef4444'
-                          default: return '#6b7280'
+                {currentData.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-lg shadow-lg">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Нет приходов</h3>
+                    <p className="text-gray-500 mb-4">Приходы по вашим городам не найдены</p>
+                    <button 
+                      onClick={() => setShowAddModal(true)}
+                      className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
+                    >
+                      Добавить первый приход
+                    </button>
+                  </div>
+                ) : (
+                  <table className="w-full border-collapse text-[11px] min-w-[600px] bg-white rounded-lg shadow-lg">
+                    <thead>
+                      <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
+                        <th className="text-left py-3 px-3 font-semibold text-gray-700">ID</th>
+                        <th className="text-left py-3 px-3 font-semibold text-gray-700">Тип</th>
+                        <th className="text-left py-3 px-3 font-semibold text-gray-700">Город</th>
+                        <th className="text-left py-3 px-3 font-semibold text-gray-700">Назначение платежа</th>
+                        <th className="text-left py-3 px-3 font-semibold text-gray-700">Сумма</th>
+                        <th className="text-left py-3 px-3 font-semibold text-gray-700">Комментарий</th>
+                        <th className="text-left py-3 px-3 font-semibold text-gray-700">Дата</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentData
+                        .filter(item => 
+                          // Дополнительная проверка - показываем только приходы
+                          item.name === 'приход' || 
+                          Number(item.amount) > 0
+                        )
+                        .map((item) => {
+                        const getTypeColor = (type: string) => {
+                          switch (type) {
+                            case 'приход': return '#14b8a6'
+                            case 'расход': return '#ef4444'
+                            default: return '#6b7280'
+                          }
                         }
-                      }
-                      
-                      return (
-                        <tr 
-                          key={item.id} 
-                          className="border-b hover:bg-teal-50 transition-colors cursor-pointer" 
-                          style={{borderColor: '#e5e7eb'}}
-                          onClick={() => router.push(`/cash/income/view/${item.id}`)}
-                        >
-                          <td className="py-3 px-3 text-gray-800 font-medium">{item.id}</td>
-                          <td className="py-3 px-3">
-                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(item.name)}}>
-                              {item.name}
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 text-gray-800">{item.city || directorCities[0] || 'Москва'}</td>
-                          <td className="py-3 px-3 text-gray-800">{item.paymentPurpose || '-'}</td>
-                          <td className="py-3 px-3 text-gray-800 font-semibold text-green-600">{Number(item.amount).toLocaleString()} ₽</td>
-                          <td className="py-3 px-3 text-gray-800">{item.note || '-'}</td>
-                          <td className="py-3 px-3 text-gray-800">{formatDate(item.dateCreate)}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                        
+                        return (
+                          <tr 
+                            key={item.id} 
+                            className="border-b hover:bg-teal-50 transition-colors cursor-pointer" 
+                            style={{borderColor: '#e5e7eb'}}
+                            onClick={() => router.push(`/cash/income/view/${item.id}`)}
+                          >
+                            <td className="py-3 px-3 text-gray-800 font-medium">{item.id}</td>
+                            <td className="py-3 px-3">
+                              <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(item.name)}}>
+                                {item.name}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-gray-800">{item.city || directorCities[0] || 'Москва'}</td>
+                            <td className="py-3 px-3 text-gray-800">{item.paymentPurpose || '-'}</td>
+                            <td className="py-3 px-3 text-gray-800 font-semibold text-green-600">{Number(item.amount).toLocaleString()} ₽</td>
+                            <td className="py-3 px-3 text-gray-800">{item.note || '-'}</td>
+                            <td className="py-3 px-3 text-gray-800">{formatDate(item.dateCreate)}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
             )}
 

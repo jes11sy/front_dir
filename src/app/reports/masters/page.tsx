@@ -251,15 +251,24 @@ function MastersReportContent() {
               </div>
               
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-gray-700 font-semibold">Фильтр</h3>
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 text-left cursor-pointer group"
+                >
+                  <h3 className="text-gray-700 font-semibold group-hover:text-teal-600 transition-colors duration-200">
+                    Фильтр
+                  </h3>
+                  <svg
+                    className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
+                      showFilters ? 'rotate-180' : ''
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    {showFilters ? 'Скрыть' : 'Показать'}
-                  </button>
-                </div>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
                 {/* Кнопка экспорта для десктопной версии */}
                 <button 
                   onClick={exportToExcel}
@@ -369,9 +378,9 @@ function MastersReportContent() {
                           <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
                             <th className="text-left py-3 px-4 font-semibold text-gray-700">Мастер</th>
                             <th className="text-left py-3 px-4 font-semibold text-gray-700">Всего заказов</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Выручка</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Расходы</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Прибыль</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Оборот</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Средний чек</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Зарплата</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -380,13 +389,13 @@ function MastersReportContent() {
                               <td className="py-3 px-4 text-gray-700 font-semibold">{report.masterName}</td>
                               <td className="py-3 px-4 text-gray-700">{report.totalOrders}</td>
                               <td className="py-3 px-4 text-gray-700 font-semibold text-teal-600">
-                                {formatNumber(report.totalRevenue)} ₽
+                                {formatNumber(report.turnover)} ₽
                               </td>
                               <td className="py-3 px-4 text-gray-700">
-                                {formatNumber(report.totalExpenditure)} ₽
+                                {formatNumber(report.avgCheck)} ₽
                               </td>
                               <td className="py-3 px-4 text-gray-700 font-semibold text-yellow-600">
-                                {formatNumber(report.profit)} ₽
+                                {formatNumber(report.salary)} ₽
                               </td>
                             </tr>
                           ))}
