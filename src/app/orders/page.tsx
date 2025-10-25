@@ -185,7 +185,7 @@ function OrdersContent() {
               <div className="mb-4">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center justify-between w-full text-left cursor-pointer group"
+                  className="flex items-center gap-2 text-left cursor-pointer group"
                 >
                   <h2 className="text-lg font-semibold text-gray-700 group-hover:text-teal-600 transition-colors duration-200">
                     Фильтр

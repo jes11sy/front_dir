@@ -271,59 +271,64 @@ export function CustomNavigation() {
                     )}
                   </Link>
                 ) : (
-                  <button
-                    className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer rounded-lg hover:bg-teal-50 hover:text-teal-600"
-                    style={{
-                      color: expandedDropdown === item.name ? 'white' : '#374151',
-                      backgroundColor: expandedDropdown === item.name ? '#14b8a6' : 'transparent',
-                      textDecoration: 'none'
-                    }}
-                    onClick={() => {
-                      setExpandedDropdown(expandedDropdown === item.name ? null : item.name)
-                    }}
-                  >
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.dropdown && (
-                      <svg 
-                        className={`ml-2 h-4 w-4 transition-transform duration-200 ${expandedDropdown === item.name ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    )}
-                  </button>
-                )}
-                
-                {/* Выпадающий список для десктопа */}
-                {item.dropdown && expandedDropdown === item.name && (
-                  <div 
-                    className="absolute left-full top-0 ml-2 w-48 rounded-lg shadow-xl border z-50"
-                    style={{
-                      backgroundColor: 'white',
-                      borderColor: '#14b8a6',
-                      borderWidth: '1px'
-                    }}
-                  >
-                    <div className="py-2">
-                      {item.dropdown.map((dropdownItem, index) => (
-                        <Link
-                          key={dropdownItem.name}
-                          href={dropdownItem.href}
-                          className="block px-4 py-2 text-sm transition-all duration-150 rounded mx-2 hover:bg-teal-50 hover:text-teal-600"
-                          style={{
-                            color: pathname === dropdownItem.href ? 'white' : '#374151',
-                            backgroundColor: pathname === dropdownItem.href ? '#14b8a6' : 'transparent',
-                            textDecoration: 'none',
-                            boxShadow: pathname === dropdownItem.href ? '0 1px 2px rgba(20, 184, 166, 0.3)' : 'none'
-                          }}
+                  <>
+                    <button
+                      className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer rounded-lg hover:bg-teal-50 hover:text-teal-600"
+                      style={{
+                        color: expandedDropdown === item.name ? 'white' : '#374151',
+                        backgroundColor: expandedDropdown === item.name ? '#14b8a6' : 'transparent',
+                        textDecoration: 'none'
+                      }}
+                      onClick={() => {
+                        setExpandedDropdown(expandedDropdown === item.name ? null : item.name)
+                      }}
+                    >
+                      <span className="flex-1 text-left">{item.name}</span>
+                      {item.dropdown && (
+                        <svg 
+                          className={`ml-2 h-4 w-4 transition-transform duration-200 ${expandedDropdown === item.name ? 'rotate-180' : ''}`} 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
                         >
-                          {dropdownItem.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </button>
+                    
+                    {/* Выпадающий список для десктопа (снизу) */}
+                    {item.dropdown && expandedDropdown === item.name && (
+                      <div className="space-y-1 mt-2">
+                        {item.dropdown.map((dropdownItem) => (
+                          <Link
+                            key={dropdownItem.name}
+                            href={dropdownItem.href}
+                            className="flex items-center w-full px-4 py-2 text-sm transition-all duration-150 rounded-lg"
+                            style={{
+                              color: pathname === dropdownItem.href ? 'white' : '#6b7280',
+                              backgroundColor: pathname === dropdownItem.href ? '#14b8a6' : 'transparent',
+                              textDecoration: 'none',
+                              boxShadow: pathname === dropdownItem.href ? '0 1px 2px rgba(20, 184, 166, 0.3)' : 'none'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (pathname !== dropdownItem.href) {
+                                e.currentTarget.style.color = '#14b8a6'
+                                e.currentTarget.style.backgroundColor = '#f0fdfa'
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (pathname !== dropdownItem.href) {
+                                e.currentTarget.style.color = '#6b7280'
+                                e.currentTarget.style.backgroundColor = 'transparent'
+                              }
+                            }}
+                          >
+                            <span className="flex-1 text-left">{dropdownItem.name}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}
