@@ -539,16 +539,7 @@ function AddEmployeeContent() {
                             type="button"
                             size="sm"
                             onClick={() => document.getElementById('passportFile')?.click()}
-                            className="border"
-                            style={{backgroundColor: 'transparent', borderColor: '#114643', color: 'white'}}
-                            onMouseEnter={(e) => {
-                              (e.target as HTMLElement).style.backgroundColor = '#2a6b68';
-                              (e.target as HTMLElement).style.borderColor = '#2a6b68';
-                            }}
-                            onMouseLeave={(e) => {
-                              (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                              (e.target as HTMLElement).style.borderColor = '#114643';
-                            }}
+                            className="border bg-white text-gray-800 hover:bg-gray-50 border-gray-300 hover:border-teal-500 transition-all duration-200"
                           >
                             Выбрать файл
                           </Button>
@@ -604,16 +595,7 @@ function AddEmployeeContent() {
                             type="button"
                             size="sm"
                             onClick={() => document.getElementById('contractFile')?.click()}
-                            className="border"
-                            style={{backgroundColor: 'transparent', borderColor: '#114643', color: 'white'}}
-                            onMouseEnter={(e) => {
-                              (e.target as HTMLElement).style.backgroundColor = '#2a6b68';
-                              (e.target as HTMLElement).style.borderColor = '#2a6b68';
-                            }}
-                            onMouseLeave={(e) => {
-                              (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                              (e.target as HTMLElement).style.borderColor = '#114643';
-                            }}
+                            className="border bg-white text-gray-800 hover:bg-gray-50 border-gray-300 hover:border-teal-500 transition-all duration-200"
                           >
                             Выбрать файл
                           </Button>

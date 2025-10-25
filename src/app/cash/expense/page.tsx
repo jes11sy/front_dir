@@ -186,40 +186,34 @@ function ExpenseContent() {
             {/* Фильтрация по дате */}
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-white font-semibold">Фильтр</h3>
+                <h3 className="text-gray-700 font-semibold">Фильтр</h3>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
+                  className="px-3 py-1 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   {showFilters ? 'Скрыть' : 'Показать'}
                 </button>
               </div>
               
               {showFilters && (
-                <div className="p-3 bg-gray-800 rounded-lg">
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex flex-wrap gap-3 items-end">
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">От даты</label>
+                      <label className="block text-xs text-gray-700 mb-1">От даты</label>
                       <input
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm"
-                        style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
-                        onFocus={(e) => e.target.style.borderColor = '#2a6b68'}
-                        onBlur={(e) => e.target.style.borderColor = '#334155'}
+                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">До даты</label>
+                      <label className="block text-xs text-gray-700 mb-1">До даты</label>
                       <input
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none text-sm"
-                        style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
-                        onFocus={(e) => e.target.style.borderColor = '#2a6b68'}
-                        onBlur={(e) => e.target.style.borderColor = '#334155'}
+                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -228,15 +222,12 @@ function ExpenseContent() {
                           setStartDate('')
                           setEndDate('')
                         }}
-                        className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm transition-colors"
+                        className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm transition-colors font-medium"
                       >
                         Сбросить
                       </button>
                       <button 
-                        className="px-3 py-1.5 text-white rounded text-sm transition-colors"
-                        style={{backgroundColor: '#2a6b68'}}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a5a57'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a6b68'}
+                        className="px-3 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded text-sm transition-all duration-200 hover:shadow-md font-medium"
                       >
                         Применить
                       </button>

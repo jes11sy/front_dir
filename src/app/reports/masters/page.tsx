@@ -270,12 +270,12 @@ function MastersReportContent() {
               </div>
               
               {showFilters && (
-                <div className="p-3 bg-gray-800 rounded-lg">
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="space-y-4">
                     {/* Первая строка - Мастер и Город */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs text-gray-300 mb-1">Мастер</label>
+                        <label className="block text-xs text-gray-700 mb-1">Мастер</label>
                         <CustomSelect
                           value={selectedMaster}
                           onChange={setSelectedMaster}
@@ -288,7 +288,7 @@ function MastersReportContent() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-300 mb-1">Город</label>
+                        <label className="block text-xs text-gray-700 mb-1">Город</label>
                         <CustomSelect
                           value={selectedCity}
                           onChange={setSelectedCity}
@@ -305,27 +305,21 @@ function MastersReportContent() {
                     {/* Вторая строка - Даты */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs text-gray-300 mb-1">От даты</label>
+                        <label className="block text-xs text-gray-700 mb-1">От даты</label>
                         <input
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200 text-sm"
-                          style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
-                          onFocus={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'}
-                          onBlur={(e) => (e.target as HTMLElement).style.borderColor = '#334155'}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm hover:shadow-md transition-all duration-200 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-300 mb-1">До даты</label>
+                        <label className="block text-xs text-gray-700 mb-1">До даты</label>
                         <input
                           type="date"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200 text-sm"
-                          style={{backgroundColor: '#1e293b', borderColor: '#334155'}}
-                          onFocus={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'}
-                          onBlur={(e) => (e.target as HTMLElement).style.borderColor = '#334155'}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm hover:shadow-md transition-all duration-200 text-sm"
                         />
                       </div>
                     </div>
@@ -412,7 +406,7 @@ function MastersReportContent() {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-gray-700 rounded transition-colors text-xs sm:text-sm"
+                  className="px-2 py-1 sm:px-3 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 text-gray-700 rounded transition-colors text-xs sm:text-sm font-medium"
                 >
                   ←
                 </button>
@@ -421,14 +415,11 @@ function MastersReportContent() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`px-2 py-1 sm:px-3 rounded transition-colors text-xs sm:text-sm ${
+                    className={`px-2 py-1 sm:px-3 rounded transition-colors text-xs sm:text-sm font-medium ${
                       currentPage === page
-                        ? 'text-gray-700'
-                        : 'bg-gray-600 hover:bg-gray-700 text-gray-700'
+                        ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                     }`}
-                    style={currentPage === page ? {backgroundColor: '#2a6b68'} : {}}
-                    onMouseEnter={currentPage !== page ? (e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57' : undefined}
-                    onMouseLeave={currentPage !== page ? (e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68' : undefined}
                   >
                     {page}
                   </button>
@@ -437,7 +428,7 @@ function MastersReportContent() {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-2 py-1 sm:px-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-gray-700 rounded transition-colors text-xs sm:text-sm"
+                  className="px-2 py-1 sm:px-3 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 text-gray-700 rounded transition-colors text-xs sm:text-sm font-medium"
                 >
                   →
                 </button>
