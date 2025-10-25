@@ -86,8 +86,11 @@ const CustomSelect = React.memo<CustomSelectProps>(({
       
       {isOpen && (
         <div 
-          className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
-          style={{ borderColor: '#14b8a6' }}
+          className="absolute w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+          style={{ 
+            borderColor: '#14b8a6',
+            zIndex: 9999
+          }}
         >
           {options.map((option) => (
             <SelectOption
