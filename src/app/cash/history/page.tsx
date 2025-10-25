@@ -197,7 +197,7 @@ function HistoryContent() {
               </div>
               
               {showFilters && (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in">
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in overflow-visible">
                   <div className="flex flex-wrap gap-3 items-end">
                     {/* Тип транзакции */}
                     <div className="w-48">
