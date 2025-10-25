@@ -536,15 +536,7 @@ export class ApiClient {
     }
 
     const result = await response.json()
-    const data = result.data || result
-    
-    // Дополнительная фильтрация на уровне API клиента - только приходы
-    const incomeOnly = data.filter((item: CashTransaction) => 
-      item.name === 'приход' || 
-      Number(item.amount) > 0
-    )
-    
-    return incomeOnly
+    return result.data || result
   }
 
   async getCashExpense(): Promise<CashTransaction[]> {
@@ -559,15 +551,7 @@ export class ApiClient {
     }
 
     const result = await response.json()
-    const data = result.data || result
-    
-    // Дополнительная фильтрация на уровне API клиента - только расходы
-    const expenseOnly = data.filter((item: CashTransaction) => 
-      item.name === 'расход' || 
-      Number(item.amount) < 0
-    )
-    
-    return expenseOnly
+    return result.data || result
   }
 
   async createCashTransaction(data: Partial<CashTransaction>): Promise<CashTransaction> {

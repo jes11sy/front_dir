@@ -58,8 +58,7 @@ function IncomeContent() {
       
       // Дополнительная фильтрация на фронтенде - показываем только приходы
       const incomeOnly = data.filter(item => 
-        item.name === 'приход' || 
-        Number(item.amount) > 0
+        item.name === 'приход'
       )
       
       console.log('После фильтрации (только приходы):', incomeOnly)
@@ -139,8 +138,7 @@ function IncomeContent() {
   
   // Дополнительная фильтрация для пагинации - только приходы
   const filteredIncomeData = safeIncomeData.filter(item => 
-    item.name === 'приход' || 
-    Number(item.amount) > 0
+    item.name === 'приход'
   )
   
   const totalPages = Math.ceil(filteredIncomeData.length / itemsPerPage)
@@ -305,8 +303,7 @@ function IncomeContent() {
                       {currentData
                         .filter(item => 
                           // Дополнительная проверка - показываем только приходы
-                          item.name === 'приход' || 
-                          Number(item.amount) > 0
+                          item.name === 'приход'
                         )
                         .map((item) => {
                         const getTypeColor = (type: string) => {
