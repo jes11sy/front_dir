@@ -397,15 +397,16 @@ function EmployeeViewContent() {
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border hover:shadow-3xl transition-all duration-500 hover:scale-[1.01]" style={{backgroundColor: '#15282f', borderColor: '#114643'}}>
             
-            {/* Навигация */}
-            <div className="mb-6">
+            {/* Заголовок */}
+            <div className="mb-6 animate-slide-down">
+              <h1 className="text-2xl font-bold text-white mb-2">Редактирование сотрудника</h1>
               <button
                 onClick={() => router.push('/employees')}
-                className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg transition-colors text-sm sm:text-base"
+                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
               >
-                ← Назад
+                ← Назад к списку сотрудников
               </button>
             </div>
 
@@ -967,7 +968,7 @@ function EmployeeViewContent() {
                 <Button
                   type="submit"
                   disabled={isUpdating || availableCities.length === 0}
-                  className="flex-1 h-12 text-white font-medium"
+                  className="flex-1 h-12 text-white font-medium rounded-lg transition-all duration-200 hover:shadow-md"
                   style={{backgroundColor: availableCities.length === 0 ? '#6b7280' : '#2a6b68'}}
                   onMouseEnter={(e) => !isUpdating && availableCities.length > 0 && ((e.target as HTMLElement).style.backgroundColor = '#1a5a57')}
                   onMouseLeave={(e) => !isUpdating && availableCities.length > 0 && ((e.target as HTMLElement).style.backgroundColor = '#2a6b68')}
@@ -978,15 +979,13 @@ function EmployeeViewContent() {
                   type="button"
                   onClick={() => router.push('/employees')}
                   disabled={isUpdating}
-                  className="flex-1 h-12 border"
-                  style={{backgroundColor: 'transparent', borderColor: '#114643', color: 'white'}}
+                  className="flex-1 h-12 rounded-lg transition-all duration-200 hover:shadow-md font-medium"
+                  style={{backgroundColor: '#374151', borderColor: '#114643', color: 'white'}}
                   onMouseEnter={(e) => {
-                    (e.target as HTMLElement).style.backgroundColor = '#2a6b68';
-                    (e.target as HTMLElement).style.borderColor = '#2a6b68';
+                    (e.target as HTMLElement).style.backgroundColor = '#4b5563';
                   }}
                   onMouseLeave={(e) => {
-                    (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                    (e.target as HTMLElement).style.borderColor = '#114643';
+                    (e.target as HTMLElement).style.backgroundColor = '#374151';
                   }}
                 >
                   Отмена
