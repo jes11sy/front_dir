@@ -315,7 +315,7 @@ function AddEmployeeContent() {
                         </button>
                         
                         {isCityDropdownOpen && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          <div className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                             {availableCities.map((city) => (
                               <div
                                 key={city}
