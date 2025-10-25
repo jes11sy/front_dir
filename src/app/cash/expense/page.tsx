@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import AuthGuard from "@/components/auth-guard"
 import { apiClient, CashTransaction } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
+
+export const dynamic = 'force-dynamic'
 
 function ExpenseContent() {
   const router = useRouter()

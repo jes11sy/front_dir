@@ -1,11 +1,14 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import AuthGuard from "@/components/auth-guard"
 import { apiClient, CashTransaction } from '@/lib/api'
 
 // Импортируем оптимизированный CustomSelect
 import CustomSelect from '@/components/optimized/CustomSelect'
+
+export const dynamic = 'force-dynamic'
 
 function HistoryContent() {
   const [startDate, setStartDate] = useState('')

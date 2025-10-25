@@ -2,12 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import AuthGuard from "@/components/auth-guard"
 import { apiClient, Order, OrdersResponse, OrdersStats } from '@/lib/api'
 import { logger } from '@/lib/logger'
 
 // Импортируем оптимизированный CustomSelect
 import CustomSelect from '@/components/optimized/CustomSelect'
+
+export const dynamic = 'force-dynamic'
 
 function OrdersContent() {
   const router = useRouter()
