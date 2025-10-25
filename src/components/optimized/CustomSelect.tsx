@@ -63,7 +63,7 @@ const CustomSelect = React.memo<CustomSelectProps>(({
   }, [isOpen, setOpenSelect])
 
   return (
-    <div className="relative custom-select">
+    <div className="relative custom-select" style={{ zIndex: isOpen ? 9999 : 'auto' }}>
       <button
         type="button"
         onClick={handleToggle}
