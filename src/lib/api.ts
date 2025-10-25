@@ -155,36 +155,15 @@ export interface CashTransaction {
 export interface CityReport {
   city: string
   orders: {
-    total: number
-    totalRevenue: number
-    totalExpenditure: number
-    totalClean: number
-    totalMasterChange: number
-    totalPrepayment: number
-    totalCashSubmission: number
-    avgRevenue: number
-    avgExpenditure: number
-    avgClean: number
-    // Новая статистика по статусам
-    closedOrders: number
-    notOrders: number
-    refusals: number
-    ready: number
-    avgCheck: number
-  }
-  calls: {
-    total: number
+    closedOrders: number  // Количество заказов со статусом "Готово" или "Отказ"
+    refusals: number      // Заказы со статусом "Отказ"
+    notOrders: number     // Заказы со статусом "Незаказ"
+    totalClean: number    // Сумма чистыми по закрытым заказам
+    totalMasterChange: number  // Сумма сдача мастера
+    avgCheck: number      // Средний чек = totalClean / closedOrders
   }
   cash: {
-    totalTransactions: number
-    totalAmount: number
-    income: number
-    expense: number
-  }
-  masters: {
-    total: number
-    working: number
-    fired: number
+    totalAmount: number   // Касса (все приходы-расходы за все время)
   }
 }
 
