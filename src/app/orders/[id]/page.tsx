@@ -14,6 +14,7 @@ import { OrderMasterTab } from '@/components/orders/OrderMasterTab'
 import { OrderFileUpload } from '@/components/orders/OrderFileUpload'
 import { OrderInfoTabContent } from '@/components/orders/OrderInfoTabContent'
 import { OrderPageStyles } from '@/components/orders/OrderPageStyles'
+import { OrderLoadingSpinner } from '@/components/orders/OrderLoadingSpinner'
 import { OrderCallsTab } from '@/components/orders/OrderCallsTab'
 
 function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
@@ -372,12 +373,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
             </div>
 
             {/* Состояние загрузки */}
-            {loading && (
-              <div className="text-center py-8 animate-fade-in">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-                <p className="text-gray-700 text-lg">Загрузка данных заказа...</p>
-              </div>
-            )}
+            {loading && <OrderLoadingSpinner />}
 
             {/* Ошибка */}
             {error && (
