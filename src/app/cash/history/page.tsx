@@ -21,6 +21,10 @@ function HistoryContent() {
   const [openSelect, setOpenSelect] = useState<string | null>(null)
   const itemsPerPage = 10
 
+  // Получаем города директора
+  const currentUser = apiClient.getCurrentUser()
+  const directorCities = currentUser?.cities || []
+
   // Данные для выпадающих списков
   const typeOptions = [
     { value: 'all', label: 'Все типы' },
@@ -30,11 +34,10 @@ function HistoryContent() {
 
   const cityOptions = [
     { value: 'all', label: 'Все города' },
-    { value: 'Москва', label: 'Москва' },
-    { value: 'СПб', label: 'СПб' },
-    { value: 'Казань', label: 'Казань' },
-    { value: 'Саратов', label: 'Саратов' },
-    { value: 'Энгельс', label: 'Энгельс' }
+    ...directorCities.map(city => ({
+      value: city,
+      label: city
+    }))
   ]
 
   // Загрузка данных
@@ -196,7 +199,7 @@ function HistoryContent() {
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in">
                   <div className="flex flex-wrap gap-3 items-end">
                     {/* Тип транзакции */}
-                    <div>
+                    <div className="min-w-[140px]">
                       <label className="block text-xs text-gray-600 mb-1">Тип</label>
                       <CustomSelect
                         value={typeFilter}
@@ -211,7 +214,7 @@ function HistoryContent() {
                     </div>
 
                     {/* Город */}
-                    <div>
+                    <div className="min-w-[140px]">
                       <label className="block text-xs text-gray-600 mb-1">Город</label>
                       <CustomSelect
                         value={cityFilter}

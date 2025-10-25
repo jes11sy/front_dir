@@ -321,7 +321,7 @@ function MastersReportContent() {
                   return (
                     <div key={city} className="mb-8">
                       <h3 className="text-xl font-semibold text-gray-700 mb-4">
-                        {city} ({cityData.length} мастеров)
+                        {city}
                       </h3>
                       <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
                         <div className="min-w-[600px]">
