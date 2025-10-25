@@ -189,7 +189,7 @@ function ExpenseContent() {
                 <h3 className="text-gray-700 font-semibold">Фильтр</h3>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="px-3 py-1 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                  className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                 >
                   {showFilters ? 'Скрыть' : 'Показать'}
                 </button>
@@ -222,12 +222,12 @@ function ExpenseContent() {
                           setStartDate('')
                           setEndDate('')
                         }}
-                        className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm transition-colors font-medium"
+                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition-colors font-medium"
                       >
                         Сбросить
                       </button>
                       <button 
-                        className="px-3 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded text-sm transition-all duration-200 hover:shadow-md font-medium"
+                        className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
                       >
                         Применить
                       </button>

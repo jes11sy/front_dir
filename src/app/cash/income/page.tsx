@@ -191,24 +191,24 @@ function IncomeContent() {
               </div>
               
               {showFilters && (
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 animate-slide-in-right">
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-slide-in-right">
                   <div className="flex flex-wrap gap-3 items-end">
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1 font-medium">От даты</label>
+                      <label className="block text-xs text-gray-700 mb-1">От даты</label>
                       <input
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md text-sm"
+                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1 font-medium">До даты</label>
+                      <label className="block text-xs text-gray-700 mb-1">До даты</label>
                       <input
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md text-sm"
+                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -217,15 +217,12 @@ function IncomeContent() {
                           setStartDate('')
                           setEndDate('')
                         }}
-                        className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition-colors font-medium"
                       >
                         Сбросить
                       </button>
                       <button 
-                        className="px-3 py-1.5 text-white rounded text-sm transition-colors"
-                        style={{backgroundColor: '#2a6b68'}}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a5a57'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a6b68'}
+                        className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
                       >
                         Применить
                       </button>

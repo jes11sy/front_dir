@@ -271,61 +271,59 @@ function MastersReportContent() {
               
               {showFilters && (
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="space-y-4">
-                    {/* Первая строка - Мастер и Город */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs text-gray-700 mb-1">Мастер</label>
-                        <CustomSelect
-                          value={selectedMaster}
-                          onChange={setSelectedMaster}
-                          options={masters}
-                          placeholder="Выберите мастера"
-                          compact={true}
-                          selectId="master"
-                          openSelect={openSelect}
-                          setOpenSelect={setOpenSelect}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-700 mb-1">Город</label>
-                        <CustomSelect
-                          value={selectedCity}
-                          onChange={setSelectedCity}
-                          options={cities}
-                          placeholder="Выберите город"
-                          compact={true}
-                          selectId="city"
-                          openSelect={openSelect}
-                          setOpenSelect={setOpenSelect}
-                        />
-                      </div>
+                  <div className="flex flex-wrap gap-3 items-end">
+                    {/* Мастер */}
+                    <div>
+                      <label className="block text-xs text-gray-700 mb-1">Мастер</label>
+                      <CustomSelect
+                        value={selectedMaster}
+                        onChange={setSelectedMaster}
+                        options={masters}
+                        placeholder="Выберите мастера"
+                        compact={true}
+                        selectId="master"
+                        openSelect={openSelect}
+                        setOpenSelect={setOpenSelect}
+                      />
+                    </div>
+                    {/* Город */}
+                    <div>
+                      <label className="block text-xs text-gray-700 mb-1">Город</label>
+                      <CustomSelect
+                        value={selectedCity}
+                        onChange={setSelectedCity}
+                        options={cities}
+                        placeholder="Выберите город"
+                        compact={true}
+                        selectId="city"
+                        openSelect={openSelect}
+                        setOpenSelect={setOpenSelect}
+                      />
                     </div>
                     
-                    {/* Вторая строка - Даты */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs text-gray-700 mb-1">От даты</label>
-                        <input
-                          type="date"
-                          value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm hover:shadow-md transition-all duration-200 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-700 mb-1">До даты</label>
-                        <input
-                          type="date"
-                          value={endDate}
-                          onChange={(e) => setEndDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm hover:shadow-md transition-all duration-200 text-sm"
-                        />
-                      </div>
+                    {/* От даты */}
+                    <div>
+                      <label className="block text-xs text-gray-700 mb-1">От даты</label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                      />
+                    </div>
+                    {/* До даты */}
+                    <div>
+                      <label className="block text-xs text-gray-700 mb-1">До даты</label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                      />
                     </div>
                     
-                    {/* Третья строка - Кнопки */}
-                    <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                    {/* Кнопки */}
+                    <div className="flex gap-2">
                       <button
                         onClick={() => {
                           setStartDate('')
@@ -333,7 +331,7 @@ function MastersReportContent() {
                           setSelectedMaster('all')
                           setSelectedCity('all')
                         }}
-                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
+                        className="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition-colors font-medium"
                       >
                         Сбросить
                       </button>
