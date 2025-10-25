@@ -155,15 +155,36 @@ export interface CashTransaction {
 export interface CityReport {
   city: string
   orders: {
-    closedOrders: number  // Количество заказов со статусом "Готово" или "Отказ"
-    refusals: number      // Заказы со статусом "Отказ"
-    notOrders: number     // Заказы со статусом "Незаказ"
-    totalClean: number    // Сумма чистыми по закрытым заказам
-    totalMasterChange: number  // Сумма сдача мастера
-    avgCheck: number      // Средний чек = totalClean / closedOrders
+    total: number
+    totalRevenue: number
+    totalExpenditure: number
+    totalClean: number
+    totalMasterChange: number
+    totalPrepayment: number
+    totalCashSubmission: number
+    avgRevenue: number
+    avgExpenditure: number
+    avgClean: number
+    // Новая статистика по статусам
+    closedOrders: number
+    notOrders: number
+    refusals: number
+    ready: number
+    avgCheck: number
+  }
+  calls: {
+    total: number
   }
   cash: {
-    totalAmount: number   // Касса (все приходы-расходы за все время)
+    totalTransactions: number
+    totalAmount: number
+    income: number
+    expense: number
+  }
+  masters: {
+    total: number
+    working: number
+    fired: number
   }
 }
 
@@ -172,9 +193,10 @@ export interface MasterReport {
   masterName: string
   city: string
   totalOrders: number
-  turnover: number        // Оборот (сумма чистыми)
-  avgCheck: number        // Средний чек
-  salary: number          // Зарплата (сумма сдача мастера)
+  completedOrders: number
+  totalRevenue: number
+  totalExpenditure: number
+  profit: number
 }
 
 export class ApiClient {
@@ -518,7 +540,7 @@ export class ApiClient {
   }
 
   async getCashIncome(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?type=приход`, {
+    const response = await fetch(`${this.baseURL}/cash?type=предоплата`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -554,11 +576,10 @@ export class ApiClient {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify({
-        name: data.name,
+        orderId: data.orderId,
         amount: data.amount || 0,
-        city: data.city,
+        type: data.type || 'расход',
         note: data.note,
-        paymentPurpose: data.paymentPurpose,
         receiptDoc: data.receiptDoc,
       }),
     })

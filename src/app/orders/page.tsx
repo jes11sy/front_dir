@@ -12,7 +12,7 @@ import CustomSelect from '@/components/optimized/CustomSelect'
 function OrdersContent() {
   const router = useRouter()
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const itemsPerPage = 10
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [cityFilter, setCityFilter] = useState('')
@@ -32,6 +32,7 @@ function OrdersContent() {
     total: 0,
     totalPages: 0
   })
+
 
   // Загрузка данных
   const loadOrders = async () => {
@@ -70,23 +71,10 @@ function OrdersContent() {
   }
 
 
-  // Определяем количество элементов на странице в зависимости от размера экрана
-  useEffect(() => {
-    const handleResize = () => {
-      setItemsPerPage(window.innerWidth >= 768 ? 20 : 10)
-    }
-    
-    // Устанавливаем начальное значение
-    handleResize()
-    
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
   // Загружаем данные при изменении фильтров
   useEffect(() => {
     loadOrders()
-  }, [currentPage, statusFilter, cityFilter, searchTerm, masterFilter, itemsPerPage])
+  }, [currentPage, statusFilter, cityFilter, searchTerm, masterFilter])
 
 
   // Обработчики фильтров
@@ -195,24 +183,13 @@ function OrdersContent() {
 
             {/* Фильтры */}
             <div className="mb-6 animate-slide-in-left">
-              <div className="mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-700">Фильтр</h2>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 text-left cursor-pointer group"
+                  className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
                 >
-                  <h2 className="text-lg font-semibold text-gray-700 group-hover:text-teal-600 transition-colors duration-200">
-                    Фильтр
-                  </h2>
-                  <svg
-                    className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
-                      showFilters ? 'rotate-180' : ''
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  {showFilters ? 'Скрыть' : 'Показать'}
                 </button>
               </div>
               
