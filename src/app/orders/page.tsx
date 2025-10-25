@@ -323,7 +323,7 @@ function OrdersContent() {
             )}
             
             {!loading && !error && safeOrders.length > 0 && (
-            <div className="hidden md:block animate-fade-in relative z-10">
+            <div className="hidden md:block animate-fade-in">
               <table className="w-full border-collapse text-xs bg-white rounded-lg shadow-lg">
                 <thead>
                   <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
