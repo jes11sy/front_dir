@@ -21,6 +21,10 @@ function HistoryContent() {
   const [openSelect, setOpenSelect] = useState<string | null>(null)
   const itemsPerPage = 10
 
+  // Получаем города директора для фильтрации
+  const currentUser = apiClient.getCurrentUser()
+  const directorCities = currentUser?.cities || []
+
   // Данные для выпадающих списков
   const typeOptions = [
     { value: 'all', label: 'Все типы' },
@@ -30,11 +34,10 @@ function HistoryContent() {
 
   const cityOptions = [
     { value: 'all', label: 'Все города' },
-    { value: 'Москва', label: 'Москва' },
-    { value: 'СПб', label: 'СПб' },
-    { value: 'Казань', label: 'Казань' },
-    { value: 'Саратов', label: 'Саратов' },
-    { value: 'Энгельс', label: 'Энгельс' }
+    ...directorCities.map(city => ({
+      value: city,
+      label: city
+    }))
   ]
 
   // Загрузка данных

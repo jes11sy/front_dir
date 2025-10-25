@@ -29,7 +29,7 @@ function IncomeContent() {
     receipt: null as File | null
   })
 
-  // Данные для выпадающих списков
+  // Получаем города директора для фильтрации
   const currentUser = apiClient.getCurrentUser()
   const directorCities = currentUser?.cities || []
   

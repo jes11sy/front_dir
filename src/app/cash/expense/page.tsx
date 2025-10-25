@@ -29,11 +29,10 @@ function ExpenseContent() {
     receipt: null as File | null
   })
 
-  // Получаем города директора
+  // Получаем города директора для фильтрации
   const currentUser = apiClient.getCurrentUser()
   const directorCities = currentUser?.cities || []
   
-  // Данные для выпадающих списков
   const cities = directorCities.map(city => ({
     value: city.toLowerCase().replace(/\s+/g, '_'),
     label: city
