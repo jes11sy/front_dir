@@ -378,9 +378,9 @@ function MastersReportContent() {
                           <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
                             <th className="text-left py-3 px-4 font-semibold text-gray-700">Мастер</th>
                             <th className="text-left py-3 px-4 font-semibold text-gray-700">Всего заказов</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Выручка</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Расходы</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Прибыль</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Оборот</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Средний чек</th>
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Зарплата</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -389,13 +389,13 @@ function MastersReportContent() {
                               <td className="py-3 px-4 text-gray-700 font-semibold">{report.masterName}</td>
                               <td className="py-3 px-4 text-gray-700">{report.totalOrders}</td>
                               <td className="py-3 px-4 text-gray-700 font-semibold text-teal-600">
-                                {formatNumber(report.totalRevenue)} ₽
+                                {formatNumber(report.turnover)} ₽
                               </td>
                               <td className="py-3 px-4 text-gray-700">
-                                {formatNumber(report.totalExpenditure)} ₽
+                                {formatNumber(report.avgCheck)} ₽
                               </td>
                               <td className="py-3 px-4 text-gray-700 font-semibold text-yellow-600">
-                                {formatNumber(report.profit)} ₽
+                                {formatNumber(report.salary)} ₽
                               </td>
                             </tr>
                           ))}

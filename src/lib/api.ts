@@ -172,10 +172,9 @@ export interface MasterReport {
   masterName: string
   city: string
   totalOrders: number
-  completedOrders: number
-  totalRevenue: number
-  totalExpenditure: number
-  profit: number
+  turnover: number        // Оборот (сумма чистыми)
+  avgCheck: number        // Средний чек
+  salary: number          // Зарплата (сумма сдача мастера)
 }
 
 export class ApiClient {
