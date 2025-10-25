@@ -5,37 +5,17 @@ import AuthGuard from "@/components/auth-guard"
 import { apiClient, MasterReport } from '@/lib/api'
 import * as XLSX from 'xlsx'
 
-// Импортируем оптимизированный CustomSelect
-import CustomSelect from '@/components/optimized/CustomSelect'
-
 function MastersReportContent() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [showFilters, setShowFilters] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [selectedMaster, setSelectedMaster] = useState('all')
-  const [selectedCity, setSelectedCity] = useState('all')
-  const [openSelect, setOpenSelect] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [masterReports, setMasterReports] = useState<MasterReport[]>([])
-  const [availableMasters, setAvailableMasters] = useState<{ id: string; name: string }[]>([])
-  const [availableCities, setAvailableCities] = useState<{ id: string; name: string }[]>([])
-  const itemsPerPage = 10
-
-  // Получаем список мастеров и городов из данных отчета
-  const masters = [
-    { value: 'all', label: 'Все мастера' },
-    ...availableMasters.map(m => ({ value: m.id, label: m.name }))
-  ]
-
-  const cities = [
-    { value: 'all', label: 'Все города' },
-    ...availableCities.map(c => ({ value: c.id, label: c.name }))
-  ]
+  const [directorCities, setDirectorCities] = useState<string[]>([])
 
   // Загрузка данных
-  const loadMastersReport = async (filters?: { masterId?: number; city?: string; startDate?: string; endDate?: string }) => {
+  const loadMastersReport = async (filters?: { startDate?: string; endDate?: string }) => {
     try {
       setLoading(true)
       setError(null)
@@ -43,18 +23,9 @@ function MastersReportContent() {
       const safeData = Array.isArray(data) ? data : []
       setMasterReports(safeData)
       
-      // Обновляем список доступных мастеров и городов из данных отчета
-      const mastersFromData = safeData.map(report => ({
-        id: report.masterId.toString(),
-        name: report.masterName
-      }))
-      setAvailableMasters(mastersFromData)
-      
-      const citiesFromData = Array.from(new Set(safeData.map(report => report.city))).map(city => ({
-        id: city,
-        name: city
-      }))
-      setAvailableCities(citiesFromData)
+      // Получаем уникальные города директора из данных
+      const cities = Array.from(new Set(safeData.map(report => report.city)))
+      setDirectorCities(cities)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки отчета')
     } finally {
@@ -64,24 +35,21 @@ function MastersReportContent() {
 
   // Фильтрация данных
   const applyFilters = () => {
-    const filters: { masterId?: number; city?: string; startDate?: string; endDate?: string } = {};
+    const filters: { startDate?: string; endDate?: string } = {};
     
-    // Фильтр по мастеру
-    if (selectedMaster !== 'all') {
-      filters.masterId = parseInt(selectedMaster);
-    }
-    
-    // Фильтр по городу
-    if (selectedCity !== 'all') {
-      filters.city = selectedCity;
-    }
-    
-    // Фильтр по датам
-    if (startDate) {
-      filters.startDate = startDate;
-    }
-    if (endDate) {
-      filters.endDate = endDate;
+    // Фильтр по датам - если не указаны, используем текущий месяц
+    if (startDate || endDate) {
+      if (startDate) {
+        filters.startDate = startDate;
+      }
+      if (endDate) {
+        filters.endDate = endDate;
+      }
+    } else {
+      // По умолчанию - текущий месяц с 1 числа
+      const now = new Date()
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+      filters.startDate = firstDay.toISOString().split('T')[0]
     }
     
     // Загружаем данные с фильтрами
@@ -89,7 +57,13 @@ function MastersReportContent() {
   }
 
   useEffect(() => {
-    loadMastersReport()
+    // При загрузке устанавливаем фильтр по текущему месяцу
+    const now = new Date()
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+    
+    const startDateStr = firstDay.toISOString().split('T')[0]
+    
+    loadMastersReport({ startDate: startDateStr })
   }, [])
 
   // Форматирование чисел
@@ -119,14 +93,14 @@ function MastersReportContent() {
         [city],
         [], // Пустая строка
         // Заголовки колонок
-        ['Мастер', 'Кол-во заказов', 'Оборот (₽)', 'Средний чек (₽)', 'Зарплата (₽)'],
+        ['Мастер', 'Всего заказов', 'Оборот (₽)', 'Средний чек (₽)', 'Зарплата (₽)'],
         // Данные
         ...cityData.map(report => [
           report.masterName,
-          report.orders.total,
-          report.orders.totalClean,
-          Math.round(report.orders.avgCheck),
-          report.orders.totalMasterChange
+          report.totalOrders,
+          report.turnover,
+          Math.round(report.avgCheck),
+          report.salary
         ])
       ];
 
@@ -136,7 +110,7 @@ function MastersReportContent() {
       // Настройка ширины колонок
       worksheet['!cols'] = [
         { wch: 25 }, // Мастер
-        { wch: 15 }, // Кол-во заказов
+        { wch: 15 }, // Всего заказов
         { wch: 15 }, // Оборот
         { wch: 15 }, // Средний чек
         { wch: 15 }  // Зарплата
@@ -200,12 +174,15 @@ function MastersReportContent() {
     XLSX.writeFile(workbook, `отчет_по_мастерам_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '_')}.xlsx`);
   }
 
-  // Вычисляем данные для текущей страницы
-  const safeMasterReports = Array.isArray(masterReports) ? masterReports : []
-  const totalPages = Math.ceil(safeMasterReports.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentData = safeMasterReports.slice(startIndex, endIndex)
+  // Группируем данные по городам
+  const dataByCity = masterReports.reduce((acc, report) => {
+    if (!acc[report.city]) {
+      acc[report.city] = [];
+    }
+    acc[report.city].push(report);
+    return acc;
+  }, {} as Record<string, MasterReport[]>);
+
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
       <div className="container mx-auto px-2 sm:px-4 py-8">
@@ -227,7 +204,7 @@ function MastersReportContent() {
                   <div className="text-red-600 text-xl mb-4">Ошибка: {error}</div>
                   <button 
                     onClick={() => loadMastersReport()}
-                    className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-gray-700 rounded-lg transition-all duration-200 hover:shadow-md"
+                    className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md"
                   >
                     Попробовать снова
                   </button>
@@ -238,213 +215,153 @@ function MastersReportContent() {
             {/* Основной контент */}
             {!loading && !error && (
               <>
-            {/* Фильтрация */}
-            <div className="mb-6">
-              {/* Кнопка экспорта для мобильной версии */}
-              <div className="block md:hidden mb-3">
-                <button 
-                  onClick={exportToExcel}
-                  className="w-full px-3 py-2 text-gray-700 rounded transition-colors text-sm"
-                >
-                  Экспорт в Excel
-                </button>
-              </div>
-              
-              <div className="flex items-center justify-between mb-3">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 text-left cursor-pointer group"
-                >
-                  <h3 className="text-gray-700 font-semibold group-hover:text-teal-600 transition-colors duration-200">
-                    Фильтр
-                  </h3>
-                  <svg
-                    className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
-                      showFilters ? 'rotate-180' : ''
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {/* Кнопка экспорта для десктопной версии */}
-                <button 
-                  onClick={exportToExcel}
-                  className="hidden md:block px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
-                >
-                  Экспорт в Excel
-                </button>
-              </div>
-              
-              {showFilters && (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex flex-wrap gap-3 items-end">
-                    {/* Мастер */}
-                    <div>
-                      <label className="block text-xs text-gray-700 mb-1">Мастер</label>
-                      <CustomSelect
-                        value={selectedMaster}
-                        onChange={setSelectedMaster}
-                        options={masters}
-                        placeholder="Выберите мастера"
-                        compact={true}
-                        selectId="master"
-                        openSelect={openSelect}
-                        setOpenSelect={setOpenSelect}
-                      />
-                    </div>
-                    {/* Город */}
-                    <div>
-                      <label className="block text-xs text-gray-700 mb-1">Город</label>
-                      <CustomSelect
-                        value={selectedCity}
-                        onChange={setSelectedCity}
-                        options={cities}
-                        placeholder="Выберите город"
-                        compact={true}
-                        selectId="city"
-                        openSelect={openSelect}
-                        setOpenSelect={setOpenSelect}
-                      />
-                    </div>
-                    
-                    {/* От даты */}
-                    <div>
-                      <label className="block text-xs text-gray-700 mb-1">От даты</label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                      />
-                    </div>
-                    {/* До даты */}
-                    <div>
-                      <label className="block text-xs text-gray-700 mb-1">До даты</label>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                      />
-                    </div>
-                    
-                    {/* Кнопки */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setStartDate('')
-                          setEndDate('')
-                          setSelectedMaster('all')
-                          setSelectedCity('all')
-                        }}
-                        className="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition-colors font-medium"
-                      >
-                        Сбросить
-                      </button>
-                      <button 
-                        onClick={applyFilters}
-                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
-                      >
-                        Сформировать отчет
-                      </button>
-                    </div>
+                {/* Фильтрация */}
+                <div className="mb-6">
+                  {/* Кнопка экспорта для мобильной версии */}
+                  <div className="block md:hidden mb-3">
+                    <button 
+                      onClick={exportToExcel}
+                      className="w-full px-3 py-2 text-white rounded transition-colors text-sm"
+                      style={{backgroundColor: '#2a6b68'}}
+                      onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
+                      onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                    >
+                      Экспорт в Excel
+                    </button>
                   </div>
-                </div>
-              )}
-            </div>
-
-
-            {/* Таблицы по мастерам, разделенные по городам */}
-            {(() => {
-              // Группируем данные по городам
-              const dataByCity = currentData.reduce((acc, report) => {
-                if (!acc[report.city]) {
-                  acc[report.city] = [];
-                }
-                acc[report.city].push(report);
-                return acc;
-              }, {} as Record<string, typeof currentData>);
-
-              return Object.entries(dataByCity).map(([city, cityData]) => (
-                <div key={city} className="mb-8">
-                  <h3 className="text-xl font-semibold text-gray-700 mb-4">{city}</h3>
-                  <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-                    <div className="min-w-[600px]">
-                      <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
-                        <thead>
-                          <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Мастер</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Всего заказов</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Оборот</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Средний чек</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Зарплата</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {cityData.map((report) => (
-                            <tr key={`${report.masterId}-${report.city}`} className="border-b hover:bg-teal-50 transition-colors" style={{borderColor: '#e5e7eb'}}>
-                              <td className="py-3 px-4 text-gray-700 font-semibold">{report.masterName}</td>
-                              <td className="py-3 px-4 text-gray-700">{report.totalOrders}</td>
-                              <td className="py-3 px-4 text-gray-700 font-semibold text-teal-600">
-                                {formatNumber(report.turnover)} ₽
-                              </td>
-                              <td className="py-3 px-4 text-gray-700">
-                                {formatNumber(report.avgCheck)} ₽
-                              </td>
-                              <td className="py-3 px-4 text-gray-700 font-semibold text-yellow-600">
-                                {formatNumber(report.salary)} ₽
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="flex items-center gap-2 text-left cursor-pointer group"
+                    >
+                      <h3 className="text-gray-700 font-semibold group-hover:text-teal-600 transition-colors duration-200">
+                        Фильтр
+                      </h3>
+                      <svg
+                        className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
+                          showFilters ? 'rotate-180' : ''
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {/* Кнопка экспорта для десктопной версии */}
+                    <button 
+                      onClick={exportToExcel}
+                      className="hidden md:block px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                    >
+                      Экспорт в Excel
+                    </button>
                   </div>
+                  
+                  {showFilters && (
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex flex-wrap gap-3 items-end">
+                        {/* От даты */}
+                        <div>
+                          <label className="block text-xs text-gray-700 mb-1">От даты</label>
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                          />
+                        </div>
+                        {/* До даты */}
+                        <div>
+                          <label className="block text-xs text-gray-700 mb-1">До даты</label>
+                          <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                          />
+                        </div>
+                        
+                        {/* Кнопки */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setStartDate('')
+                              setEndDate('')
+                              // Сбрасываем к текущему месяцу
+                              const now = new Date()
+                              const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+                              loadMastersReport({ startDate: firstDay.toISOString().split('T')[0] })
+                            }}
+                            className="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition-colors font-medium"
+                          >
+                            Сбросить
+                          </button>
+                          <button 
+                            onClick={applyFilters}
+                            className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
+                          >
+                            Применить фильтры
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ));
-            })()}
 
-            {/* Пагинация */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex justify-center items-center gap-1 sm:gap-2 flex-wrap">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="px-2 py-1 sm:px-3 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 text-gray-700 rounded transition-colors text-xs sm:text-sm font-medium"
-                >
-                  ←
-                </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-2 py-1 sm:px-3 rounded transition-colors text-xs sm:text-sm font-medium ${
-                      currentPage === page
-                        ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white'
-                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-2 py-1 sm:px-3 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 text-gray-700 rounded transition-colors text-xs sm:text-sm font-medium"
-                >
-                  →
-                </button>
-              </div>
-            )}
+                {/* Таблицы по городам директора */}
+                {directorCities.map((city, index) => {
+                  const cityData = dataByCity[city] || [];
+                  
+                  return (
+                    <div key={city} className="mb-8">
+                      <h3 className="text-xl font-semibold text-gray-700 mb-4">
+                        {city} ({cityData.length} мастеров)
+                      </h3>
+                      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+                        <div className="min-w-[600px]">
+                          <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
+                            <thead>
+                              <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Мастер</th>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Всего заказов</th>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Оборот</th>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Средний чек</th>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Зарплата</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {cityData.map((report) => (
+                                <tr key={`${report.masterId}-${report.city}`} className="border-b hover:bg-teal-50 transition-colors" style={{borderColor: '#e5e7eb'}}>
+                                  <td className="py-3 px-4 text-gray-700 font-semibold">{report.masterName}</td>
+                                  <td className="py-3 px-4 text-gray-700">{report.totalOrders}</td>
+                                  <td className="py-3 px-4 text-gray-700 font-semibold text-teal-600">
+                                    {formatNumber(report.turnover)} ₽
+                                  </td>
+                                  <td className="py-3 px-4 text-gray-700">
+                                    {formatNumber(Math.round(report.avgCheck))} ₽
+                                  </td>
+                                  <td className="py-3 px-4 text-gray-700 font-semibold text-yellow-600">
+                                    {formatNumber(report.salary)} ₽
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
 
+                {/* Сообщение если нет данных */}
+                {directorCities.length === 0 && (
+                  <div className="text-center py-8 animate-fade-in">
+                    <p className="text-gray-500 font-medium">Нет данных для отображения</p>
+                  </div>
+                )}
               </>
             )}
-
           </div>
         </div>
       </div>
@@ -468,15 +385,6 @@ function MastersReportContent() {
         
         ::-webkit-scrollbar-thumb:hover {
           background: #1a5a57;
-        }
-        
-        /* Стили для выпадающих списков */
-        .custom-select-option:hover {
-          background-color: #2a6b68 !important;
-        }
-        
-        .custom-select-option:focus {
-          background-color: #2a6b68 !important;
         }
       `}</style>
     </div>
