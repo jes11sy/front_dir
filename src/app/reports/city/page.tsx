@@ -5,43 +5,24 @@ import AuthGuard from "@/components/auth-guard"
 import { apiClient, CityReport } from '@/lib/api'
 import * as XLSX from 'xlsx'
 
-// Импортируем оптимизированный CustomSelect
-import CustomSelect from '@/components/optimized/CustomSelect'
 
 function CityReportContent() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [showFilters, setShowFilters] = useState(false)
-  const [selectedCity, setSelectedCity] = useState('all')
-  const [openSelect, setOpenSelect] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cityReports, setCityReports] = useState<CityReport[]>([])
   const [filteredReports, setFilteredReports] = useState<CityReport[]>([])
-  const [availableCities, setAvailableCities] = useState<{ id: string; name: string }[]>([])
-
-  // Получаем список городов из данных отчета
-  const cities = [
-    { value: 'all', label: 'Все города' },
-    ...availableCities.map(c => ({ value: c.id, label: c.name }))
-  ]
 
   // Загрузка данных
-  const loadCityReport = async (filters?: { city?: string; startDate?: string; endDate?: string }) => {
+  const loadCityReport = async (filters?: { startDate?: string; endDate?: string }) => {
     try {
       setLoading(true)
       setError(null)
       const data = await apiClient.getCityReport(filters)
       setCityReports(data)
       setFilteredReports(data)
-      
-      // Обновляем список доступных городов из данных отчета
-      const safeData = Array.isArray(data) ? data : []
-      const citiesFromData = safeData.map(report => ({
-        id: report.city,
-        name: report.city
-      }))
-      setAvailableCities(citiesFromData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки отчета')
     } finally {
@@ -51,12 +32,7 @@ function CityReportContent() {
 
   // Фильтрация данных
   const applyFilters = () => {
-    const filters: { city?: string; startDate?: string; endDate?: string } = {};
-    
-    // Фильтр по городу
-    if (selectedCity !== 'all') {
-      filters.city = selectedCity;
-    }
+    const filters: { startDate?: string; endDate?: string } = {};
     
     // Фильтр по датам - если не указаны, используем текущий месяц
     if (startDate || endDate) {
@@ -267,20 +243,6 @@ function CityReportContent() {
               {showFilters && (
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in">
                   <div className="flex flex-wrap gap-3 items-end">
-                    {/* Город */}
-                    <div>
-                      <label className="block text-xs text-gray-700 mb-1">Город</label>
-                      <CustomSelect
-                        value={selectedCity}
-                        onChange={setSelectedCity}
-                        options={cities}
-                        placeholder="Выберите город"
-                        compact={true}
-                        selectId="city"
-                        openSelect={openSelect}
-                        setOpenSelect={setOpenSelect}
-                      />
-                    </div>
                     
                     {/* От даты */}
                     <div>
@@ -309,7 +271,6 @@ function CityReportContent() {
                         onClick={() => {
                           setStartDate('')
                           setEndDate('')
-                          setSelectedCity('all')
                           // Сбрасываем к текущему месяцу
                           const now = new Date()
                           const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
