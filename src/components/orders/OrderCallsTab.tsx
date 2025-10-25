@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Order, Call } from '@/lib/api';
-import { getSignedUrl } from '@/lib/s3-utils';
 
 interface OrderCallsTabProps {
   order: Order;
@@ -21,19 +20,16 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
 }) => {
   const [recordingUrls, setRecordingUrls] = useState<{ [key: number]: string }>({});
 
-  // Получаем подписанные URL для записей
+  // Получаем прямые S3 URL для записей
   useEffect(() => {
-    const loadRecordingUrls = async () => {
+    const loadRecordingUrls = () => {
       const urls: { [key: number]: string } = {};
       
       for (const call of calls) {
         if (call.recordingPath) {
-          try {
-            const signedUrl = await getSignedUrl(call.recordingPath);
-            urls[call.id] = signedUrl;
-          } catch (error) {
-            console.error(`Ошибка получения URL для записи ${call.id}:`, error);
-          }
+          // Используем прямой S3 URL без подписи
+          const s3Url = `https://s3.twcstorage.ru/f7eead03-crmfiles/${call.recordingPath}`;
+          urls[call.id] = s3Url;
         }
       }
       
@@ -65,13 +61,10 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
             <div key={call.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600 text-sm font-medium">
-                    Оператор: {call.operator?.name || 'Неизвестно'}
+                  <span className="text-gray-500 text-xs">
+                    {new Date(call.dateCreate).toLocaleString('ru-RU')}
                   </span>
                 </div>
-                <span className="text-gray-500 text-xs">
-                  {new Date(call.dateCreate).toLocaleString('ru-RU')}
-                </span>
               </div>
               
               {call.recordingPath && recordingUrls[call.id] && (
