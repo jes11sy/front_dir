@@ -63,7 +63,7 @@ const CustomSelect = React.memo<CustomSelectProps>(({
   }, [isOpen, setOpenSelect])
 
   return (
-    <div className="relative custom-select" style={{ zIndex: isOpen ? 9999 : 1 }}>
+    <div className="relative custom-select">
       <button
         type="button"
         onClick={handleToggle}
@@ -86,7 +86,7 @@ const CustomSelect = React.memo<CustomSelectProps>(({
       
       {isOpen && (
         <div 
-          className="absolute z-[9999] w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
           style={{ borderColor: '#14b8a6' }}
         >
           {options.map((option) => (
