@@ -401,13 +401,7 @@ function EmployeeViewContent() {
             
             {/* Заголовок */}
             <div className="mb-6 animate-slide-down">
-              <h1 className="text-2xl font-bold text-white mb-2">Редактирование сотрудника</h1>
-              <button
-                onClick={() => router.push('/employees')}
-                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
-              >
-                ← Назад к списку сотрудников
-              </button>
+              <h1 className="text-2xl font-bold text-white">Редактирование сотрудника</h1>
             </div>
 
 

@@ -81,12 +81,6 @@ function ExpenseViewContent() {
       <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
         <div className="text-center">
           <div className="text-red-400 text-lg mb-4">Ошибка: {error}</div>
-          <button 
-            onClick={() => router.push('/cash/expense')}
-            className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg transition-colors"
-          >
-            ← Назад
-          </button>
         </div>
       </div>
     )
@@ -97,12 +91,6 @@ function ExpenseViewContent() {
       <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
         <div className="text-center">
           <div className="text-white text-lg mb-4">Транзакция не найдена</div>
-          <button 
-            onClick={() => router.push('/cash/expense')}
-            className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg transition-colors"
-          >
-            ← Назад
-          </button>
         </div>
       </div>
     )
@@ -114,16 +102,6 @@ function ExpenseViewContent() {
         <div className="max-w-2xl mx-auto">
           <div className="backdrop-blur-lg shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-8 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
-            {/* Навигация */}
-            <div className="mb-6">
-              <button
-                onClick={() => router.push('/cash/expense')}
-                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm sm:text-base font-medium"
-              >
-                ← Назад
-              </button>
-            </div>
-
             {/* Информация о транзакции */}
             <div className="space-y-3 sm:space-y-4">
               <div className="flex justify-between items-center">

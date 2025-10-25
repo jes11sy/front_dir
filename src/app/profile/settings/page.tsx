@@ -198,16 +198,6 @@ function SettingsContent() {
         <div className="max-w-4xl mx-auto">
           <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
-            {/* Навигация */}
-            <div className="mb-6">
-              <button
-                onClick={() => router.push('/profile')}
-                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm sm:text-base font-medium"
-              >
-                ← Назад
-              </button>
-            </div>
-
             {/* Заголовок */}
             <div className="mb-8 animate-slide-down">
               <h1 className="text-2xl font-bold text-gray-800 mb-2">Настройки профиля</h1>

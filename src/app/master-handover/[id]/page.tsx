@@ -119,16 +119,6 @@ function MasterHandoverDetailContent() {
         <div className="max-w-none mx-auto">
           <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
-            {/* Кнопка назад */}
-            <div className="mb-4 animate-slide-in-left">
-              <Button
-                onClick={handleBack}
-                className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 text-gray-800 rounded-lg hover:shadow-md transition-all duration-200"
-              >
-                ← Назад
-              </Button>
-            </div>
-
             {/* Заголовок */}
             <div className="mb-6 animate-slide-down">
               <h1 className="text-2xl font-bold text-gray-800 mb-2">

@@ -193,18 +193,6 @@ function AddEmployeeContent() {
         <div className="max-w-2xl mx-auto">
           <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
-            {/* Навигация */}
-            <div className="mb-6">
-              <Button
-                variant="ghost"
-                onClick={handleCancel}
-                className="p-2 text-gray-600 hover:text-teal-600 hover:bg-teal-50 transition-all duration-200"
-              >
-                ← Назад к списку сотрудников
-              </Button>
-            </div>
-
-
             {/* Вкладки */}
             <div className="mb-8 animate-fade-in">
               <div className="flex space-x-1 p-1 rounded-lg bg-gray-100">

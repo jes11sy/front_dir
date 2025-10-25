@@ -322,16 +322,6 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         <div className="max-w-none mx-auto">
           <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
-            {/* Навигация */}
-            <div className="mb-6">
-              <button
-                onClick={() => router.push('/orders')}
-                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm sm:text-base font-medium"
-              >
-                ← Назад
-              </button>
-            </div>
-
             {/* Заголовок */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
