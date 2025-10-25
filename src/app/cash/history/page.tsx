@@ -271,7 +271,7 @@ function HistoryContent() {
 
             {/* Таблица */}
             {!loading && !error && (
-              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
+              <div className="overflow-x-auto overflow-y-visible -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
                 <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
                   <thead>
                     <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
