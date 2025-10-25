@@ -21,10 +21,12 @@ function MastersReportContent() {
       setError(null)
       const data = await apiClient.getMastersReport(filters)
       const safeData = Array.isArray(data) ? data : []
-      setMasterReports(safeData)
+      // Фильтруем мастеров с 0 заказов
+      const filteredData = safeData.filter(report => report.totalOrders > 0)
+      setMasterReports(filteredData)
       
-      // Получаем уникальные города директора из данных
-      const cities = Array.from(new Set(safeData.map(report => report.city)))
+      // Получаем уникальные города директора из отфильтрованных данных
+      const cities = Array.from(new Set(filteredData.map(report => report.city)))
       setDirectorCities(cities)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки отчета')
@@ -73,8 +75,9 @@ function MastersReportContent() {
 
   // Экспорт в Excel
   const exportToExcel = () => {
-    // Группируем данные по городам
-    const dataByCity = masterReports.reduce((acc, report) => {
+    // Фильтруем мастеров с 0 заказов и группируем данные по городам
+    const filteredReports = masterReports.filter(report => report.totalOrders > 0)
+    const dataByCity = filteredReports.reduce((acc, report) => {
       if (!acc[report.city]) {
         acc[report.city] = [];
       }
@@ -174,14 +177,16 @@ function MastersReportContent() {
     XLSX.writeFile(workbook, `отчет_по_мастерам_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '_')}.xlsx`);
   }
 
-  // Группируем данные по городам
-  const dataByCity = masterReports.reduce((acc, report) => {
-    if (!acc[report.city]) {
-      acc[report.city] = [];
-    }
-    acc[report.city].push(report);
-    return acc;
-  }, {} as Record<string, MasterReport[]>);
+  // Группируем данные по городам (только для мастеров с заказами)
+  const dataByCity = masterReports
+    .filter(report => report.totalOrders > 0)
+    .reduce((acc, report) => {
+      if (!acc[report.city]) {
+        acc[report.city] = [];
+      }
+      acc[report.city].push(report);
+      return acc;
+    }, {} as Record<string, MasterReport[]>);
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
