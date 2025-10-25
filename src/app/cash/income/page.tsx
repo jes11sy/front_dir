@@ -188,14 +188,7 @@ function IncomeContent() {
 
             {/* Заголовок и информация */}
             <div className="mb-6 animate-slide-in-left">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-800 mb-2">Приходы (Доходы)</h1>
-                  <p className="text-sm text-gray-600">
-                    Отображаются только приходы по городам директора. 
-                    Общая сумма: <span className="font-semibold text-green-600">{totalAmount.toLocaleString()} ₽</span>
-                  </p>
-                </div>
+              <div className="flex items-center justify-end mb-4">
                 <button 
                   onClick={() => setShowAddModal(true)}
                   className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"

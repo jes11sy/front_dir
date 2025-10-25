@@ -33,20 +33,14 @@ function OrdersContent() {
     totalPages: 0
   })
   const [isInitialized, setIsInitialized] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   // Загрузка данных
   const loadOrders = async () => {
-    console.log('🔄 Загружаем заказы с параметрами:', {
-      currentPage,
-      itemsPerPage,
-      statusFilter,
-      cityFilter,
-      searchTerm,
-      masterFilter,
-      isInitialized
-    })
+    if (isLoading) return
     
     try {
+      setIsLoading(true)
       setLoading(true)
       setError(null)
       
@@ -78,28 +72,18 @@ function OrdersContent() {
       logger.error('Error loading orders', err)
     } finally {
       setLoading(false)
+      setIsLoading(false)
     }
   }
 
 
-  // Определяем количество элементов на странице в зависимости от размера экрана
+  // Устанавливаем количество элементов на странице
   useEffect(() => {
-    const handleResize = () => {
-      const newItemsPerPage = window.innerWidth >= 768 ? 20 : 10
-      setItemsPerPage(newItemsPerPage)
-    }
-    
-    // Устанавливаем начальное значение
-    handleResize()
-    
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    setItemsPerPage(15)
   }, [])
 
   // Загружаем данные при изменении фильтров и itemsPerPage (исключаем searchTerm - у него свой дебаунс)
   useEffect(() => {
-    console.log('🔄 useEffect сработал:', { itemsPerPage, isInitialized, currentPage, statusFilter, cityFilter, masterFilter })
-    // Загружаем данные только если itemsPerPage уже установлен
     if (itemsPerPage > 0) {
       loadOrders()
     }
@@ -140,8 +124,6 @@ function OrdersContent() {
 
   // Получаем уникальные значения для фильтров из загруженных данных
   const safeOrders = Array.isArray(orders) ? orders : []
-  console.log('Orders state:', orders)
-  console.log('Safe orders:', safeOrders)
   const uniqueCities = Array.from(new Set(safeOrders.map(order => order.city)))
 
   // Сброс фильтров
