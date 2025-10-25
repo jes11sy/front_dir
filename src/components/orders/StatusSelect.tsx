@@ -1,5 +1,5 @@
 /**
- * Компонент для выбора статуса заказа с красивым дизайном
+ * Компонент для выбора статуса заказа
  */
 
 import React, { useState, useCallback, useEffect } from 'react'
@@ -12,32 +12,6 @@ interface StatusSelectProps {
   selectId: string
   openSelect: string | null
   setOpenSelect: (id: string | null) => void
-}
-
-// Цвета для разных статусов
-const getStatusColor = (status: string) => {
-  const statusColors: { [key: string]: string } = {
-    'Ожидает': 'from-yellow-400 to-orange-500',
-    'В работе': 'from-blue-400 to-blue-600',
-    'Выполнен': 'from-green-400 to-green-600',
-    'Отменен': 'from-red-400 to-red-600',
-    'Приостановлен': 'from-gray-400 to-gray-600',
-    'Модерн': 'from-purple-400 to-purple-600'
-  }
-  return statusColors[status] || 'from-gray-400 to-gray-600'
-}
-
-// Иконки для статусов
-const getStatusIcon = (status: string) => {
-  const statusIcons: { [key: string]: string } = {
-    'Ожидает': '⏳',
-    'В работе': '🔧',
-    'Выполнен': '✅',
-    'Отменен': '❌',
-    'Приостановлен': '⏸️',
-    'Модерн': '🎨'
-  }
-  return statusIcons[status] || '📋'
 }
 
 export const StatusSelect: React.FC<StatusSelectProps> = ({
@@ -62,72 +36,58 @@ export const StatusSelect: React.FC<StatusSelectProps> = ({
     setOpenSelect(null)
   }, [onChange, setOpenSelect])
 
-  // Закрываем селект при клике вне его
   useEffect(() => {
     if (!isOpen) return
-
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement
-      if (!target.closest('.status-select')) {
+      if (!target.closest(`.status-select-${selectId}`)) {
         setOpenSelect(null)
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [isOpen, setOpenSelect])
+  }, [isOpen, setOpenSelect, selectId])
 
   return (
-    <div className="relative status-select">
+    <div className={`relative status-select-${selectId} inline-block`}>
       <button
         type="button"
         onClick={handleToggle}
         disabled={disabled}
         className={`
-          relative px-4 py-2 rounded-full text-white font-medium text-sm
-          transition-all duration-200 hover:scale-105 hover:shadow-lg
-          disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
-          ${selectedOption ? `bg-gradient-to-r ${getStatusColor(selectedOption.label)}` : 'bg-gradient-to-r from-gray-400 to-gray-600'}
-          ${isOpen ? 'ring-2 ring-teal-500 ring-opacity-50 shadow-lg' : 'shadow-md'}
+          flex items-center gap-2 px-4 py-2 rounded-lg text-gray-800 text-sm font-medium
+          bg-white border border-gray-300 hover:border-teal-500 hover:bg-gray-50
+          transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500
+          disabled:opacity-60 disabled:cursor-not-allowed
         `}
       >
-        <div className="flex items-center gap-2">
-          <span className="text-lg">
-            {selectedOption ? getStatusIcon(selectedOption.label) : '📋'}
-          </span>
-          <span>
-            {selectedOption ? selectedOption.label : 'Выберите статус'}
-          </span>
-          <span className="text-xs opacity-75">
-            {isOpen ? '▲' : '▼'}
-          </span>
-        </div>
+        <span>{selectedOption ? selectedOption.label : 'Выберите статус'}</span>
+        <span className="ml-1 text-xs">{isOpen ? '▲' : '▼'}</span>
       </button>
-      
+
       {isOpen && (
-        <div 
-          className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 overflow-y-auto animate-fade-in"
-          style={{ minWidth: '200px' }}
+        <div
+          className="absolute z-50 w-full min-w-[200px] mt-2 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto
+                     border border-gray-200"
         >
           {options.map((option) => (
             <button
               key={option.value}
+              type="button"
               onClick={() => handleSelect(option.value)}
               className={`
-                w-full px-4 py-3 text-left transition-all duration-150 hover:bg-gray-50
-                first:rounded-t-xl last:rounded-b-xl
-                ${value === option.value ? 'bg-teal-50 text-teal-700 font-medium' : 'text-gray-700'}
+                flex items-center justify-between w-full px-4 py-2 text-left text-sm
+                ${option.value === value
+                  ? 'bg-teal-50 text-teal-700 font-semibold'
+                  : 'text-gray-800 hover:bg-gray-50'
+                }
+                transition-colors duration-150
               `}
             >
-              <div className="flex items-center gap-3">
-                <span className="text-lg">
-                  {getStatusIcon(option.label)}
-                </span>
-                <span>{option.label}</span>
-                {value === option.value && (
-                  <span className="ml-auto text-teal-600">✓</span>
-                )}
-              </div>
+              <span>{option.label}</span>
+              {option.value === value && (
+                <span className="text-teal-500">✓</span>
+              )}
             </button>
           ))}
         </div>

@@ -693,7 +693,7 @@ export class ApiClient {
   }
 
   async getCallsByOrderId(orderId: number): Promise<Call[]> {
-    const response = await fetch(`${this.baseURL}/calls/order/${orderId}`, {
+    const response = await fetch(`${this.baseURL}/api/v1/calls/order/${orderId}`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
