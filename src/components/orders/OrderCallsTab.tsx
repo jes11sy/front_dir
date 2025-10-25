@@ -83,23 +83,16 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
         </div>
       ) : (
         <div className="text-center py-8">
-          <div className="text-gray-400 text-4xl mb-4">📞</div>
           <p className="text-gray-500 text-sm">Записи звонков отсутствуют</p>
         </div>
       )}
       
-      {/* Чат авито */}
+      {/* Чат авито - только кнопка */}
       {order?.avitoChatId && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 text-center">
-          <div className="text-blue-600 text-2xl mb-3">💬</div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Чат Авито</h3>
-          <p className="text-gray-600 text-sm mb-4">
-            ID чата: {order.avitoChatId}
-          </p>
+        <div className="flex justify-center">
           <button 
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
             onClick={() => {
-              // Здесь можно добавить логику открытия чата
               window.open(`https://www.avito.ru/messenger/chat/${order.avitoChatId}`, '_blank')
             }}
           >
