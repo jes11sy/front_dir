@@ -32,9 +32,20 @@ function OrdersContent() {
     total: 0,
     totalPages: 0
   })
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // Загрузка данных
   const loadOrders = async () => {
+    console.log('🔄 Загружаем заказы с параметрами:', {
+      currentPage,
+      itemsPerPage,
+      statusFilter,
+      cityFilter,
+      searchTerm,
+      masterFilter,
+      isInitialized
+    })
+    
     try {
       setLoading(true)
       setError(null)
@@ -61,6 +72,7 @@ function OrdersContent() {
         total: 0,
         totalPages: 0
       })
+      setIsInitialized(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки заказов')
       logger.error('Error loading orders', err)
@@ -73,7 +85,8 @@ function OrdersContent() {
   // Определяем количество элементов на странице в зависимости от размера экрана
   useEffect(() => {
     const handleResize = () => {
-      setItemsPerPage(window.innerWidth >= 768 ? 20 : 10)
+      const newItemsPerPage = window.innerWidth >= 768 ? 20 : 10
+      setItemsPerPage(newItemsPerPage)
     }
     
     // Устанавливаем начальное значение
@@ -83,10 +96,22 @@ function OrdersContent() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Загружаем данные при изменении фильтров
+  // Загружаем данные при изменении фильтров и itemsPerPage (исключаем searchTerm - у него свой дебаунс)
   useEffect(() => {
-    loadOrders()
-  }, [currentPage, statusFilter, cityFilter, searchTerm, masterFilter, itemsPerPage])
+    console.log('📋 useEffect для фильтров сработал:', { itemsPerPage, isInitialized })
+    // Загружаем данные только если itemsPerPage уже установлен и это не первая инициализация
+    if (itemsPerPage > 0 && isInitialized) {
+      loadOrders()
+    }
+  }, [currentPage, statusFilter, cityFilter, masterFilter, itemsPerPage])
+
+  // Первоначальная загрузка данных
+  useEffect(() => {
+    console.log('🚀 useEffect для инициализации сработал:', { itemsPerPage, isInitialized })
+    if (itemsPerPage > 0 && !isInitialized) {
+      loadOrders()
+    }
+  }, [itemsPerPage, isInitialized])
 
 
   // Обработчики фильтров
@@ -94,6 +119,17 @@ function OrdersContent() {
     setSearchTerm(value)
     setCurrentPage(1) // Сбрасываем на первую страницу при поиске
   }
+
+  // Дебаунс для поиска
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm !== '') {
+        loadOrders()
+      }
+    }, 500) // 500ms задержка
+
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm])
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value)
@@ -526,3 +562,4 @@ export default function OrdersPage() {
     </AuthGuard>
   )
 }
+
