@@ -21,6 +21,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
   const [activeTab, setActiveTab] = useState('main')
   const [openSelect, setOpenSelect] = useState<string | null>(null)
+  const [callsLoaded, setCallsLoaded] = useState(false)
   
   // Используем хуки для загрузки данных
   const { order, masters, loading, error, updating, updateOrder } = useOrder(resolvedParams.id)
@@ -164,13 +165,14 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
   // Загружаем звонки при открытии таба "Запись/Чат авито"
   useEffect(() => {
-    if (activeTab === 'chat' && !callsLoading && calls.length === 0) {
+    if (activeTab === 'chat' && !callsLoading && !callsLoaded) {
+      setCallsLoaded(true)
       // Проверяем, есть ли API для звонков
       loadCalls().catch((error) => {
         logger.warn('Calls API not available:', error.message)
       })
     }
-  }, [activeTab, callsLoading, calls.length])
+  }, [activeTab, callsLoading, callsLoaded, loadCalls])
 
   // Функция для сохранения изменений
   const handleSave = async () => {

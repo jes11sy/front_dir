@@ -2,8 +2,9 @@
  * Компонент таба "Запись/Чат авито"
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Order, Call } from '@/lib/api';
+import { getSignedUrl } from '@/lib/s3-utils';
 
 interface OrderCallsTabProps {
   order: Order;
@@ -18,6 +19,31 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
   callsLoading,
   callsError,
 }) => {
+  const [recordingUrls, setRecordingUrls] = useState<{ [key: number]: string }>({});
+
+  // Получаем подписанные URL для записей
+  useEffect(() => {
+    const loadRecordingUrls = async () => {
+      const urls: { [key: number]: string } = {};
+      
+      for (const call of calls) {
+        if (call.recordingPath) {
+          try {
+            const signedUrl = await getSignedUrl(call.recordingPath);
+            urls[call.id] = signedUrl;
+          } catch (error) {
+            console.error(`Ошибка получения URL для записи ${call.id}:`, error);
+          }
+        }
+      }
+      
+      setRecordingUrls(urls);
+    };
+
+    if (calls.length > 0) {
+      loadRecordingUrls();
+    }
+  }, [calls]);
   return (
     <div className="space-y-6">
       {/* Записи звонков */}
@@ -48,13 +74,13 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
                 </span>
               </div>
               
-              {call.recordingPath && (
+              {call.recordingPath && recordingUrls[call.id] && (
                 <audio 
                   controls 
                   className="w-full h-10 bg-gray-50 rounded"
                 >
                   <source 
-                    src={call.recordingPath || ''}
+                    src={recordingUrls[call.id]}
                     type="audio/mpeg" 
                   />
                 </audio>
