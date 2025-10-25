@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import AuthGuard from "@/components/auth-guard"
 import { apiClient, Order, Master, Call } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
+import { StatusSelect } from '@/components/orders/StatusSelect'
 import { getSignedUrl } from '@/lib/s3-utils'
 import { logger } from '@/lib/logger'
 import { useOrder, useOrderCalls } from '@/hooks/useOrder'
@@ -331,12 +332,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-4">
                   <h1 className="text-2xl font-bold text-gray-800 animate-slide-down">Заказ №{resolvedParams.id}</h1>
-                  <CustomSelect
+                  <StatusSelect
                     value={orderStatus}
                     onChange={setOrderStatus}
                     options={getAvailableStatuses().map(status => ({ value: status, label: status }))}
-                    placeholder="Выберите статус"
-                    compact={true}
                     disabled={isFieldsDisabled()}
                     selectId="orderStatus"
                     openSelect={openSelect}
