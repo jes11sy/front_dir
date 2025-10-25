@@ -4,7 +4,7 @@
 
 'use client'
 
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useRef, useState } from 'react'
 
 interface Option {
   value: string
@@ -34,11 +34,23 @@ const CustomSelect = React.memo<CustomSelectProps>(({
   openSelect,
   setOpenSelect
 }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
   const isOpen = openSelect === selectId
   const selectedOption = options.find(option => option.value === value)
 
   const handleToggle = useCallback(() => {
     if (disabled) return
+    
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      })
+    }
+    
     setOpenSelect(isOpen ? null : selectId)
   }, [disabled, isOpen, selectId, setOpenSelect])
 
@@ -47,7 +59,7 @@ const CustomSelect = React.memo<CustomSelectProps>(({
     setOpenSelect(null)
   }, [onChange, setOpenSelect])
 
-  // Закрываем селект при клике вне его
+  // Закрываем селект при клике вне его и обновляем позицию при скролле
   useEffect(() => {
     if (!isOpen) return
 
@@ -58,13 +70,32 @@ const CustomSelect = React.memo<CustomSelectProps>(({
       }
     }
 
+    const updatePosition = () => {
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect()
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width
+        })
+      }
+    }
+
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
   }, [isOpen, setOpenSelect])
 
   return (
-    <div className="relative custom-select" style={{ zIndex: isOpen ? 9999 : 'auto' }}>
+    <div className="relative custom-select">
       <button
+        ref={buttonRef}
         type="button"
         onClick={handleToggle}
         disabled={disabled}
@@ -86,8 +117,13 @@ const CustomSelect = React.memo<CustomSelectProps>(({
       
       {isOpen && (
         <div 
-          className="absolute z-[9999] w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
-          style={{ borderColor: '#14b8a6' }}
+          className="fixed z-[9999] bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+          style={{ 
+            borderColor: '#14b8a6',
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            width: `${dropdownPosition.width}px`
+          }}
         >
           {options.map((option) => (
             <SelectOption
