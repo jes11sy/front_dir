@@ -98,20 +98,12 @@ function OrdersContent() {
 
   // Загружаем данные при изменении фильтров и itemsPerPage (исключаем searchTerm - у него свой дебаунс)
   useEffect(() => {
-    console.log('📋 useEffect для фильтров сработал:', { itemsPerPage, isInitialized })
-    // Загружаем данные только если itemsPerPage уже установлен и это не первая инициализация
-    if (itemsPerPage > 0 && isInitialized) {
+    console.log('🔄 useEffect сработал:', { itemsPerPage, isInitialized, currentPage, statusFilter, cityFilter, masterFilter })
+    // Загружаем данные только если itemsPerPage уже установлен
+    if (itemsPerPage > 0) {
       loadOrders()
     }
   }, [currentPage, statusFilter, cityFilter, masterFilter, itemsPerPage])
-
-  // Первоначальная загрузка данных
-  useEffect(() => {
-    console.log('🚀 useEffect для инициализации сработал:', { itemsPerPage, isInitialized })
-    if (itemsPerPage > 0 && !isInitialized) {
-      loadOrders()
-    }
-  }, [itemsPerPage, isInitialized])
 
 
   // Обработчики фильтров
