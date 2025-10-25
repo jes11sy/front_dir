@@ -12,7 +12,7 @@ import CustomSelect from '@/components/optimized/CustomSelect'
 function OrdersContent() {
   const router = useRouter()
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [itemsPerPage, setItemsPerPage] = useState(15)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [cityFilter, setCityFilter] = useState('')
@@ -77,10 +77,6 @@ function OrdersContent() {
   }
 
 
-  // Устанавливаем количество элементов на странице
-  useEffect(() => {
-    setItemsPerPage(15)
-  }, [])
 
   // Загружаем данные при изменении фильтров и itemsPerPage (исключаем searchTerm - у него свой дебаунс)
   useEffect(() => {
