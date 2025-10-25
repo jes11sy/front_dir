@@ -960,16 +960,6 @@ function EmployeeViewContent() {
               {/* Кнопки */}
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <Button
-                  type="submit"
-                  disabled={isUpdating || availableCities.length === 0}
-                  className="flex-1 h-12 text-white font-medium rounded-lg transition-all duration-200 hover:shadow-md"
-                  style={{backgroundColor: availableCities.length === 0 ? '#6b7280' : '#14b8a6'}}
-                  onMouseEnter={(e) => !isUpdating && availableCities.length > 0 && ((e.target as HTMLElement).style.backgroundColor = '#0d9488')}
-                  onMouseLeave={(e) => !isUpdating && availableCities.length > 0 && ((e.target as HTMLElement).style.backgroundColor = '#14b8a6')}
-                >
-                  {isUpdating ? 'Сохранение...' : availableCities.length === 0 ? 'Нет доступных городов' : 'Сохранить изменения'}
-                </Button>
-                <Button
                   type="button"
                   onClick={() => router.push('/employees')}
                   disabled={isUpdating}
@@ -983,6 +973,16 @@ function EmployeeViewContent() {
                   }}
                 >
                   Отмена
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isUpdating || availableCities.length === 0}
+                  className="flex-1 h-12 text-white font-medium rounded-lg transition-all duration-200 hover:shadow-md"
+                  style={{backgroundColor: availableCities.length === 0 ? '#6b7280' : '#14b8a6'}}
+                  onMouseEnter={(e) => !isUpdating && availableCities.length > 0 && ((e.target as HTMLElement).style.backgroundColor = '#0d9488')}
+                  onMouseLeave={(e) => !isUpdating && availableCities.length > 0 && ((e.target as HTMLElement).style.backgroundColor = '#14b8a6')}
+                >
+                  {isUpdating ? 'Сохранение...' : availableCities.length === 0 ? 'Нет доступных городов' : 'Сохранить изменения'}
                 </Button>
               </div>
             </form>
