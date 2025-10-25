@@ -62,7 +62,7 @@ function OrdersContent() {
       setAllMasters(Array.isArray(masters) ? masters : [])
       setPagination(response.data?.pagination || response.pagination || {
         page: 1,
-        limit: 10,
+        limit: itemsPerPage,
         total: 0,
         totalPages: 0
       })
