@@ -572,16 +572,22 @@ export class ApiClient {
   async createCashTransaction(data: Partial<CashTransaction>): Promise<CashTransaction> {
     console.log('Creating cash transaction with data:', data)
     
+    const requestBody = {
+      name: data.name || 'расход',
+      amount: data.amount || 0,
+      city: data.city,
+      note: data.note,
+      paymentPurpose: data.paymentPurpose,
+      receiptDoc: data.receiptDoc,
+    }
+    
+    console.log('Request body:', requestBody)
+    console.log('Headers:', this.getAuthHeaders())
+    
     const response = await fetch(`${this.baseURL}/cash`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({
-        orderId: data.orderId,
-        amount: data.amount || 0,
-        type: data.type || 'расход',
-        note: data.note,
-        receiptDoc: data.receiptDoc,
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
