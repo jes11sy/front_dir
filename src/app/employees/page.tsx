@@ -133,7 +133,8 @@ function EmployeesContent() {
                   </thead>
                   <tbody>
                     {currentData.map((item) => {
-                      const getStatusColor = (status: string) => {
+                      const getStatusColor = (status: string | undefined) => {
+                        if (!status) return '#6b7280' // Серый по умолчанию для неопределенного статуса
                         const statusLower = status.toLowerCase()
                         if (statusLower.includes('работает') || statusLower.includes('работающий') || statusLower === 'active') {
                           return '#10b981' // Яркий зеленый
@@ -143,6 +144,10 @@ function EmployeesContent() {
                         }
                         return '#6b7280' // Серый по умолчанию
                       }
+                      
+                      // Проверяем, что cities существует и это массив
+                      const cities = Array.isArray(item.cities) ? item.cities : []
+                      const statusWork = item.statusWork || 'Не указан'
                       
                       return (
                         <tr 
@@ -157,11 +162,11 @@ function EmployeesContent() {
                           </td>
                           <td className="py-4 px-4 text-gray-800 align-top">{item.login || '-'}</td>
                           <td className="py-4 px-4 text-gray-800 align-top">
-                            <div className="whitespace-nowrap">{item.cities.join(', ')}</div>
+                            <div className="whitespace-nowrap">{cities.length > 0 ? cities.join(', ') : '-'}</div>
                           </td>
                           <td className="py-4 px-4 align-top">
                             <span className="px-2 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap" style={{backgroundColor: getStatusColor(item.statusWork)}}>
-                              {item.statusWork}
+                              {statusWork}
                             </span>
                           </td>
                           <td className="py-4 px-4 text-gray-800 align-top">{formatDate(item.dateCreate)}</td>
