@@ -703,7 +703,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения записей звонков')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   // Master Handover API
