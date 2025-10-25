@@ -170,22 +170,9 @@ function ExpenseContent() {
               </div>
             )}
 
-            {/* Кнопка добавить расход */}
-            <div className="mb-4">
-              <button 
-                onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
-                style={{backgroundColor: '#ef4444'}}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
-              >
-                + Добавить расход
-              </button>
-            </div>
-
             {/* Фильтрация по дате */}
             <div className="mb-6">
-              <div className="mb-3">
+              <div className="flex items-center justify-between mb-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex items-center gap-2 text-left cursor-pointer group"
@@ -203,6 +190,15 @@ function ExpenseContent() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
+                </button>
+                <button 
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
+                  style={{backgroundColor: '#ef4444'}}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+                >
+                  + Добавить расход
                 </button>
               </div>
               

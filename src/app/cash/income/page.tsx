@@ -168,19 +168,9 @@ function IncomeContent() {
               </div>
             )}
 
-            {/* Кнопка добавить приход */}
-            <div className="mb-4 animate-slide-in-left">
-              <button 
-                onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
-              >
-                + Добавить приход
-              </button>
-            </div>
-
             {/* Фильтрация по дате */}
             <div className="mb-6 animate-slide-in-left">
-              <div className="mb-3">
+              <div className="flex items-center justify-between mb-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex items-center gap-2 text-left cursor-pointer group"
@@ -198,6 +188,12 @@ function IncomeContent() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
+                </button>
+                <button 
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
+                >
+                  + Добавить приход
                 </button>
               </div>
               

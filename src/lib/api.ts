@@ -540,7 +540,7 @@ export class ApiClient {
   }
 
   async getCashIncome(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?type=предоплата`, {
+    const response = await fetch(`${this.baseURL}/cash?type=приход`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -576,10 +576,11 @@ export class ApiClient {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify({
-        orderId: data.orderId,
+        name: data.name,
         amount: data.amount || 0,
-        type: data.type || 'расход',
+        city: data.city,
         note: data.note,
+        paymentPurpose: data.paymentPurpose,
         receiptDoc: data.receiptDoc,
       }),
     })

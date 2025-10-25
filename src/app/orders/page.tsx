@@ -12,7 +12,7 @@ import CustomSelect from '@/components/optimized/CustomSelect'
 function OrdersContent() {
   const router = useRouter()
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const [itemsPerPage, setItemsPerPage] = useState(10)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [cityFilter, setCityFilter] = useState('')
@@ -70,10 +70,23 @@ function OrdersContent() {
   }
 
 
+  // Определяем количество элементов на странице в зависимости от размера экрана
+  useEffect(() => {
+    const handleResize = () => {
+      setItemsPerPage(window.innerWidth >= 768 ? 20 : 10)
+    }
+    
+    // Устанавливаем начальное значение
+    handleResize()
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // Загружаем данные при изменении фильтров
   useEffect(() => {
     loadOrders()
-  }, [currentPage, statusFilter, cityFilter, searchTerm, masterFilter])
+  }, [currentPage, statusFilter, cityFilter, searchTerm, masterFilter, itemsPerPage])
 
 
   // Обработчики фильтров
