@@ -381,7 +381,9 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения заказа')
     }
 
-    return response.json()
+    const result = await response.json()
+    // API возвращает данные в формате {success: true, data: {...}}
+    return result.data || result
   }
 
   async updateOrder(id: number, data: Partial<Order>): Promise<Order> {
@@ -402,7 +404,9 @@ export class ApiClient {
       }
     }
 
-    return response.json()
+    const result = await response.json()
+    // API возвращает данные в формате {success: true, data: {...}}
+    return result.data || result
   }
 
   async getOrdersStats(): Promise<OrdersStats> {
@@ -416,7 +420,9 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения статистики')
     }
 
-    return response.json()
+    const result = await response.json()
+    // API возвращает данные в формате {success: true, data: {...}}
+    return result.data || result
   }
 
   async getOrderStatuses(): Promise<string[]> {
@@ -478,7 +484,9 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения сотрудника')
     }
 
-    return response.json()
+    const result = await response.json()
+    // API возвращает данные в формате {success: true, data: {...}}
+    return result.data || result
   }
 
   async createEmployee(data: CreateEmployeeDto): Promise<Employee> {
@@ -493,7 +501,9 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка создания сотрудника')
     }
 
-    return response.json()
+    const result = await response.json()
+    // API возвращает данные в формате {success: true, data: {...}}
+    return result.data || result
   }
 
   async updateEmployee(id: number, data: CreateEmployeeDto): Promise<Employee> {
@@ -508,7 +518,9 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка обновления сотрудника')
     }
 
-    return response.json()
+    const result = await response.json()
+    // API возвращает данные в формате {success: true, data: {...}}
+    return result.data || result
   }
 
   // Cash API (Cash Service)

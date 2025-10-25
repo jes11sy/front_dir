@@ -39,18 +39,17 @@ export const OrderFileUpload: React.FC<OrderFileUploadProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* БСО (Документ) */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          БСО (Документ)
-          <span className="text-xs text-gray-500 ml-2">(макс. 50MB)</span>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Договор
         </label>
         
         <div
           className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
             bsoDragOver 
-              ? 'border-blue-400 bg-blue-900/20' 
+              ? 'border-blue-400 bg-blue-50' 
               : bsoPreview 
-                ? 'border-green-400 bg-green-900/20' 
-                : 'border-gray-600 bg-gray-800/50'
+                ? 'border-green-400 bg-green-50' 
+                : 'border-gray-300 bg-gray-50'
           }`}
           onDragOver={(e) => {
             e.preventDefault()
@@ -136,19 +135,19 @@ export const OrderFileUpload: React.FC<OrderFileUploadProps> = ({
                   )}
                 </div>
               </div>
-              <div className="text-sm text-gray-300 text-center">
+              <div className="text-sm text-gray-600 text-center">
                 {bsoFile?.name || 'Загруженный файл'}
               </div>
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-gray-300 text-2xl">📄</span>
+              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-gray-600 text-2xl">📄</span>
               </div>
-              <div className="text-gray-300 font-medium">
+              <div className="text-gray-700 font-medium">
                 {bsoDragOver ? 'Отпустите файл' : 'Перетащите файл сюда'}
               </div>
-              <div className="text-sm text-gray-400">или нажмите для выбора</div>
+              <div className="text-sm text-gray-500">или нажмите для выбора</div>
             </div>
           )}
         </div>
@@ -156,18 +155,17 @@ export const OrderFileUpload: React.FC<OrderFileUploadProps> = ({
       
       {/* Документ расхода (Чек) */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Документ расхода (Чек)
-          <span className="text-xs text-gray-500 ml-2">(макс. 50MB)</span>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Документ расхода
         </label>
         
         <div
           className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
             expenditureDragOver 
-              ? 'border-blue-400 bg-blue-900/20' 
+              ? 'border-blue-400 bg-blue-50' 
               : expenditurePreview 
-                ? 'border-green-400 bg-green-900/20' 
-                : 'border-gray-600 bg-gray-800/50'
+                ? 'border-green-400 bg-green-50' 
+                : 'border-gray-300 bg-gray-50'
           }`}
           onDragOver={(e) => {
             e.preventDefault()
@@ -253,19 +251,19 @@ export const OrderFileUpload: React.FC<OrderFileUploadProps> = ({
                   )}
                 </div>
               </div>
-              <div className="text-sm text-gray-300 text-center">
+              <div className="text-sm text-gray-600 text-center">
                 {expenditureFile?.name || 'Загруженный файл'}
               </div>
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-gray-300 text-2xl">📄</span>
+              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-gray-600 text-2xl">📄</span>
               </div>
-              <div className="text-gray-300 font-medium">
+              <div className="text-gray-700 font-medium">
                 {expenditureDragOver ? 'Отпустите файл' : 'Перетащите файл сюда'}
               </div>
-              <div className="text-sm text-gray-400">или нажмите для выбора</div>
+              <div className="text-sm text-gray-500">или нажмите для выбора</div>
             </div>
           )}
         </div>

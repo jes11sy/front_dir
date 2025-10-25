@@ -75,7 +75,7 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
     <div className="space-y-6">
       {/* Назначить мастера */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1">Назначить мастера</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Назначить мастера</label>
         <CustomSelect
           value={selectedMaster}
           onChange={setSelectedMaster}
@@ -95,41 +95,35 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
         // Поля для статуса "Модерн"
         <>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Сумма предоплаты</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Сумма предоплаты</label>
             <input 
               type="number" 
               value={prepayment}
               onChange={(e) => setPrepayment(e.target.value)}
               disabled={isFieldsDisabled()}
-              className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
-              onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+              className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
               placeholder="Введите сумму предоплаты"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Дата закрытия</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Дата закрытия</label>
             <input 
               type="date" 
               value={dateClosmod}
               onChange={(e) => setDateClosmod(e.target.value)}
               disabled={isFieldsDisabled()}
-              className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
-              onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+              className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Комментарий</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
             <textarea 
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               disabled={isFieldsDisabled()}
-              className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
-              onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+              className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
               rows={3}
               placeholder="Введите комментарий"
             />
@@ -142,41 +136,37 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
           {!shouldHideFinancialFields() && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Итог</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Итог</label>
                 <input 
                   type="number" 
                   value={result}
                   onChange={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? undefined : (e) => setResult(e.target.value)}
                   disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
-                  className={`w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
                     orderStatus === 'Отказ' || orderStatus === 'Незаказ'
-                      ? 'bg-gray-700 text-gray-300 cursor-not-allowed' 
+                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300' 
                       : isFieldsDisabled() 
-                        ? 'bg-gray-800 text-white opacity-50 cursor-not-allowed' 
-                        : 'bg-gray-800 text-white'
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300' 
+                        : 'bg-white text-gray-800 border-gray-300'
                   }`}
-                  onFocus={(e) => !isFieldsDisabled() && orderStatus !== 'Отказ' && orderStatus !== 'Незаказ' && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
-                  onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
                   placeholder={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? "Автоматически 0" : "Введите итоговую сумму"}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Расход</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Расход</label>
                 <input 
                   type="number" 
                   value={expenditure}
                   onChange={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? undefined : (e) => setExpenditure(e.target.value)}
                   disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
-                  className={`w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
                     orderStatus === 'Отказ' || orderStatus === 'Незаказ'
-                      ? 'bg-gray-700 text-gray-300 cursor-not-allowed' 
+                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300' 
                       : isFieldsDisabled() 
-                        ? 'bg-gray-800 text-white opacity-50 cursor-not-allowed' 
-                        : 'bg-gray-800 text-white'
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300' 
+                        : 'bg-white text-gray-800 border-gray-300'
                   }`}
-                  onFocus={(e) => !isFieldsDisabled() && orderStatus !== 'Отказ' && orderStatus !== 'Незаказ' && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
-                  onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
                   placeholder={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? "Автоматически 0" : "Введите сумму расхода"}
                 />
               </div>
@@ -188,37 +178,35 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Чистыми</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Чистыми</label>
                   <input 
                     type="number" 
                     value={clean || ''}
                     readOnly
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-300 cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-500 cursor-not-allowed"
                     placeholder={clean ? '' : 'Автоматически рассчитывается'}
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Сдача мастера</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Сдача мастера</label>
                   <input 
                     type="number" 
                     value={masterChange || ''}
                     readOnly
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-300 cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-500 cursor-not-allowed"
                     placeholder={masterChange ? '' : 'Автоматически рассчитывается'}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Комментарий</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
                 <textarea 
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   disabled={isFieldsDisabled()}
-                  className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
-                  onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+                  className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
                   rows={3}
                   placeholder="Введите комментарий"
                 />
@@ -229,14 +217,12 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
           {/* Комментарий для "В работе" */}
           {orderStatus === 'В работе' && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Комментарий</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
               <textarea 
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 disabled={isFieldsDisabled()}
-                className={`w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:border-transparent ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-                onFocus={(e) => !isFieldsDisabled() && ((e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68')}
-                onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
+                className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
                 rows={3}
                 placeholder="Введите комментарий"
               />
