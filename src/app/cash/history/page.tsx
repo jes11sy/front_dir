@@ -199,7 +199,7 @@ function HistoryContent() {
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in" style={{ position: 'relative', zIndex: 10 }}>
                   <div className="flex flex-wrap gap-3 items-end">
                     {/* Тип транзакции */}
-                    <div className="min-w-[140px]">
+                    <div className="min-w-[140px] relative">
                       <label className="block text-xs text-gray-600 mb-1">Тип</label>
                       <CustomSelect
                         value={typeFilter}
@@ -214,7 +214,7 @@ function HistoryContent() {
                     </div>
 
                     {/* Город */}
-                    <div className="min-w-[140px]">
+                    <div className="min-w-[140px] relative">
                       <label className="block text-xs text-gray-600 mb-1">Город</label>
                       <CustomSelect
                         value={cityFilter}

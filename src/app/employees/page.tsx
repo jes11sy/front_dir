@@ -102,11 +102,6 @@ function EmployeesContent() {
         <div className="max-w-none mx-auto">
           <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
-            {/* Заголовок */}
-            <div className="mb-6 animate-slide-down">
-              <h1 className="text-2xl font-bold text-gray-800">Сотрудники</h1>
-            </div>
-            
             {/* Кнопка добавления */}
             <div className="mb-6 flex justify-end">
               <Button 
