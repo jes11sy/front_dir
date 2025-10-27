@@ -223,7 +223,7 @@ function OrdersContent() {
               </div>
               
               {showFilters && (
-                <div className="relative z-50 space-y-4 animate-slide-in-right overflow-visible">
+                <div className="relative z-50 space-y-4 animate-slide-in-right">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Поиск */}
                     <div>
@@ -323,7 +323,7 @@ function OrdersContent() {
             )}
             
             {!loading && !error && safeOrders.length > 0 && (
-            <div className="hidden md:block animate-fade-in">
+            <div className="hidden md:block overflow-x-auto animate-fade-in relative z-10">
               <table className="w-full border-collapse text-xs bg-white rounded-lg shadow-lg">
                 <thead>
                   <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>

@@ -108,20 +108,13 @@ function ExpenseContent() {
         receiptDoc = uploadResult.filePath
       }
       
-      // Получаем текущего пользователя
-      const currentUser = apiClient.getCurrentUser()
-      const userName = currentUser?.name || 'Неизвестно'
-      const userRole = currentUser?.role || 'user'
-      const nameCreate = `${userRole === 'director' ? 'Директор' : 'Оператор'} ${userName}`
-      
       await apiClient.createCashTransaction({
         name: 'расход',
         amount: Number(formData.amount),
         city: cityName,
         note: formData.comment,
         paymentPurpose: purposeName,
-        receiptDoc: receiptDoc || undefined,
-        nameCreate: nameCreate
+        receiptDoc: receiptDoc || undefined
       })
       
       setShowAddModal(false)

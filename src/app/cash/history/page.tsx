@@ -19,8 +19,11 @@ function HistoryContent() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [openSelect, setOpenSelect] = useState<string | null>(null)
-  const [cityOptions, setCityOptions] = useState<{value: string, label: string}[]>([])
   const itemsPerPage = 10
+
+  // Получаем города директора
+  const currentUser = apiClient.getCurrentUser()
+  const directorCities = currentUser?.cities || []
 
   // Данные для выпадающих списков
   const typeOptions = [
@@ -29,23 +32,19 @@ function HistoryContent() {
     { value: 'расход', label: 'Расход' }
   ]
 
+  const cityOptions = [
+    { value: 'all', label: 'Все города' },
+    ...directorCities.map(city => ({
+      value: city,
+      label: city
+    }))
+  ]
+
   // Загрузка данных
   const loadHistoryData = async () => {
     try {
       setLoading(true)
       setError(null)
-      
-      // Загружаем города директора из API
-      const currentUser = apiClient.getCurrentUser()
-      const directorCities = currentUser?.cities || []
-      
-      // Формируем список городов для фильтра
-      const cities = [
-        { value: 'all', label: 'Все города' },
-        ...directorCities.map(city => ({ value: city, label: city }))
-      ]
-      setCityOptions(cities)
-      
       const data = await apiClient.getCashTransactions()
       const safeData = Array.isArray(data) ? data : []
       setHistoryData(safeData)
@@ -131,7 +130,7 @@ function HistoryContent() {
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in overflow-visible" style={{borderColor: '#114643'}}>
+          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
             {/* Статистика */}
             <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slide-in-left">
@@ -174,7 +173,7 @@ function HistoryContent() {
             )}
 
             {/* Фильтры */}
-            <div className="mb-6 relative">
+            <div className="mb-6">
               <div className="mb-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
@@ -197,10 +196,10 @@ function HistoryContent() {
               </div>
               
               {showFilters && (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in overflow-visible relative z-50">
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in" style={{ position: 'relative', zIndex: 10 }}>
                   <div className="flex flex-wrap gap-3 items-end">
                     {/* Тип транзакции */}
-                    <div className="w-48">
+                    <div className="min-w-[140px] relative">
                       <label className="block text-xs text-gray-600 mb-1">Тип</label>
                       <CustomSelect
                         value={typeFilter}
@@ -215,7 +214,7 @@ function HistoryContent() {
                     </div>
 
                     {/* Город */}
-                    <div className="w-48">
+                    <div className="min-w-[140px] relative">
                       <label className="block text-xs text-gray-600 mb-1">Город</label>
                       <CustomSelect
                         value={cityFilter}
@@ -271,7 +270,7 @@ function HistoryContent() {
 
             {/* Таблица */}
             {!loading && !error && (
-              <div className="-mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
+              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
                 <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
                   <thead>
                     <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
@@ -385,7 +384,6 @@ function HistoryContent() {
         .custom-dropdown::-webkit-scrollbar-thumb:hover {
           background: #1a5a57;
         }
-        
       `}</style>
     </div>
   )
