@@ -102,19 +102,31 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !chatData || sending) return
 
+    const messageText = newMessage.trim()
+
     try {
       setSending(true)
 
-      await apiClient.sendAvitoMessage(
+      const sentMessage = await apiClient.sendAvitoMessage(
         chatData.chatId,
-        newMessage.trim(),
+        messageText,
         chatData.avitoAccountName
       )
 
+      // Добавляем отправленное сообщение в список
+      const newMsg: Message = {
+        id: sentMessage.id || Date.now().toString(),
+        type: 'text',
+        direction: 'out',
+        content: { text: messageText },
+        author_id: 'me',
+        created: Math.floor(Date.now() / 1000).toString(),
+        read: false,
+        is_read: false,
+      }
+
+      setMessages(prev => [...prev, newMsg])
       setNewMessage('')
-      
-      // Перезагружаем сообщения
-      await loadChat()
 
     } catch (err) {
       console.error('Error sending message:', err)
