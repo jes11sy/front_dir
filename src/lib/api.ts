@@ -1084,7 +1084,7 @@ export class ApiClient {
     }
 
     const result = await response.json()
-    return result.data || []
+    return result.data?.messages || []
   }
 
   async sendAvitoMessage(chatId: string, text: string, avitoAccountName: string): Promise<any> {
