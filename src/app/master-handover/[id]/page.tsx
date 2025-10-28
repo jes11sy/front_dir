@@ -18,6 +18,17 @@ function MasterHandoverDetailContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Функция для получения прямой ссылки на файл в S3
+  const getS3Url = (filePath: string | null | undefined): string | null => {
+    if (!filePath) return null
+    // Если путь уже полный URL, возвращаем как есть
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath
+    }
+    // Формируем прямую ссылку на Timeweb S3
+    return `https://s3.timeweb.com/f7eead03-crmfiles/${filePath}`
+  }
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -191,7 +202,7 @@ function MasterHandoverDetailContent() {
                             <p className="text-gray-600 text-xs">Чек перевода</p>
                             {order.cashReceiptDoc ? (
                               <a 
-                                href={order.cashReceiptDoc}
+                                href={getS3Url(order.cashReceiptDoc) || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-teal-600 hover:text-teal-700 text-sm underline cursor-pointer"
