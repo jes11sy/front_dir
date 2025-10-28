@@ -210,15 +210,15 @@ function MasterHandoverDetailContent() {
                           <div className="hidden md:flex gap-2 ml-4">
                             <button
                               onClick={() => handleApproveRequest(order.id)}
-                              className="py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
+                              className="py-1 px-3 text-xs rounded-md bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
                             >
-                              ✓ Подтвердить
+                              Подтвердить
                             </button>
                             <button
                               onClick={() => handleRejectRequest(order.id)}
-                              className="py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
+                              className="py-1 px-3 text-xs rounded-md bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
                             >
-                              ✗ Отказать
+                              Отказать
                             </button>
                           </div>
                         )}
@@ -230,15 +230,15 @@ function MasterHandoverDetailContent() {
                         <div className="flex gap-2 md:hidden mt-3">
                           <button
                             onClick={() => handleApproveRequest(order.id)}
-                            className="flex-1 py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
+                            className="flex-1 py-1 px-3 text-xs rounded-md bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
                           >
-                            ✓ Подтвердить
+                            Подтвердить
                           </button>
                           <button
                             onClick={() => handleRejectRequest(order.id)}
-                            className="flex-1 py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
+                            className="flex-1 py-1 px-3 text-xs rounded-md bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
                           >
-                            ✗ Отказать
+                            Отказать
                           </button>
                         </div>
                       )}
