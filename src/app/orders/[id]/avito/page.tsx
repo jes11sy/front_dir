@@ -64,8 +64,11 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
         100
       )
 
+      // Проверяем что msgs это массив
+      const messagesArray = Array.isArray(msgs) ? msgs : []
+
       // Сортируем по времени (старые сверху)
-      const sortedMessages = msgs.sort((a: Message, b: Message) => 
+      const sortedMessages = messagesArray.sort((a: Message, b: Message) => 
         Number(a.created) - Number(b.created)
       )
 
