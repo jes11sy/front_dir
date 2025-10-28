@@ -168,7 +168,7 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-2 sm:px-4 py-4 flex-1 flex flex-col max-w-6xl">
+      <div className="container mx-auto px-2 sm:px-4 py-4 max-w-4xl" style={{height: '100vh', display: 'flex', flexDirection: 'column'}}>
         {/* Заголовок с информацией о заказе */}
         <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-4 md:p-6 border bg-white/95 mb-3 animate-fade-in" style={{borderColor: '#114643'}}>
           <div className="flex items-center justify-between mb-4">
@@ -205,8 +205,8 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
         </div>
 
         {/* Сообщения */}
-        <div className="backdrop-blur-lg shadow-2xl rounded-2xl border bg-white/95 overflow-hidden flex flex-col flex-1 min-h-0 animate-slide-in-left" style={{borderColor: '#114643'}}>
-          <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3">
+        <div className="backdrop-blur-lg shadow-2xl rounded-2xl border bg-white/95 overflow-hidden flex flex-col animate-slide-in-left" style={{borderColor: '#114643', flex: '1', minHeight: 0}}>
+          <div className="overflow-y-scroll p-3 md:p-4 space-y-3" style={{flex: '1', minHeight: 0}}>
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 py-8 text-sm">
                 Нет сообщений в этом чате
