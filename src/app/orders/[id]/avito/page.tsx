@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
 import AuthGuard from "@/components/auth-guard"
-import { apiClient } from '@/lib/api'
+import { apiClient, Order } from '@/lib/api'
 
 interface Message {
   id: string
@@ -25,13 +25,20 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [chatData, setChatData] = useState<any>(null)
+  const [order, setOrder] = useState<Order | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const scrollToBottom = (instant = false) => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: instant ? 'auto' : 'smooth',
+        block: 'end'
+      })
+    }, 100)
   }
 
   useEffect(() => {
@@ -39,13 +46,22 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
   }, [resolvedParams.id])
 
   useEffect(() => {
-    scrollToBottom()
+    if (messages.length > 0) {
+      scrollToBottom(isInitialLoad)
+      if (isInitialLoad) {
+        setIsInitialLoad(false)
+      }
+    }
   }, [messages])
 
   const loadChat = async () => {
     try {
       setLoading(true)
       setError(null)
+
+      // Получаем данные заказа
+      const orderData = await apiClient.getOrder(Number(resolvedParams.id))
+      setOrder(orderData)
 
       // Получаем данные чата заказа
       const chatInfo = await apiClient.getOrderAvitoChat(Number(resolvedParams.id))
@@ -124,10 +140,10 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
   if (loading) {
     return (
       <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-8">
+        <div className="container mx-auto px-2 sm:px-4 py-8">
+          <div className="text-center py-8 animate-fade-in">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-            <p className="text-white text-lg">Загрузка чата...</p>
+            <p className="text-gray-700 text-lg">Загрузка чата...</p>
           </div>
         </div>
       </div>
@@ -137,13 +153,13 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
   if (error || !chatData) {
     return (
       <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-4 py-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+        <div className="container mx-auto px-2 sm:px-4 py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 animate-slide-in-left">
             <p className="text-red-600">{error || 'Чат не найден'}</p>
           </div>
           <button
             onClick={() => router.push(`/orders/${resolvedParams.id}`)}
-            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200"
+            className="px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
           >
             ← Назад к заказу
           </button>
@@ -154,30 +170,44 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Заголовок */}
-        <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">💬 Чат Авито</h1>
-              <p className="text-gray-600 mt-1">
-                {chatData.clientName} • {chatData.phone}
-              </p>
-              <p className="text-sm text-gray-500">
-                Аккаунт: {chatData.avitoAccountName}
-              </p>
-            </div>
+      <div className="container mx-auto px-2 sm:px-4 py-8 max-w-6xl">
+        {/* Заголовок с информацией о заказе */}
+        <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-8 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl mb-6 animate-fade-in" style={{borderColor: '#114643'}}>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <h1 className="text-2xl font-bold text-gray-800 animate-slide-down">Чат Авито</h1>
             <button
               onClick={() => router.push(`/orders/${resolvedParams.id}`)}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200"
+              className="px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
             >
-              ← Назад
+              ← Назад к заказу
             </button>
           </div>
+          
+          {/* Информация о заказе */}
+          {order && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600 font-medium">Заказ №:</span>
+                <span className="ml-2 text-gray-800">{order.id}</span>
+              </div>
+              <div>
+                <span className="text-gray-600 font-medium">Адрес:</span>
+                <span className="ml-2 text-gray-800">{order.address || 'Не указан'}</span>
+              </div>
+              <div>
+                <span className="text-gray-600 font-medium">Направление:</span>
+                <span className="ml-2 text-gray-800">{order.typeEquipment || 'Не указано'}</span>
+              </div>
+              <div>
+                <span className="text-gray-600 font-medium">Имя аккаунта авито:</span>
+                <span className="ml-2 text-gray-800">{chatData.avitoAccountName}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Сообщения */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col" style={{height: 'calc(100vh - 280px)'}}>
+        <div className="backdrop-blur-lg shadow-2xl rounded-2xl border bg-white/95 overflow-hidden flex flex-col animate-slide-in-left" style={{height: 'calc(100vh - 340px)', borderColor: '#114643'}}>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
@@ -190,10 +220,10 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
                   className={`flex ${msg.direction === 'out' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                    className={`max-w-[70%] rounded-lg px-4 py-2 shadow-md ${
                       msg.direction === 'out'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-800'
+                        ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white'
+                        : 'bg-gray-100 text-gray-800'
                     }`}
                   >
                     <p className="whitespace-pre-wrap break-words">
@@ -201,7 +231,7 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
                     </p>
                     <p
                       className={`text-xs mt-1 ${
-                        msg.direction === 'out' ? 'text-blue-100' : 'text-gray-500'
+                        msg.direction === 'out' ? 'text-teal-100' : 'text-gray-500'
                       }`}
                     >
                       {formatTimestamp(msg.created)}
@@ -215,7 +245,7 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
           </div>
 
           {/* Поле ввода */}
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t p-4" style={{borderColor: '#114643'}}>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -223,13 +253,13 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Введите сообщение..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
                 disabled={sending}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!newMessage.trim() || sending}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {sending ? 'Отправка...' : 'Отправить'}
               </button>
