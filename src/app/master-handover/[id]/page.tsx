@@ -180,9 +180,10 @@ function MasterHandoverDetailContent() {
                                 order.cashSubmissionStatus === 'Одобрено' ? 'bg-green-100 text-green-700' :
                                 order.cashSubmissionStatus === 'На проверке' ? 'bg-yellow-100 text-yellow-700' :
                                 order.cashSubmissionStatus === 'Отклонено' ? 'bg-red-100 text-red-700' :
+                                order.cashSubmissionStatus === 'Не отправлено' ? 'bg-gray-100 text-gray-700' :
                                 'bg-gray-100 text-gray-700'
                               }`}>
-                                {order.cashSubmissionStatus || 'Готово'}
+                                {order.cashSubmissionStatus || 'Не указан'}
                               </span>
                             </p>
                           </div>
@@ -204,7 +205,8 @@ function MasterHandoverDetailContent() {
                         </div>
                         
                         {/* Кнопки для десктопа */}
-                        {order.cashSubmissionStatus === 'На проверке' && (
+                        {(order.cashSubmissionStatus === 'На проверке' || 
+                          order.cashSubmissionStatus === 'Не отправлено') && (
                           <div className="hidden md:flex gap-2 ml-4">
                             <button
                               onClick={() => handleApproveRequest(order.id)}
@@ -223,7 +225,8 @@ function MasterHandoverDetailContent() {
                       </div>
                       
                       {/* Кнопки для мобильных */}
-                      {order.cashSubmissionStatus === 'На проверке' && (
+                      {(order.cashSubmissionStatus === 'На проверке' || 
+                        order.cashSubmissionStatus === 'Не отправлено') && (
                         <div className="flex gap-2 md:hidden mt-3">
                           <button
                             onClick={() => handleApproveRequest(order.id)}
