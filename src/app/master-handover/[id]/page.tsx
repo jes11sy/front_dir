@@ -148,7 +148,7 @@ function MasterHandoverDetailContent() {
                   >
                     <div className="space-y-3 md:space-y-0">
                       <div className="flex items-center justify-between">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3 flex-1">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-3 flex-1">
                           <div>
                             <p className="text-gray-600 text-xs">ID заказа</p>
                             <p className="text-gray-800 font-semibold text-sm">#{order.id}</p>
@@ -186,31 +186,56 @@ function MasterHandoverDetailContent() {
                               </span>
                             </p>
                           </div>
+                          <div>
+                            <p className="text-gray-600 text-xs">Чек перевода</p>
+                            {order.cashReceiptDoc ? (
+                              <a 
+                                href={order.cashReceiptDoc}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-teal-600 hover:text-teal-700 text-sm underline cursor-pointer"
+                              >
+                                Открыть
+                              </a>
+                            ) : (
+                              <p className="text-gray-400 text-sm">Нет чека</p>
+                            )}
+                          </div>
                         </div>
                         
-                        {(order.statusOrder === 'Готово' && 
-                          order.cashSubmissionStatus === 'На проверке' &&
-                          order.cashSubmissionStatus !== 'Отклонено') && (
+                        {/* Кнопки для десктопа */}
+                        {order.cashSubmissionStatus === 'На проверке' && (
                           <div className="hidden md:flex gap-2 ml-4">
                             <button
                               onClick={() => handleApproveRequest(order.id)}
-                              className="py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-md transition-all duration-200"
+                              className="py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
                             >
-                              ✓ Принять
+                              ✓ Подтвердить
+                            </button>
+                            <button
+                              onClick={() => handleRejectRequest(order.id)}
+                              className="py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
+                            >
+                              ✗ Отказать
                             </button>
                           </div>
                         )}
                       </div>
                       
-                      {(order.statusOrder === 'Готово' && 
-                        order.cashSubmissionStatus === 'На проверке' &&
-                        order.cashSubmissionStatus !== 'Отклонено') && (
-                        <div className="flex gap-2 md:hidden">
+                      {/* Кнопки для мобильных */}
+                      {order.cashSubmissionStatus === 'На проверке' && (
+                        <div className="flex gap-2 md:hidden mt-3">
                           <button
                             onClick={() => handleApproveRequest(order.id)}
-                            className="flex-1 py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-md transition-all duration-200"
+                            className="flex-1 py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
                           >
-                            ✓ Принять
+                            ✓ Подтвердить
+                          </button>
+                          <button
+                            onClick={() => handleRejectRequest(order.id)}
+                            className="flex-1 py-2 px-4 text-sm rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg transition-all duration-200 font-medium"
+                          >
+                            ✗ Отказать
                           </button>
                         </div>
                       )}
