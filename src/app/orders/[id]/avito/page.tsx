@@ -29,16 +29,14 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
-  const [isInitialLoad, setIsInitialLoad] = useState(true)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = (instant = false) => {
+  const scrollToBottom = (smooth = true) => {
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ 
-        behavior: instant ? 'auto' : 'smooth',
-        block: 'end'
-      })
-    }, 100)
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+      }
+    }, smooth ? 300 : 100)
   }
 
   useEffect(() => {
@@ -47,10 +45,7 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
 
   useEffect(() => {
     if (messages.length > 0) {
-      scrollToBottom(isInitialLoad)
-      if (isInitialLoad) {
-        setIsInitialLoad(false)
-      }
+      scrollToBottom(false)
     }
   }, [messages])
 
@@ -169,48 +164,48 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
   }
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-2 sm:px-4 py-8 max-w-6xl">
+    <div className="min-h-screen flex flex-col" style={{backgroundColor: '#114643'}}>
+      <div className="container mx-auto px-2 sm:px-4 py-4 flex-1 flex flex-col max-w-6xl">
         {/* Заголовок с информацией о заказе */}
-        <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-8 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl mb-6 animate-fade-in" style={{borderColor: '#114643'}}>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 animate-slide-down">Чат Авито</h1>
+        <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-4 md:p-6 border bg-white/95 mb-3 animate-fade-in" style={{borderColor: '#114643'}}>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800">Чат Авито</h1>
             <button
               onClick={() => router.push(`/orders/${resolvedParams.id}`)}
-              className="px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
+              className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 text-sm font-medium"
             >
-              ← Назад к заказу
+              ← Назад
             </button>
           </div>
           
           {/* Информация о заказе */}
           {order && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-600 font-medium">Заказ №:</span>
-                <span className="ml-2 text-gray-800">{order.id}</span>
+            <div className="space-y-2 text-sm">
+              <div className="flex">
+                <span className="text-gray-600 font-medium min-w-[120px]">Заказ №:</span>
+                <span className="text-gray-800">{order.id}</span>
               </div>
-              <div>
-                <span className="text-gray-600 font-medium">Адрес:</span>
-                <span className="ml-2 text-gray-800">{order.address || 'Не указан'}</span>
+              <div className="flex">
+                <span className="text-gray-600 font-medium min-w-[120px]">Адрес:</span>
+                <span className="text-gray-800 break-words">{order.address || 'Не указан'}</span>
               </div>
-              <div>
-                <span className="text-gray-600 font-medium">Направление:</span>
-                <span className="ml-2 text-gray-800">{order.typeEquipment || 'Не указано'}</span>
+              <div className="flex">
+                <span className="text-gray-600 font-medium min-w-[120px]">Направление:</span>
+                <span className="text-gray-800">{order.typeEquipment || 'Не указано'}</span>
               </div>
-              <div>
-                <span className="text-gray-600 font-medium">Имя аккаунта авито:</span>
-                <span className="ml-2 text-gray-800">{chatData.avitoAccountName}</span>
+              <div className="flex">
+                <span className="text-gray-600 font-medium min-w-[120px]">Аккаунт авито:</span>
+                <span className="text-gray-800">{chatData.avitoAccountName}</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Сообщения */}
-        <div className="backdrop-blur-lg shadow-2xl rounded-2xl border bg-white/95 overflow-hidden flex flex-col animate-slide-in-left" style={{height: 'calc(100vh - 340px)', borderColor: '#114643'}}>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="backdrop-blur-lg shadow-2xl rounded-2xl border bg-white/95 overflow-hidden flex flex-col flex-1 min-h-0 animate-slide-in-left" style={{borderColor: '#114643'}}>
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3">
             {messages.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-gray-500 py-8 text-sm">
                 Нет сообщений в этом чате
               </div>
             ) : (
@@ -220,13 +215,13 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
                   className={`flex ${msg.direction === 'out' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg px-4 py-2 shadow-md ${
+                    className={`max-w-[85%] md:max-w-[70%] rounded-lg px-3 py-2 shadow-md ${
                       msg.direction === 'out'
                         ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white'
                         : 'bg-gray-100 text-gray-800'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap break-words">
+                    <p className="whitespace-pre-wrap break-words text-sm">
                       {msg.content.text || '[Не текстовое сообщение]'}
                     </p>
                     <p
@@ -241,27 +236,26 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
                 </div>
               ))
             )}
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Поле ввода */}
-          <div className="border-t p-4" style={{borderColor: '#114643'}}>
+          <div className="border-t p-3 md:p-4" style={{borderColor: '#114643'}}>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                 placeholder="Введите сообщение..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
                 disabled={sending}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!newMessage.trim() || sending}
-                className="px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
               >
-                {sending ? 'Отправка...' : 'Отправить'}
+                {sending ? '...' : 'Отправить'}
               </button>
             </div>
           </div>
