@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Order, Call } from '@/lib/api';
 
 interface OrderCallsTabProps {
@@ -18,6 +19,7 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
   callsLoading,
   callsError,
 }) => {
+  const router = useRouter();
   const [recordingUrls, setRecordingUrls] = useState<{ [key: number]: string }>({});
 
   // Получаем прямые S3 URL для записей
@@ -87,16 +89,22 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
         </div>
       )}
       
-      {/* Чат авито - только кнопка */}
-      {order?.avitoChatId && (
-        <div className="flex justify-center">
+      {/* Чат авито */}
+      {order?.avitoChatId && order?.avitoName && (
+        <div className="flex justify-center gap-3">
+          <button 
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
+            onClick={() => router.push(`/orders/${order.id}/avito`)}
+          >
+            💬 Чат Авито (внутренний)
+          </button>
           <button 
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
             onClick={() => {
               window.open(`https://www.avito.ru/messenger/chat/${order.avitoChatId}`, '_blank')
             }}
           >
-            Открыть чат Авито
+            🔗 Открыть на Авито
           </button>
         </div>
       )}
