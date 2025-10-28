@@ -734,6 +734,7 @@ export class ApiClient {
     const response = await fetch(`${this.baseURL}/master-handover/approve/${orderId}`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
+      body: JSON.stringify({}),
     })
 
     if (!response.ok) {
@@ -746,6 +747,7 @@ export class ApiClient {
     const response = await fetch(`${this.baseURL}/master-handover/reject/${orderId}`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
+      body: JSON.stringify({}),
     })
 
     if (!response.ok) {
