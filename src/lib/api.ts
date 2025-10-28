@@ -726,7 +726,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка получения деталей сдачи мастера')
     }
 
-    return response.json()
+    const result = await response.json()
+    return result.data || result
   }
 
   async approveMasterHandover(orderId: number): Promise<void> {
