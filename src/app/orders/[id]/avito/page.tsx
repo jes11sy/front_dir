@@ -29,14 +29,17 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
-  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = (smooth = true) => {
+  const scrollToBottom = () => {
     setTimeout(() => {
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ 
+          behavior: 'auto',
+          block: 'nearest'
+        })
       }
-    }, smooth ? 300 : 100)
+    }, 200)
   }
 
   useEffect(() => {
@@ -45,7 +48,7 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
 
   useEffect(() => {
     if (messages.length > 0) {
-      scrollToBottom(false)
+      scrollToBottom()
     }
   }, [messages])
 
@@ -203,7 +206,7 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
 
         {/* Сообщения */}
         <div className="backdrop-blur-lg shadow-2xl rounded-2xl border bg-white/95 overflow-hidden flex flex-col flex-1 min-h-0 animate-slide-in-left" style={{borderColor: '#114643'}}>
-          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3">
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 py-8 text-sm">
                 Нет сообщений в этом чате
@@ -236,6 +239,7 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
                 </div>
               ))
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Поле ввода */}
