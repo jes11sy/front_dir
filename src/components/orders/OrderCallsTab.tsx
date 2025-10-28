@@ -1,3 +1,5 @@
+"use client"
+
 /**
  * Компонент таба "Запись/Чат авито"
  */
@@ -89,22 +91,14 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
         </div>
       )}
       
-      {/* Чат авито */}
-      {order?.avitoChatId && order?.avitoName && (
-        <div className="flex justify-center gap-3">
-          <button 
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
-            onClick={() => router.push(`/orders/${order.id}/avito`)}
-          >
-            💬 Чат Авито (внутренний)
-          </button>
+      {/* Чат авито - только кнопка */}
+      {order?.avitoChatId && (
+        <div className="flex justify-center">
           <button 
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
-            onClick={() => {
-              window.open(`https://www.avito.ru/messenger/chat/${order.avitoChatId}`, '_blank')
-            }}
+            onClick={() => router.push(`/orders/${order.id}/avito`)}
           >
-            🔗 Открыть на Авито
+            Открыть чат Авито
           </button>
         </div>
       )}
