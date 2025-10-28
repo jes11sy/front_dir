@@ -119,8 +119,17 @@ function MasterHandoverDetailContent() {
         <div className="max-w-none mx-auto">
           <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
             
-            {/* Заголовок */}
+            {/* Кнопка назад и заголовок */}
             <div className="mb-6 animate-slide-down">
+              <button
+                onClick={handleBack}
+                className="mb-4 flex items-center gap-2 text-teal-600 hover:text-teal-700 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Назад к списку мастеров
+              </button>
               <h1 className="text-2xl font-bold text-gray-800 mb-2">
                 {masterData.name}
               </h1>
@@ -139,7 +148,7 @@ function MasterHandoverDetailContent() {
                   >
                     <div className="space-y-3 md:space-y-0">
                       <div className="flex items-center justify-between">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 flex-1">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3 flex-1">
                           <div>
                             <p className="text-gray-600 text-xs">ID заказа</p>
                             <p className="text-gray-800 font-semibold text-sm">#{order.id}</p>
@@ -153,32 +162,29 @@ function MasterHandoverDetailContent() {
                             <p className="text-gray-800 text-sm">{order.problem || 'Не указана'}</p>
                           </div>
                           <div>
-                            <p className="text-gray-600 text-xs">Сумма сдачи</p>
-                            <p className="text-gray-800 text-lg font-bold">{order.masterChange?.toLocaleString() || 0} ₽</p>
+                            <p className="text-gray-600 text-xs">Мастер</p>
+                            <p className="text-gray-800 text-sm">{order.masterName || masterData.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 text-xs">Итог</p>
+                            <p className="text-gray-800 font-bold">{order.result?.toLocaleString() || 0} ₽</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 text-xs">Сдача мастера</p>
+                            <p className="text-gray-800 text-lg font-bold text-teal-600">{order.masterChange?.toLocaleString() || 0} ₽</p>
                           </div>
                           <div>
                             <p className="text-gray-600 text-xs">Статус сдачи</p>
                             <p className="text-gray-800 text-sm">
-                              {order.cashSubmissionStatus === 'На проверке' && 'На проверке'}
-                              {order.cashSubmissionStatus === 'Одобрено' && 'Одобрено'}
-                              {order.cashSubmissionStatus === 'Отклонено' && 'Отклонено'}
-                              {!order.cashSubmissionStatus && order.statusOrder === 'Готово' && 'Готово'}
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                order.cashSubmissionStatus === 'Одобрено' ? 'bg-green-100 text-green-700' :
+                                order.cashSubmissionStatus === 'На проверке' ? 'bg-yellow-100 text-yellow-700' :
+                                order.cashSubmissionStatus === 'Отклонено' ? 'bg-red-100 text-red-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {order.cashSubmissionStatus || 'Готово'}
+                              </span>
                             </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-600 text-xs">Чек перевода</p>
-                            {order.cashReceiptDoc ? (
-                              <button 
-                                className="text-blue-400 hover:text-blue-300 text-sm underline cursor-pointer"
-                                onClick={() => {
-                                  // Логика открытия чека
-                                }}
-                              >
-                                {order.cashReceiptDoc}
-                              </button>
-                            ) : (
-                              <p className="text-gray-500 text-sm">Нет чека</p>
-                            )}
                           </div>
                         </div>
                         
