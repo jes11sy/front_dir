@@ -1,1123 +1,430 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1'
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-export interface User {
-  id: string
-  login: string
-  name: string
-  role: string
-  cities: string[]
-}
+// Создаем экземпляр axios с базовыми настройками
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1',
+  timeout: 30000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+});
 
-export interface LoginResponse {
-  access_token: string
-  user: User
-}
-
-export interface Order {
-  id: number
-  rk: string
-  city: string
-  avitoName?: string
-  phone: string
-  typeOrder: string
-  clientName: string
-  address: string
-  dateMeeting: string
-  typeEquipment: string
-  problem: string
-  callRecord?: string
-  statusOrder: string
-  masterId?: number
-  result?: number
-  expenditure?: number
-  clean?: number
-  masterChange?: number
-  bsoDoc?: string
-  expenditureDoc?: string
-  operatorNameId: number
-  createDate: string
-  closingData?: string
-  avitoChatId?: string
-  callId?: string
-  prepayment?: number
-  dateClosmod?: string
-  comment?: string
-  cashSubmissionStatus?: string
-  cashSubmissionDate?: string
-  cashSubmissionAmount?: number
-  cashReceiptDoc?: string
-  cashApprovedBy?: number
-  cashApprovedDate?: string
-  operator?: {
-    id: number
-    name: string
-    login: string
-  }
-  master?: {
-    id: number
-    name: string
-  }
-  avito?: {
-    name: string
-  }
-}
-
-export interface OrdersResponse {
-  data: Order[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-}
-
-export interface OrdersStats {
-  totalOrders: number
-  completedOrders: number
-  inProgressOrders: number
-  pendingOrders: number
-  totalRevenue: number
-}
-
-export interface Master {
-  id: number
-  name: string
-  cities: string[]
-  statusWork: string
-}
-
-export interface Call {
-  id: number
-  rk: string
-  city: string
-  avitoName?: string
-  phoneClient: string
-  phoneAts: string
-  dateCreate: string
-  operatorId: number
-  status: string
-  mangoCallId?: number
-  recordingPath?: string
-  recordingProcessedAt?: string
-  operator?: {
-    id: number
-    name: string
-    login: string
-  }
-}
-
-export interface Employee {
-  id: number
-  name: string
-  login?: string
-  password?: string
-  hasPassword?: boolean
-  cities: string[]
-  statusWork: string
-  dateCreate: string
-  note?: string
-  tgId?: string
-  chatId?: string
-  passportDoc?: string
-  contractDoc?: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateEmployeeDto {
-  name: string
-  login?: string
-  password?: string
-  cities?: string[]
-  statusWork?: string
-  note?: string
-  tgId?: string
-  chatId?: string
-  passportDoc?: string
-  contractDoc?: string
-}
-
-export interface CashTransaction {
-  id: number
-  name: string
-  amount: number
-  city?: string
-  note?: string
-  receiptDoc?: string
-  paymentPurpose?: string
-  dateCreate: string
-  nameCreate: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CityReport {
-  city: string
-  orders: {
-    closedOrders: number  // Количество заказов со статусом "Готово" или "Отказ"
-    refusals: number      // Заказы со статусом "Отказ"
-    notOrders: number     // Заказы со статусом "Незаказ"
-    totalClean: number    // Сумма чистыми по закрытым заказам
-    totalMasterChange: number  // Сумма сдача мастера
-    avgCheck: number      // Средний чек = totalClean / closedOrders
-  }
-  cash: {
-    totalAmount: number   // Касса (все приходы-расходы за все время)
-  }
-}
-
-export interface MasterReport {
-  masterId: number
-  masterName: string
-  city: string
-  totalOrders: number
-  turnover: number        // Оборот (сумма чистыми)
-  avgCheck: number        // Средний чек
-  salary: number          // Зарплата (сумма сдача мастера)
-}
-
-export class ApiClient {
-  private baseURL: string
-
-  constructor(baseURL: string = API_BASE_URL) {
-    this.baseURL = baseURL
-  }
-
-  private getAuthHeaders(): HeadersInit {
-    const token = this.getToken()
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+// Request interceptor - добавляем токен в каждый запрос
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = localStorage.getItem('accessToken');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    return config;
+  },
+  (error: AxiosError) => {
+    return Promise.reject(error);
   }
+);
 
-  private getToken(): string | null {
-    if (typeof window === 'undefined') return null
-    return localStorage.getItem('access_token')
+// Response interceptor - автоматическое обновление токена при 401
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: AxiosError | null, token: string | null = null) => {
+  failedQueue.forEach((promise) => {
+    if (error) {
+      promise.reject(error);
+    } else {
+      promise.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
+    // Проверяем условия для обновления токена
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/auth/login') &&
+      !originalRequest.url?.includes('/auth/refresh')
+    ) {
+      if (isRefreshing) {
+        // Если токен уже обновляется, добавляем запрос в очередь
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem('refreshToken');
+
+      if (!refreshToken) {
+        // Нет refresh токена - очищаем хранилище и редирект
+        localStorage.clear();
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+
+      try {
+        console.log('[API] Refreshing access token...');
+        
+        // Обновляем токен
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1'}/auth/refresh`,
+          { refreshToken },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+
+        // Сохраняем новые токены
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', newRefreshToken);
+
+        console.log('[API] Access token refreshed successfully');
+
+        // Обновляем заголовок в axios
+        if (api.defaults.headers.common) {
+          api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+        }
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        }
+
+        // Обрабатываем очередь неудавшихся запросов
+        processQueue(null, accessToken);
+
+        // Повторяем исходный запрос
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Refresh токен невалиден - выходим
+        console.error('[API] Failed to refresh token:', refreshError);
+        processQueue(refreshError as AxiosError, null);
+        
+        localStorage.clear();
+        window.location.href = '/login';
+        
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
   }
+);
+
+// Вспомогательные функции для работы с токенами
+export const authUtils = {
+  /**
+   * Сохранить токены после логина
+   */
+  setTokens: (accessToken: string, refreshToken: string) => {
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+  },
 
   /**
-   * Безопасная обработка fetch запросов
+   * Получить access токен
    */
-  private async safeFetch(url: string, options?: RequestInit): Promise<Response> {
+  getAccessToken: () => {
+    return localStorage.getItem('accessToken');
+  },
+
+  /**
+   * Получить refresh токен
+   */
+  getRefreshToken: () => {
+    return localStorage.getItem('refreshToken');
+  },
+
+  /**
+   * Проверить наличие токенов
+   */
+  hasTokens: () => {
+    return !!(localStorage.getItem('accessToken') && localStorage.getItem('refreshToken'));
+  },
+
+  /**
+   * Очистить токены (logout)
+   */
+  clearTokens: () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  },
+
+  /**
+   * Logout с вызовом API
+   */
+  logout: async () => {
     try {
-      const response = await fetch(url, options)
-      return response
+      await api.post('/auth/logout');
     } catch (error) {
-      // Используем logger вместо console.error
-      throw new Error('Ошибка сети. Проверьте подключение к интернету.')
+      console.error('[API] Logout error:', error);
+    } finally {
+      authUtils.clearTokens();
+      window.location.href = '/login';
     }
-  }
-
-  async login(login: string, password: string): Promise<LoginResponse> {
-    const response = await this.safeFetch(`${this.baseURL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        login, 
-        password,
-        role: 'director' // Director фронтенд всегда использует роль director
-      }),
-    })
-
-    if (!response.ok) {
-      // Безопасная обработка ошибки - проверяем Content-Type
-      const contentType = response.headers.get('content-type')
-      let errorMessage = 'Ошибка авторизации'
-      
-      if (contentType && contentType.includes('application/json')) {
-        try {
-          const error = await response.json()
-          errorMessage = error.message || errorMessage
-        } catch {
-          // Не JSON - используем дефолтное сообщение
-        }
-      }
-      
-      throw new Error(errorMessage)
-    }
-
-    // Новый формат ответа: { success, message, data: { user, access_token } }
-    const result = await response.json()
-    // Адаптируем к старому формату для совместимости
-    if (result.success && result.data) {
-      return {
-        access_token: result.data.accessToken,
-        user: result.data.user
-      }
-    }
-    return result
-  }
-
-  async getProfile(): Promise<User> {
-    const response = await this.safeFetch(`${this.baseURL}/users/profile`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      // Безопасная обработка ошибки
-      const contentType = response.headers.get('content-type')
-      let errorMessage = 'Ошибка получения профиля'
-      
-      if (contentType && contentType.includes('application/json')) {
-        try {
-          const error = await response.json()
-          errorMessage = error.message || errorMessage
-        } catch {
-          // Не JSON
-        }
-      }
-      
-      throw new Error(errorMessage)
-    }
-
-    // Новый формат: { success, data: { ...user, role } }
-    const result = await response.json()
-    return result.success && result.data ? result.data : result
-  }
-
-  async logout(): Promise<void> {
-    // Сначала очищаем локальные данные
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('user')
-    }
-
-    // Затем пытаемся уведомить сервер (необязательно)
-    const token = this.getToken()
-    if (token) {
-      try {
-        await this.safeFetch(`${this.baseURL}/auth/logout`, {
-          method: 'POST',
-          headers: this.getAuthHeaders(),
-        })
-      } catch (error) {
-        // Игнорируем ошибку - токен уже удален локально
-      }
-    }
-  }
-
-  isAuthenticated(): boolean {
-    return !!this.getToken()
-  }
-
-  getCurrentUser(): User | null {
-    if (typeof window === 'undefined') return null
-    const userStr = localStorage.getItem('user')
-    if (!userStr) return null
-    
-    try {
-      return JSON.parse(userStr)
-    } catch {
-      return null
-    }
-  }
-
-  // Orders API
-  async getOrders(params: {
-    page?: number
-    limit?: number
-    status?: string
-    city?: string
-    search?: string
-    master?: string
-  } = {}): Promise<OrdersResponse> {
-    const searchParams = new URLSearchParams()
-    
-    if (params.page) searchParams.append('page', params.page.toString())
-    if (params.limit) searchParams.append('limit', params.limit.toString())
-    if (params.status) searchParams.append('status', params.status)
-    if (params.city) searchParams.append('city', params.city)
-    if (params.search) searchParams.append('search', params.search)
-    if (params.master) searchParams.append('master', params.master)
-    
-    const response = await this.safeFetch(`${this.baseURL}/orders?${searchParams}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения заказов')
-    }
-
-    return response.json()
-  }
-
-  async getOrder(id: number): Promise<Order> {
-    const response = await this.safeFetch(`${this.baseURL}/orders/${id}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения заказа')
-    }
-
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
-    return result.data || result
-  }
-
-  async updateOrder(id: number, data: Partial<Order>): Promise<Order> {
-    const response = await this.safeFetch(`${this.baseURL}/orders/${id}`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      try {
-        const error = await response.json()
-        console.error('Order update error:', error)
-        throw new Error(error.message || `Ошибка обновления заказа: ${response.status}`)
-      } catch (parseError) {
-        console.error('Failed to parse error response:', parseError)
-        throw new Error(`Ошибка обновления заказа: ${response.status} ${response.statusText}`)
-      }
-    }
-
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
-    return result.data || result
-  }
-
-  async getOrdersStats(): Promise<OrdersStats> {
-    const response = await fetch(`${this.baseURL}/orders/stats/summary`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения статистики')
-    }
-
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
-    return result.data || result
-  }
-
-  async getOrderStatuses(): Promise<string[]> {
-    const response = await this.safeFetch(`${this.baseURL}/orders/statuses`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения статусов')
-    }
-
-    const result = await response.json()
-    return result.data || result
-  }
-
-  // Masters API (Users Service)
-  async getMasters(): Promise<Master[]> {
-    const response = await this.safeFetch(`${this.baseURL}/masters`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения мастеров')
-    }
-
-    const result = await response.json()
-    return result.data || result
-  }
-
-  // Employees API
-  async getEmployees(): Promise<Employee[]> {
-    const response = await fetch(`${this.baseURL}/employees`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения сотрудников')
-    }
-
-    const result = await response.json()
-    const data = result.data || result
-    return Array.isArray(data) ? data : []
-  }
-
-  async getEmployee(id: number): Promise<Employee> {
-    const response = await fetch(`${this.baseURL}/employees/${id}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения сотрудника')
-    }
-
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
-    return result.data || result
-  }
-
-  async createEmployee(data: CreateEmployeeDto): Promise<Employee> {
-    const response = await fetch(`${this.baseURL}/employees`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка создания сотрудника')
-    }
-
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
-    return result.data || result
-  }
-
-  async updateEmployee(id: number, data: CreateEmployeeDto): Promise<Employee> {
-    const response = await fetch(`${this.baseURL}/employees/${id}`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка обновления сотрудника')
-    }
-
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
-    return result.data || result
-  }
-
-  // Cash API (Cash Service)
-  async getCashTransactions(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения транзакций')
-    }
-
-    const result = await response.json()
-    const data = result.data || result
-    
-    // Сортируем по дате создания (новые сначала)
-    const sortedData = data.sort((a: CashTransaction, b: CashTransaction) => 
-      new Date(b.dateCreate).getTime() - new Date(a.dateCreate).getTime()
-    )
-    
-    return sortedData
-  }
-
-  async getCashIncome(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?type=приход`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения приходов')
-    }
-
-    const result = await response.json()
-    return result.data || result
-  }
-
-  async getCashExpense(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?type=расход`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения расходов')
-    }
-
-    const result = await response.json()
-    return result.data || result
-  }
-
-  async createCashTransaction(data: Partial<CashTransaction>): Promise<CashTransaction> {
-    console.log('Creating cash transaction with data:', data)
-    
-    const response = await fetch(`${this.baseURL}/cash`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({
-        name: data.name,
-        amount: data.amount || 0,
-        city: data.city,
-        note: data.note,
-        paymentPurpose: data.paymentPurpose,
-        receiptDoc: data.receiptDoc,
-      }),
-    })
-
-    if (!response.ok) {
-      try {
-        const error = await response.json()
-        console.error('Cash transaction creation error:', error)
-        throw new Error(error.message || `Ошибка создания транзакции: ${response.status}`)
-      } catch (parseError) {
-        console.error('Failed to parse error response:', parseError)
-        throw new Error(`Ошибка создания транзакции: ${response.status} ${response.statusText}`)
-      }
-    }
-
-    const result = await response.json()
-    return result.data || result
-  }
-
-  async checkCashTransactionByOrder(orderId: number): Promise<CashTransaction | null> {
-    const response = await fetch(`${this.baseURL}/cash?orderId=${orderId}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null // Транзакция не найдена
-      }
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка проверки транзакции')
-    }
-
-    // Проверяем, есть ли контент для парсинга
-    const text = await response.text()
-    if (!text) {
-      return null
-    }
-
-    return JSON.parse(text)
-  }
-
-  async updateCashTransactionByOrder(orderId: number, data: Partial<CashTransaction>): Promise<CashTransaction> {
-    console.log('Updating cash transaction for order:', orderId, 'with data:', data)
-    
-    // Сначала найти транзакцию по orderId
-    const transactions = await this.getCashTransactions()
-    const transaction = transactions.find((t: any) => t.orderId === orderId)
-    
-    if (!transaction) {
-      throw new Error('Транзакция не найдена')
-    }
-    
-    const response = await fetch(`${this.baseURL}/cash/${transaction.id}`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      try {
-        const text = await response.text()
-        console.error('Cash transaction update error response:', text)
-        
-        if (text) {
-          const error = JSON.parse(text)
-          throw new Error(error.message || `Ошибка обновления транзакции: ${response.status}`)
-        } else {
-          throw new Error(`Ошибка обновления транзакции: ${response.status} ${response.statusText}`)
-        }
-      } catch (parseError) {
-        console.error('Failed to parse error response:', parseError)
-        throw new Error(`Ошибка обновления транзакции: ${response.status} ${response.statusText}`)
-      }
-    }
-
-    return response.json()
-  }
-
-  async getCashBalance(): Promise<{ income: number; expense: number; balance: number }> {
-    // Получаем все транзакции и считаем баланс на фронте
-    const transactions = await this.getCashTransactions()
-    
-    const income = transactions
-      .filter((t: any) => t.type === 'предоплата' && t.status === 'approved')
-      .reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
-    
-    const expense = transactions
-      .filter((t: any) => t.type === 'расход' && t.status === 'approved')
-      .reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
-    
-    return {
-      income,
-      expense,
-      balance: income - expense,
-    }
-    
-    /* Старый код с отдельным endpoint
-    const response = await fetch(`${this.baseURL}/cash/balance`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения баланса')
-    }
-
-    return response.json()
-    */
-  }
-
-  async getCallsByOrderId(orderId: number): Promise<Call[]> {
-    const response = await fetch(`${this.baseURL}/calls/order/${orderId}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения записей звонков')
-    }
-
-    const result = await response.json()
-    return result.data || result
-  }
-
-  // Master Handover API
-  // Master Handover API (Cash Service - Handover)
-  async getMasterHandoverSummary(): Promise<{ masters: any[], totalAmount: number }> {
-    const response = await fetch(`${this.baseURL}/master-handover/summary`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения сводки сдачи мастеров')
-    }
-
-    const result = await response.json()
-    console.log('API Response:', result)
-    // API возвращает {success: true, data: {masters: [...], totalAmount: ...}}
-    // Нужно извлечь data
-    const data = result.data || result
-    console.log('Extracted data:', data)
-    return data
-  }
-
-  async getMasterHandoverDetails(masterId: number): Promise<{ master: any, orders: any[] }> {
-    const response = await fetch(`${this.baseURL}/master-handover/${masterId}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения деталей сдачи мастера')
-    }
-
-    const result = await response.json()
-    return result.data || result
-  }
-
-  async approveMasterHandover(orderId: number): Promise<void> {
-    const response = await fetch(`${this.baseURL}/master-handover/approve/${orderId}`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({}),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка одобрения сдачи')
-    }
-  }
-
-  async rejectMasterHandover(orderId: number): Promise<void> {
-    const response = await fetch(`${this.baseURL}/master-handover/reject/${orderId}`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({}),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка отклонения сдачи')
-    }
-  }
-
-  // File Upload API
-  async uploadReceipt(file: File, type: 'cash' | 'order'): Promise<{ filePath: string }> {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', type)
-
-    const token = localStorage.getItem('access_token')
-    const response = await fetch(`${this.baseURL}/upload/receipt`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        // Не устанавливаем Content-Type для FormData - браузер сам установит правильный
-      },
-      body: formData,
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка загрузки файла')
-    }
-
-    return response.json()
-  }
-
-  // Reports API
-  async getCityReport(filters?: { city?: string; startDate?: string; endDate?: string }): Promise<CityReport[]> {
-    const params = new URLSearchParams();
-    if (filters?.city) params.append('city', filters.city);
-    if (filters?.startDate) params.append('startDate', filters.startDate);
-    if (filters?.endDate) params.append('endDate', filters.endDate);
-    
-    const queryString = params.toString();
-    const url = queryString ? `${this.baseURL}/reports/city?${queryString}` : `${this.baseURL}/reports/city`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения отчета по городам')
-    }
-
-    const result = await response.json()
-    return result.data || result
-  }
-
-  async getCityDetailedReport(city: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/reports/city/${encodeURIComponent(city)}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения детального отчета по городу')
-    }
-
-    return response.json()
-  }
-
-  async getMastersReport(filters?: { masterId?: number; city?: string; startDate?: string; endDate?: string }): Promise<MasterReport[]> {
-    const params = new URLSearchParams();
-    if (filters?.masterId) params.append('masterId', filters.masterId.toString());
-    if (filters?.city) params.append('city', filters.city);
-    if (filters?.startDate) params.append('startDate', filters.startDate);
-    if (filters?.endDate) params.append('endDate', filters.endDate);
-    
-    const queryString = params.toString();
-    const url = queryString ? `${this.baseURL}/reports/masters?${queryString}` : `${this.baseURL}/reports/masters`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения отчета по мастерам')
-    }
-
-    const result = await response.json()
-    return result.data || result
-  }
-
-  // Методы для работы с профилем пользователя
-  async getCurrentUserProfile(): Promise<any> {
-    const response = await fetch(`${this.baseURL}/users/profile`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения профиля')
-    }
-
-    const result = await response.json()
-    return result.success && result.data ? result.data : result
-  }
-
-  async updateUserProfile(data: {
-    telegramId?: string;
-    contractDoc?: string;
-    passportDoc?: string;
-  }): Promise<any> {
-    const response = await fetch(`${this.baseURL}/users/profile`, {
-      method: 'PUT',
-      headers: {
-        ...this.getAuthHeaders(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка обновления профиля')
-    }
-
-    return response.json()
-  }
-
-  // Методы для загрузки файлов директоров
-  async uploadDirectorContract(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем договор: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    console.log(`Base URL: ${this.baseURL}`)
-    console.log(`Token: ${this.getToken() ? 'есть' : 'нет'}`)
-    
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${this.baseURL}/upload/director/contract`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
-          // НЕ устанавливаем Content-Type - браузер сам установит multipart/form-data
-        },
-        body: formData,
-      })
-
-      console.log(`Ответ сервера: ${response.status} ${response.statusText}`)
-
-      if (!response.ok) {
-        console.error('Статус ответа:', response.status, response.statusText)
-        console.error('URL запроса:', `${this.baseURL}/upload/director/contract`)
-        
-        let error
-        try {
-          error = await response.json()
-          console.error('Ошибка загрузки договора (JSON):', error)
-        } catch (parseError) {
-          console.error('Не удалось распарсить ответ как JSON:', parseError)
-          const textResponse = await response.text()
-          console.error('Текстовый ответ сервера:', textResponse)
-          throw new Error(`Ошибка сервера: ${response.status} ${response.statusText}`)
-        }
-        
-        throw new Error(error.message || 'Ошибка загрузки договора')
-      }
-
-      const result = await response.json()
-      console.log('Результат загрузки:', result)
-      return result
-    } catch (error) {
-      console.error('Ошибка при загрузке файла:', error)
-      throw error
-    }
-  }
-
-  async uploadDirectorPassport(file: File): Promise<{ filePath: string }> {
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const response = await fetch(`${this.baseURL}/upload/director/passport`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.getToken()}`,
-      },
-      body: formData,
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка загрузки паспорта')
-    }
-
-    return response.json()
-  }
-
-  async uploadMasterContract(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем договор мастера: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${this.baseURL}/upload/master/contract`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка загрузки договора мастера')
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.error('Ошибка при загрузке договора мастера:', error)
-      throw error
-    }
-  }
-
-  async uploadMasterPassport(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем паспорт мастера: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${this.baseURL}/upload/master/passport`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка загрузки паспорта мастера')
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.error('Ошибка при загрузке паспорта мастера:', error)
-      throw error
-    }
-  }
-
-  async uploadOrderBso(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем БСО заказа: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${this.baseURL}/upload/order/bso`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка загрузки БСО заказа')
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.error('Ошибка при загрузке БСО заказа:', error)
-      throw error
-    }
-  }
-
-  async uploadOrderExpenditure(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем документ расхода заказа: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${this.baseURL}/upload/order/expenditure`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка загрузки документа расхода заказа')
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.error('Ошибка при загрузке документа расхода заказа:', error)
-      throw error
-    }
-  }
-
-  // Avito Chat API
-  async getOrderAvitoChat(orderId: number): Promise<{ chatId: string; avitoAccountName: string; clientName: string; phone: string } | null> {
-    const response = await fetch(`${this.baseURL}/orders/${orderId}/avito-chat`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null
-      }
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения данных чата Авито')
-    }
-
-    const result = await response.json()
-    return result.data
-  }
-
-  async getAvitoMessages(chatId: string, avitoAccountName: string, limit: number = 100): Promise<any[]> {
-    const response = await fetch(`${this.baseURL}/avito-messenger/chats/${chatId}/messages?avitoAccountName=${avitoAccountName}&limit=${limit}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения сообщений')
-    }
-
-    const result = await response.json()
-    return result.data?.messages || []
-  }
-
-  async sendAvitoMessage(chatId: string, text: string, avitoAccountName: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/avito-messenger/chats/${chatId}/messages`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({ text, avitoAccountName }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка отправки сообщения')
-    }
-
-    const result = await response.json()
-    return result.data
-  }
-
-  async markAvitoChatAsRead(chatId: string, avitoAccountName: string): Promise<void> {
-    const response = await fetch(`${this.baseURL}/avito-messenger/chats/${chatId}/read`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({ avitoAccountName }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка отметки чата как прочитанного')
-    }
-  }
-}
-
-export const apiClient = new ApiClient()
+  },
+};
+
+// Обертка apiClient для обратной совместимости
+export const apiClient = {
+  // Auth
+  login: async (login: string, password: string) => {
+    const response = await api.post('/auth/login', {
+      login,
+      password,
+      role: 'director',
+    });
+    // Автоматически сохраняем токены
+    authUtils.setTokens(response.data.data.accessToken, response.data.data.refreshToken);
+    return response.data.data;
+  },
+
+  logout: async () => {
+    await authUtils.logout();
+  },
+
+  isAuthenticated: () => {
+    return authUtils.hasTokens();
+  },
+
+  getProfile: async () => {
+    const response = await api.get('/auth/profile');
+    return response.data.data;
+  },
+
+  getCurrentUser: () => {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  },
+
+  getCurrentUserProfile: async () => {
+    return await apiClient.getProfile();
+  },
+
+  // Orders
+  getOrders: async (params?: any) => {
+    const response = await api.get('/orders', { params });
+    return response.data;
+  },
+
+  getOrder: async (id: number) => {
+    const response = await api.get(`/orders/${id}`);
+    return response.data;
+  },
+
+  updateOrder: async (id: number, data: any) => {
+    const response = await api.put(`/orders/${id}`, data);
+    return response.data;
+  },
+
+  getOrderStatuses: async () => {
+    const response = await api.get('/orders/statuses');
+    return response.data;
+  },
+
+  // Masters
+  getMasters: async () => {
+    const response = await api.get('/masters');
+    return response.data;
+  },
+
+  // Calls
+  getCallsByOrderId: async (orderId: number) => {
+    const response = await api.get(`/calls/order/${orderId}`);
+    return response.data;
+  },
+
+  // Employees
+  getEmployees: async () => {
+    const response = await api.get('/employees');
+    return response.data;
+  },
+
+  getEmployee: async (id: number) => {
+    const response = await api.get(`/employees/${id}`);
+    return response.data;
+  },
+
+  createEmployee: async (data: any) => {
+    const response = await api.post('/employees', data);
+    return response.data;
+  },
+
+  updateEmployee: async (id: number, data: any) => {
+    const response = await api.put(`/employees/${id}`, data);
+    return response.data;
+  },
+
+  // Files/Uploads
+  uploadFile: async (file: File, folder: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(`/files/upload/${folder}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  uploadReceipt: async (file: File, folder: string) => {
+    return await apiClient.uploadFile(file, folder);
+  },
+
+  uploadOrderBso: async (file: File) => {
+    return await apiClient.uploadFile(file, 'orders');
+  },
+
+  uploadOrderExpenditure: async (file: File) => {
+    return await apiClient.uploadFile(file, 'orders');
+  },
+
+  uploadMasterPassport: async (file: File) => {
+    return await apiClient.uploadFile(file, 'masters');
+  },
+
+  uploadMasterContract: async (file: File) => {
+    return await apiClient.uploadFile(file, 'masters');
+  },
+
+  uploadDirectorPassport: async (file: File) => {
+    return await apiClient.uploadFile(file, 'directors');
+  },
+
+  uploadDirectorContract: async (file: File) => {
+    return await apiClient.uploadFile(file, 'directors');
+  },
+
+  uploadCashExpenseReceipt: async (file: File) => {
+    return await apiClient.uploadFile(file, 'cash');
+  },
+
+  uploadCashIncomeReceipt: async (file: File) => {
+    return await apiClient.uploadFile(file, 'cash');
+  },
+
+  // Cash Transactions
+  getCashTransactions: async () => {
+    const response = await api.get('/cash/transactions');
+    return response.data;
+  },
+
+  getCashIncome: async () => {
+    const response = await api.get('/cash/income');
+    return response.data;
+  },
+
+  getCashExpense: async () => {
+    const response = await api.get('/cash/expense');
+    return response.data;
+  },
+
+  createCashTransaction: async (data: any) => {
+    const response = await api.post('/cash/transactions', data);
+    return response.data;
+  },
+
+  checkCashTransactionByOrder: async (orderId: number) => {
+    const response = await api.get(`/cash/transactions/order/${orderId}`);
+    return response.data;
+  },
+
+  updateCashTransactionByOrder: async (orderId: number, data: any) => {
+    const response = await api.put(`/cash/transactions/order/${orderId}`, data);
+    return response.data;
+  },
+
+  // Reports
+  getMastersReport: async (filters: any) => {
+    const response = await api.get('/reports/masters', { params: filters });
+    return response.data;
+  },
+
+  getCityReport: async (filters: any) => {
+    const response = await api.get('/reports/city', { params: filters });
+    return response.data;
+  },
+
+  // Master Handover
+  getMasterHandoverSummary: async () => {
+    const response = await api.get('/master-handover/summary');
+    return response.data;
+  },
+
+  getMasterHandoverDetails: async (masterId: number) => {
+    const response = await api.get(`/master-handover/${masterId}`);
+    return response.data;
+  },
+
+  approveMasterHandover: async (orderId: number) => {
+    const response = await api.post(`/master-handover/${orderId}/approve`);
+    return response.data;
+  },
+
+  rejectMasterHandover: async (orderId: number) => {
+    const response = await api.post(`/master-handover/${orderId}/reject`);
+    return response.data;
+  },
+
+  // Avito
+  getOrderAvitoChat: async (orderId: string) => {
+    const response = await api.get(`/orders/${orderId}/avito/chat`);
+    return response.data;
+  },
+
+  getAvitoMessages: async (chatId: string, avitoAccountName: string, limit?: number) => {
+    const response = await api.get(`/avito/messages`, {
+      params: { chatId, avitoAccountName, limit },
+    });
+    return response.data;
+  },
+
+  sendAvitoMessage: async (chatId: string, message: string, avitoAccountName: string) => {
+    const response = await api.post(`/avito/messages`, {
+      chatId,
+      message,
+      avitoAccountName,
+    });
+    return response.data;
+  },
+
+  markAvitoChatAsRead: async (chatId: string, avitoAccountName: string) => {
+    const response = await api.post(`/avito/chat/read`, {
+      chatId,
+      avitoAccountName,
+    });
+    return response.data;
+  },
+
+  // Profile
+  updateUserProfile: async (data: any) => {
+    const response = await api.put('/profile', data);
+    return response.data;
+  },
+};
+
+export default api;
