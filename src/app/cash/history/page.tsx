@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AuthGuard from "@/components/auth-guard"
 import { apiClient, CashTransaction } from '@/lib/api'
+import { getSignedUrl } from '@/lib/s3-utils'
 
 // Импортируем оптимизированный CustomSelect
 import CustomSelect from '@/components/optimized/CustomSelect'
@@ -313,7 +314,18 @@ function HistoryContent() {
                           <td className="py-4 px-4 text-gray-800">{item.nameCreate}</td>
                           <td className="py-4 px-4 text-gray-800">
                             {item.receiptDoc ? (
-                              <button className="text-blue-600 hover:text-blue-700 underline transition-colors">
+                              <button 
+                                className="text-blue-600 hover:text-blue-700 underline transition-colors"
+                                onClick={async () => {
+                                  try {
+                                    const signedUrl = await getSignedUrl(item.receiptDoc!)
+                                    window.open(signedUrl, '_blank')
+                                  } catch (error) {
+                                    console.error('Ошибка при скачивании документа:', error)
+                                    alert('Не удалось скачать документ')
+                                  }
+                                }}
+                              >
                                 Скачать
                               </button>
                             ) : (
