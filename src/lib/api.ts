@@ -866,10 +866,9 @@ export class ApiClient {
   async uploadReceipt(file: File, type: 'cash' | 'order'): Promise<{ filePath: string }> {
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('type', type)
 
     const token = localStorage.getItem('access_token')
-    const response = await fetch(`${this.baseURL}/upload/receipt`, {
+    const response = await fetch(`${this.baseURL}/files/upload?folder=director/cash/receipt_doc`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -883,7 +882,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка загрузки файла')
     }
 
-    return response.json()
+    const result = await response.json()
+    return { filePath: result.data?.key || result.data?.url }
   }
 
   // Reports API
@@ -988,46 +988,27 @@ export class ApiClient {
 
   // Методы для загрузки файлов директоров
   async uploadDirectorContract(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем договор: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    console.log(`Base URL: ${this.baseURL}`)
-    console.log(`Token: ${this.getToken() ? 'есть' : 'нет'}`)
+    console.log(`Загружаем договор: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB`)
     
     const formData = new FormData()
     formData.append('file', file)
 
     try {
-      const response = await fetch(`${this.baseURL}/upload/director/contract`, {
+      const response = await fetch(`${this.baseURL}/files/upload?folder=director/directors/contract_doc`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.getToken()}`,
-          // НЕ устанавливаем Content-Type - браузер сам установит multipart/form-data
         },
         body: formData,
       })
 
-      console.log(`Ответ сервера: ${response.status} ${response.statusText}`)
-
       if (!response.ok) {
-        console.error('Статус ответа:', response.status, response.statusText)
-        console.error('URL запроса:', `${this.baseURL}/upload/director/contract`)
-        
-        let error
-        try {
-          error = await response.json()
-          console.error('Ошибка загрузки договора (JSON):', error)
-        } catch (parseError) {
-          console.error('Не удалось распарсить ответ как JSON:', parseError)
-          const textResponse = await response.text()
-          console.error('Текстовый ответ сервера:', textResponse)
-          throw new Error(`Ошибка сервера: ${response.status} ${response.statusText}`)
-        }
-        
+        const error = await response.json()
         throw new Error(error.message || 'Ошибка загрузки договора')
       }
 
       const result = await response.json()
-      console.log('Результат загрузки:', result)
-      return result
+      return { filePath: result.data?.key || result.data?.url }
     } catch (error) {
       console.error('Ошибка при загрузке файла:', error)
       throw error
@@ -1038,7 +1019,7 @@ export class ApiClient {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch(`${this.baseURL}/upload/director/passport`, {
+    const response = await fetch(`${this.baseURL}/files/upload?folder=director/directors/passport_doc`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${this.getToken()}`,
@@ -1051,7 +1032,8 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка загрузки паспорта')
     }
 
-    return response.json()
+    const result = await response.json()
+    return { filePath: result.data?.key || result.data?.url }
   }
 
   async uploadMasterContract(file: File): Promise<{ filePath: string }> {
@@ -1061,7 +1043,7 @@ export class ApiClient {
     formData.append('file', file)
 
     try {
-      const response = await fetch(`${this.baseURL}/upload/master/contract`, {
+      const response = await fetch(`${this.baseURL}/files/upload?folder=director/masters/contract_doc`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.getToken()}`,
@@ -1074,7 +1056,8 @@ export class ApiClient {
         throw new Error(error.message || 'Ошибка загрузки договора мастера')
       }
 
-      return await response.json()
+      const result = await response.json()
+      return { filePath: result.data?.key || result.data?.url }
     } catch (error) {
       console.error('Ошибка при загрузке договора мастера:', error)
       throw error
@@ -1088,7 +1071,7 @@ export class ApiClient {
     formData.append('file', file)
 
     try {
-      const response = await fetch(`${this.baseURL}/upload/master/passport`, {
+      const response = await fetch(`${this.baseURL}/files/upload?folder=director/masters/passport_doc`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.getToken()}`,
@@ -1101,7 +1084,8 @@ export class ApiClient {
         throw new Error(error.message || 'Ошибка загрузки паспорта мастера')
       }
 
-      return await response.json()
+      const result = await response.json()
+      return { filePath: result.data?.key || result.data?.url }
     } catch (error) {
       console.error('Ошибка при загрузке паспорта мастера:', error)
       throw error
@@ -1115,7 +1099,7 @@ export class ApiClient {
     formData.append('file', file)
 
     try {
-      const response = await fetch(`${this.baseURL}/upload/order/bso`, {
+      const response = await fetch(`${this.baseURL}/files/upload?folder=director/orders/bso_doc`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.getToken()}`,
@@ -1128,7 +1112,8 @@ export class ApiClient {
         throw new Error(error.message || 'Ошибка загрузки БСО заказа')
       }
 
-      return await response.json()
+      const result = await response.json()
+      return { filePath: result.data?.key || result.data?.url }
     } catch (error) {
       console.error('Ошибка при загрузке БСО заказа:', error)
       throw error
@@ -1142,7 +1127,7 @@ export class ApiClient {
     formData.append('file', file)
 
     try {
-      const response = await fetch(`${this.baseURL}/upload/order/expenditure`, {
+      const response = await fetch(`${this.baseURL}/files/upload?folder=director/orders/expenditure_doc`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.getToken()}`,
@@ -1155,7 +1140,8 @@ export class ApiClient {
         throw new Error(error.message || 'Ошибка загрузки документа расхода заказа')
       }
 
-      return await response.json()
+      const result = await response.json()
+      return { filePath: result.data?.key || result.data?.url }
     } catch (error) {
       console.error('Ошибка при загрузке документа расхода заказа:', error)
       throw error
