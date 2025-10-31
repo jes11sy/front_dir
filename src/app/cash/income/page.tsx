@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import AuthGuard from "@/components/auth-guard"
 import { apiClient, CashTransaction } from '@/lib/api'
@@ -79,21 +79,21 @@ function IncomeContent() {
     loadIncomeData()
   }, [])
 
-  // Функции для работы с формой
-  const handleInputChange = (field: string, value: string) => {
+  // Функции для работы с формой (мемоизированные)
+  const handleInputChange = useCallback((field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  }, [])
 
-  const handleFileChange = (file: File | null) => {
+  const handleFileChange = useCallback((file: File | null) => {
     setFormData(prev => ({ ...prev, receipt: file }))
-  }
+  }, [])
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-  }
+  }, [])
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     
@@ -101,7 +101,7 @@ function IncomeContent() {
     if (files && files[0]) {
       handleFileChange(files[0])
     }
-  }
+  }, [handleFileChange])
 
   const handleSubmit = async () => {
     try {
