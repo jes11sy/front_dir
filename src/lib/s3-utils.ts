@@ -52,6 +52,62 @@ export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): P
 }
 
 /**
+ * Загрузить файл в S3
+ * @param file - файл для загрузки
+ * @param folderType - тип папки (например: 'orders', 'directors', 'masters')
+ * @returns Путь к загруженному файлу в S3
+ */
+export async function uploadFile(file: File, folderType: string): Promise<string> {
+  if (!file) {
+    throw new Error('File is required');
+  }
+
+  try {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Определяем папку в зависимости от типа
+    const folderMap: Record<string, string> = {
+      'orders': 'director/orders/bso_doc',
+      'expenditure': 'director/orders/expenditure_doc',
+      'directors': 'director/directors/passport_doc',
+      'masters': 'director/masters/passport_doc',
+      'cash': 'director/cash/receipt_doc',
+    };
+
+    const folder = folderMap[folderType] || `director/${folderType}`;
+
+    const response = await fetch(
+      `${API_BASE_URL}/files/upload?folder=${encodeURIComponent(folder)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to upload file');
+    }
+
+    const result = await response.json();
+    // API возвращает { success: true, data: { key: "..." } }
+    return result.data?.key || result.data?.url;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
+}
+
+/**
  * Получить подписанные URL для нескольких файлов
  * @param fileKeys - массив ключей файлов в S3
  * @param expiresIn - время жизни ссылки в секундах
