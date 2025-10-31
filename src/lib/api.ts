@@ -1,3 +1,5 @@
+import { fetchWithRetry as fetchWithRetryUtil, getUserFriendlyErrorMessage, classifyNetworkError, type NetworkError } from './fetch-with-retry'
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1'
 
 export interface User {
@@ -244,36 +246,64 @@ export class ApiClient {
     }
   }
 
+  /**
+   * Получить access токен из хранилища
+   * БЕЗОПАСНОСТЬ: Приоритет sessionStorage (более безопасное) над localStorage
+   */
   private getToken(): string | null {
     if (typeof window === 'undefined') return null
-    return localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
+    // Сначала проверяем sessionStorage (безопаснее - очищается при закрытии вкладки)
+    return sessionStorage.getItem('access_token') || localStorage.getItem('access_token')
   }
 
+  /**
+   * Получить refresh токен из хранилища
+   * БЕЗОПАСНОСТЬ: Приоритет sessionStorage над localStorage
+   */
   private getRefreshToken(): string | null {
     if (typeof window === 'undefined') return null
-    return localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token')
+    // Сначала проверяем sessionStorage (безопаснее)
+    return sessionStorage.getItem('refresh_token') || localStorage.getItem('refresh_token')
   }
 
-  private setToken(token: string, remember: boolean = true) {
+  /**
+   * Сохранить access токен
+   * БЕЗОПАСНОСТЬ: По умолчанию remember=false для использования sessionStorage
+   * @param token - access токен
+   * @param remember - true = localStorage (постоянно), false = sessionStorage (до закрытия вкладки)
+   */
+  private setToken(token: string, remember: boolean = false) {
     if (typeof window === 'undefined') return
     
     if (remember) {
+      // ТОЛЬКО если пользователь явно выбрал "Запомнить меня"
       localStorage.setItem('access_token', token)
       localStorage.setItem('remember_me', 'true')
+      // Очищаем sessionStorage чтобы избежать дублирования
       sessionStorage.removeItem('access_token')
     } else {
+      // ПО УМОЛЧАНИЮ: sessionStorage (безопаснее - очищается при закрытии)
       sessionStorage.setItem('access_token', token)
+      // Очищаем localStorage для безопасности
       localStorage.removeItem('access_token')
       localStorage.removeItem('remember_me')
     }
   }
 
-  private setRefreshToken(refreshToken: string, remember: boolean = true) {
+  /**
+   * Сохранить refresh токен
+   * БЕЗОПАСНОСТЬ: По умолчанию remember=false для использования sessionStorage
+   * @param refreshToken - refresh токен
+   * @param remember - true = localStorage, false = sessionStorage
+   */
+  private setRefreshToken(refreshToken: string, remember: boolean = false) {
     if (typeof window === 'undefined') return
     
     if (remember) {
       localStorage.setItem('refresh_token', refreshToken)
+      sessionStorage.removeItem('refresh_token')
     } else {
+      // ПО УМОЛЧАНИЮ: sessionStorage (безопаснее)
       sessionStorage.setItem('refresh_token', refreshToken)
       localStorage.removeItem('refresh_token')
     }
@@ -286,6 +316,23 @@ export class ApiClient {
 
   private addRefreshSubscriber(callback: (token: string) => void) {
     this.refreshSubscribers.push(callback)
+  }
+
+  /**
+   * Fetch с retry логикой (только для GET запросов)
+   * БЕЗОПАСНО: Не повторяет POST/PUT/DELETE чтобы избежать дублирования действий
+   */
+  private async fetchWithRetry(url: string, options?: RequestInit): Promise<Response> {
+    return fetchWithRetryUtil(url, {
+      ...options,
+      retryOptions: {
+        maxRetries: 2,        // Всего 2 повторные попытки (итого 3 запроса)
+        retryDelay: 1000,     // 1 секунда между попытками
+        backoff: true,        // Экспоненциальная задержка (1s, 2s, 4s...)
+        timeout: 30000,       // 30 секунд таймаут
+        retryOn: ['NETWORK_ERROR', 'TIMEOUT', 'SERVER_ERROR'], // Только на эти ошибки
+      },
+    })
   }
 
   /**
@@ -331,11 +378,17 @@ export class ApiClient {
   }
 
   /**
-   * Безопасная обработка fetch запросов с автоматическим обновлением токена
+   * Безопасная обработка fetch запросов с автоматическим обновлением токена и retry
    */
   private async safeFetch(url: string, options?: RequestInit): Promise<Response> {
     try {
-      const response = await fetch(url, options)
+      // Используем fetchWithRetry для GET запросов (безопасно повторять)
+      // POST/PUT/DELETE запросы не повторяем автоматически (могут изменить данные дважды)
+      const shouldRetry = !options?.method || options.method === 'GET'
+      
+      const response = shouldRetry 
+        ? await this.fetchWithRetry(url, options)
+        : await fetch(url, options)
       
       // Если 401 ошибка и это не логин/рефреш - пытаемся обновить токен
       if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
@@ -391,8 +444,23 @@ export class ApiClient {
       if (error.message === 'SESSION_EXPIRED') {
         throw error
       }
-      // Для других ошибок показываем сообщение
-      throw new Error('Ошибка сети. Проверьте подключение к интернету.')
+      
+      // Классифицируем ошибку и даем понятное сообщение
+      const networkError = classifyNetworkError(error)
+      const userMessage = getUserFriendlyErrorMessage(networkError)
+      
+      // Логируем детали только в development
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Network Error:', {
+          type: networkError.type,
+          url,
+          message: networkError.message,
+          retryable: networkError.retryable,
+        })
+      }
+      
+      // Выбрасываем ошибку с понятным сообщением
+      throw new Error(userMessage)
     }
   }
 
@@ -434,12 +502,14 @@ export class ApiClient {
       this.setToken(result.data.accessToken, remember)
       this.setRefreshToken(result.data.refreshToken, remember)
       
-      // Сохраняем пользователя
+      // Сохраняем пользователя с учетом безопасности
       if (typeof window !== 'undefined') {
         if (remember) {
           localStorage.setItem('user', JSON.stringify(result.data.user))
+          sessionStorage.removeItem('user') // Очищаем для безопасности
         } else {
           sessionStorage.setItem('user', JSON.stringify(result.data.user))
+          localStorage.removeItem('user') // Очищаем для безопасности
         }
       }
       
@@ -510,9 +580,14 @@ export class ApiClient {
     return !!this.getToken()
   }
 
+  /**
+   * Получить текущего пользователя из хранилища
+   * БЕЗОПАСНОСТЬ: Приоритет sessionStorage над localStorage
+   */
   getCurrentUser(): User | null {
     if (typeof window === 'undefined') return null
-    const userStr = localStorage.getItem('user') || sessionStorage.getItem('user')
+    // Сначала проверяем sessionStorage (безопаснее - очищается при закрытии)
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user')
     if (!userStr) return null
     
     try {

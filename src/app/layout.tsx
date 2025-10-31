@@ -5,7 +5,14 @@ import { Navigation } from '@/components/navigation'
 import ClientLayout from './client-layout'
 import { ToastProvider } from '@/components/ui/toast'
 
-const inter = Inter({ subsets: ['latin'] })
+// Оптимизация шрифта Inter для производительности
+const inter = Inter({ 
+  subsets: ['latin', 'cyrillic'], // Добавлена поддержка кириллицы (русский язык)
+  display: 'swap', // Избегаем FOIT (Flash of Invisible Text) - показываем системный шрифт пока загружается
+  preload: true, // Предзагрузка для ускорения
+  variable: '--font-inter', // CSS переменная для использования в Tailwind
+  weight: ['400', '500', '600', '700'], // Только используемые веса
+})
 
 export const metadata: Metadata = {
   title: 'DirCRM - Client Management',
@@ -18,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ru">
+    <html lang="ru" className={inter.variable}>
       <body className={inter.className}>
         <ToastProvider>
           <ClientLayout>

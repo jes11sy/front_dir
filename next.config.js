@@ -64,10 +64,48 @@ const nextConfig = {
 
   // Заголовки безопасности
   async headers() {
+    // Определяем режим (production строже)
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    
+    // Content Security Policy
+    const cspDirectives = [
+      "default-src 'self'",
+      // Scripts: Next.js требует 'unsafe-eval' и 'unsafe-inline' в dev режиме
+      isDevelopment 
+        ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'" 
+        : "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js нужен unsafe-eval даже в prod
+      // Styles: Tailwind и Next.js используют inline styles
+      "style-src 'self' 'unsafe-inline'",
+      // Images: разрешаем из своих источников, data URIs и S3
+      "img-src 'self' data: https: blob:",
+      // Fonts: разрешаем свои и data URIs
+      "font-src 'self' data:",
+      // Connect (API): разрешаем свой домен и API сервер
+      "connect-src 'self' https://api.test-shem.ru wss://api.test-shem.ru https://s3.twcstorage.ru",
+      // Media: только свои источники
+      "media-src 'self' https://s3.twcstorage.ru",
+      // Objects: запрещаем
+      "object-src 'none'",
+      // Base URI: только свой домен
+      "base-uri 'self'",
+      // Form actions: только свой домен
+      "form-action 'self'",
+      // Frame ancestors: запрещаем фреймы (защита от clickjacking)
+      "frame-ancestors 'none'",
+      // Upgrade insecure requests в production
+      isDevelopment ? "" : "upgrade-insecure-requests",
+      // Block mixed content
+      "block-all-mixed-content",
+    ].filter(Boolean).join('; ')
+
     return [
       {
         source: '/:path*',
         headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: cspDirectives
+          },
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on'
@@ -78,7 +116,7 @@ const nextConfig = {
           },
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
+            value: 'DENY' // Улучшено с SAMEORIGIN на DENY для лучшей защиты
           },
           {
             key: 'X-Content-Type-Options',
@@ -91,6 +129,10 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
           },
         ],
       },
