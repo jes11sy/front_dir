@@ -194,7 +194,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         }
       } else if (!bsoUpload.preview) {
         // Если файл был удален (нет ни нового файла, ни превью), обнуляем путь
-        bsoDocPath = undefined
+        bsoDocPath = null
       }
 
       if (expenditureUpload.file) {
@@ -207,7 +207,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         }
       } else if (!expenditureUpload.preview) {
         // Если файл был удален (нет ни нового файла, ни превью), обнуляем путь
-        expenditureDocPath = undefined
+        expenditureDocPath = null
       }
       
       const updateData: Partial<Order> = {
