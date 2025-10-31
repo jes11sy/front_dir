@@ -24,7 +24,7 @@ export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): P
     }
 
     const response = await fetch(
-      `${API_BASE_URL}/upload/signed-url?key=${encodeURIComponent(fileKey)}&expiresIn=${expiresIn}`,
+      `${API_BASE_URL}/files/download/${encodeURIComponent(fileKey)}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -40,8 +40,9 @@ export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): P
       return `${s3BaseUrl}/${fileKey}`;
     }
 
-    const data = await response.json();
-    return data.signedUrl;
+    const result = await response.json();
+    // API возвращает { success: true, data: { url: "...", cached: true/false } }
+    return result.data?.url || result.signedUrl;
   } catch (error) {
     console.error('Error getting signed URL, using fallback:', error);
     // Fallback к публичному URL если бэкенд недоступен
@@ -65,26 +66,19 @@ export async function getSignedUrls(
   }
 
   try {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/upload/signed-urls`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ keys: fileKeys, expiresIn }),
+    // Получаем URL для каждого файла параллельно
+    const urlPromises = fileKeys.map(async (key) => {
+      const url = await getSignedUrl(key, expiresIn);
+      return { key, url };
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to get signed URLs: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.signedUrls;
+    const results = await Promise.all(urlPromises);
+    
+    // Преобразуем массив в объект
+    return results.reduce((acc, { key, url }) => {
+      acc[key] = url;
+      return acc;
+    }, {} as Record<string, string>);
   } catch (error) {
     console.error('Error getting signed URLs:', error);
     throw error;
