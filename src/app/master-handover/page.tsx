@@ -20,7 +20,6 @@ function MasterHandoverContent() {
       try {
         setLoading(true)
         const data = await apiClient.getMasterHandoverSummary()
-        console.log('Frontend received data:', data)
         setMastersData(Array.isArray(data.masters) ? data.masters : [])
         setTotalAmount(data.totalAmount || 0)
       } catch (err) {

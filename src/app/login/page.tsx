@@ -11,11 +11,13 @@ import { apiClient } from "@/lib/api"
 import { sanitizeString } from "@/lib/sanitize"
 import { logger } from "@/lib/logger"
 import { toast } from "@/components/ui/toast"
+import { getErrorMessage } from "@/lib/utils"
 
 export default function LoginPage() {
   const router = useRouter()
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,20 +35,21 @@ export default function LoginPage() {
         return
       }
       
-      const data = await apiClient.login(sanitizedLogin, sanitizedPassword)
+      const data = await apiClient.login(sanitizedLogin, sanitizedPassword, rememberMe)
       
-      // Сохраняем токены в localStorage
-      localStorage.setItem('access_token', data.access_token)
-      localStorage.setItem('refresh_token', data.refresh_token)
-      localStorage.setItem('user', JSON.stringify(data.user))
+      // Токены уже сохранены в apiClient.login с учетом rememberMe
+      // Ничего дополнительно делать не нужно
       
       logger.info('Пользователь успешно авторизован')
       
       // Перенаправляем на страницу заказов
       router.push('/orders')
     } catch (error) {
-      // Показываем toast пользователю, не логируем в консоль (401 - это норма)
-      toast.error(error instanceof Error ? error.message : 'Ошибка авторизации')
+      // Не показываем ошибку если это SESSION_EXPIRED (уже перенаправляет на логин)
+      const errorMessage = getErrorMessage(error, 'Ошибка авторизации')
+      if (errorMessage) {
+        toast.error(errorMessage)
+      }
       setIsLoading(false)
     }
   }
@@ -104,6 +107,8 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 rounded border-2 border-gray-300 focus:ring-2 transition-all duration-200"
                   style={{accentColor: '#114643'}}
                 />

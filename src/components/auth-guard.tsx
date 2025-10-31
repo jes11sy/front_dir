@@ -19,17 +19,25 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     
     const checkAuth = async () => {
       try {
-        if (!apiClient.isAuthenticated()) {
+        // Проверяем наличие токенов
+        const hasAccessToken = typeof window !== 'undefined' && 
+          (localStorage.getItem('access_token') || sessionStorage.getItem('access_token'))
+        const hasRefreshToken = typeof window !== 'undefined' && 
+          (localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token'))
+        
+        if (!hasAccessToken && !hasRefreshToken) {
+          // Нет ни access ни refresh токена - редирект на логин
           if (isMounted) router.push('/login')
           return
         }
 
-        // Проверяем валидность токена
+        // Проверяем валидность токена через запрос профиля
+        // Если токен истек, safeFetch автоматически обновит его через refresh token
         await apiClient.getProfile()
         if (isMounted) setIsAuthenticated(true)
       } catch (error) {
         logger.authError('Auth check failed')
-        // Токен недействителен, очищаем и перенаправляем на логин
+        // Токен недействителен и refresh не помог, очищаем и перенаправляем на логин
         apiClient.logout()
         if (isMounted) router.push('/login')
       } finally {

@@ -52,16 +52,10 @@ function IncomeContent() {
       setError(null)
       const data = await apiClient.getCashIncome()
       
-      // Отладочная информация
-      console.log('API вернул данные:', data)
-      console.log('Типы транзакций:', data.map(item => ({ id: item.id, name: item.name, amount: item.amount })))
-      
       // Дополнительная фильтрация на фронтенде - показываем только приходы
       const incomeOnly = data.filter(item => 
         item.name === 'приход'
       )
-      
-      console.log('После фильтрации (только приходы):', incomeOnly)
       
       setIncomeData(incomeOnly)
       

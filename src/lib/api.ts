@@ -185,6 +185,55 @@ export class ApiClient {
 
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL
+    
+    // Запускаем проверку истечения токена
+    if (typeof window !== 'undefined') {
+      this.startTokenExpiryCheck()
+    }
+  }
+
+  // Проверка истечения токена и проактивное обновление
+  private startTokenExpiryCheck() {
+    if (typeof window === 'undefined') return
+
+    // Проверяем каждые 60 секунд
+    setInterval(() => {
+      const token = this.getToken()
+      if (!token) return
+
+      try {
+        // Декодируем JWT токен
+        const base64Url = token.split('.')[1]
+        if (!base64Url) return
+
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        )
+
+        const payload = JSON.parse(jsonPayload)
+        
+        // Проверяем, когда истекает токен
+        if (payload.exp) {
+          const expiryTime = payload.exp * 1000 // Конвертируем в миллисекунды
+          const currentTime = Date.now()
+          const timeUntilExpiry = expiryTime - currentTime
+
+          // Если токен истекает через 2 минуты или меньше, обновляем его проактивно
+          if (timeUntilExpiry > 0 && timeUntilExpiry < 2 * 60 * 1000) {
+            console.log('⏰ Токен скоро истечет, проактивно обновляем...')
+            this.refreshAccessToken().catch(err => {
+              console.error('Ошибка проактивного обновления токена:', err)
+            })
+          }
+        }
+      } catch (error) {
+        // Игнорируем ошибки декодирования
+      }
+    }, 60000) // Проверяем каждую минуту
   }
 
   private getAuthHeaders(): HeadersInit {
@@ -197,12 +246,37 @@ export class ApiClient {
 
   private getToken(): string | null {
     if (typeof window === 'undefined') return null
-    return localStorage.getItem('access_token')
+    return localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
   }
 
   private getRefreshToken(): string | null {
     if (typeof window === 'undefined') return null
-    return localStorage.getItem('refresh_token')
+    return localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token')
+  }
+
+  private setToken(token: string, remember: boolean = true) {
+    if (typeof window === 'undefined') return
+    
+    if (remember) {
+      localStorage.setItem('access_token', token)
+      localStorage.setItem('remember_me', 'true')
+      sessionStorage.removeItem('access_token')
+    } else {
+      sessionStorage.setItem('access_token', token)
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('remember_me')
+    }
+  }
+
+  private setRefreshToken(refreshToken: string, remember: boolean = true) {
+    if (typeof window === 'undefined') return
+    
+    if (remember) {
+      localStorage.setItem('refresh_token', refreshToken)
+    } else {
+      sessionStorage.setItem('refresh_token', refreshToken)
+      localStorage.removeItem('refresh_token')
+    }
   }
 
   private onRefreshed(token: string) {
@@ -243,8 +317,10 @@ export class ApiClient {
       const newRefreshToken = data.refreshToken
 
       if (newAccessToken && newRefreshToken) {
-        localStorage.setItem('access_token', newAccessToken)
-        localStorage.setItem('refresh_token', newRefreshToken)
+        // Сохраняем токены с учетом настройки "Запомнить меня"
+        const remember = typeof window !== 'undefined' && localStorage.getItem('remember_me') === 'true'
+        this.setToken(newAccessToken, remember)
+        this.setRefreshToken(newRefreshToken, remember)
         return newAccessToken
       }
 
@@ -304,17 +380,23 @@ export class ApiClient {
           if (typeof window !== 'undefined') {
             window.location.href = '/login'
           }
+          // Выбрасываем специальную ошибку, чтобы прервать выполнение
+          throw new Error('SESSION_EXPIRED')
         }
       }
 
       return response
-    } catch (error) {
-      // Используем logger вместо console.error
+    } catch (error: any) {
+      // Если это ошибка истечения сессии, не показываем её пользователю
+      if (error.message === 'SESSION_EXPIRED') {
+        throw error
+      }
+      // Для других ошибок показываем сообщение
       throw new Error('Ошибка сети. Проверьте подключение к интернету.')
     }
   }
 
-  async login(login: string, password: string): Promise<LoginResponse> {
+  async login(login: string, password: string, remember: boolean = false): Promise<LoginResponse> {
     const response = await this.safeFetch(`${this.baseURL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -348,6 +430,19 @@ export class ApiClient {
     const result = await response.json()
     // Адаптируем к старому формату для совместимости
     if (result.success && result.data) {
+      // Сохраняем токены с учетом remember
+      this.setToken(result.data.accessToken, remember)
+      this.setRefreshToken(result.data.refreshToken, remember)
+      
+      // Сохраняем пользователя
+      if (typeof window !== 'undefined') {
+        if (remember) {
+          localStorage.setItem('user', JSON.stringify(result.data.user))
+        } else {
+          sessionStorage.setItem('user', JSON.stringify(result.data.user))
+        }
+      }
+      
       return {
         access_token: result.data.accessToken,
         refresh_token: result.data.refreshToken,
@@ -391,6 +486,10 @@ export class ApiClient {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
+      localStorage.removeItem('remember_me')
+      sessionStorage.removeItem('access_token')
+      sessionStorage.removeItem('refresh_token')
+      sessionStorage.removeItem('user')
     }
 
     // Затем пытаемся уведомить сервер (необязательно)
@@ -413,7 +512,7 @@ export class ApiClient {
 
   getCurrentUser(): User | null {
     if (typeof window === 'undefined') return null
-    const userStr = localStorage.getItem('user')
+    const userStr = localStorage.getItem('user') || sessionStorage.getItem('user')
     if (!userStr) return null
     
     try {
