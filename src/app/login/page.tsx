@@ -35,8 +35,9 @@ export default function LoginPage() {
       
       const data = await apiClient.login(sanitizedLogin, sanitizedPassword)
       
-      // Сохраняем токен в localStorage
+      // Сохраняем токены в localStorage
       localStorage.setItem('access_token', data.access_token)
+      localStorage.setItem('refresh_token', data.refresh_token)
       localStorage.setItem('user', JSON.stringify(data.user))
       
       logger.info('Пользователь успешно авторизован')

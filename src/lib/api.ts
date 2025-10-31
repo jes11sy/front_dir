@@ -10,6 +10,7 @@ export interface User {
 
 export interface LoginResponse {
   access_token: string
+  refresh_token: string
   user: User
 }
 
@@ -179,6 +180,8 @@ export interface MasterReport {
 
 export class ApiClient {
   private baseURL: string
+  private isRefreshing: boolean = false
+  private refreshSubscribers: ((token: string) => void)[] = []
 
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL
@@ -197,12 +200,113 @@ export class ApiClient {
     return localStorage.getItem('access_token')
   }
 
+  private getRefreshToken(): string | null {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('refresh_token')
+  }
+
+  private onRefreshed(token: string) {
+    this.refreshSubscribers.forEach(callback => callback(token))
+    this.refreshSubscribers = []
+  }
+
+  private addRefreshSubscriber(callback: (token: string) => void) {
+    this.refreshSubscribers.push(callback)
+  }
+
   /**
-   * Безопасная обработка fetch запросов
+   * Обновление access токена через refresh token
+   */
+  private async refreshAccessToken(): Promise<string | null> {
+    const refreshToken = this.getRefreshToken()
+    if (!refreshToken) {
+      return null
+    }
+
+    try {
+      const response = await fetch(`${this.baseURL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      })
+
+      if (!response.ok) {
+        return null
+      }
+
+      const result = await response.json()
+      const data = result.data || result
+      
+      const newAccessToken = data.accessToken
+      const newRefreshToken = data.refreshToken
+
+      if (newAccessToken && newRefreshToken) {
+        localStorage.setItem('access_token', newAccessToken)
+        localStorage.setItem('refresh_token', newRefreshToken)
+        return newAccessToken
+      }
+
+      return null
+    } catch (error) {
+      return null
+    }
+  }
+
+  /**
+   * Безопасная обработка fetch запросов с автоматическим обновлением токена
    */
   private async safeFetch(url: string, options?: RequestInit): Promise<Response> {
     try {
       const response = await fetch(url, options)
+      
+      // Если 401 ошибка и это не логин/рефреш - пытаемся обновить токен
+      if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
+        if (this.isRefreshing) {
+          // Если токен уже обновляется, ждем завершения
+          return new Promise((resolve) => {
+            this.addRefreshSubscriber((token: string) => {
+              // Повторяем запрос с новым токеном
+              const newOptions = {
+                ...options,
+                headers: {
+                  ...options?.headers,
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+              resolve(fetch(url, newOptions))
+            })
+          })
+        }
+
+        this.isRefreshing = true
+
+        const newToken = await this.refreshAccessToken()
+        
+        this.isRefreshing = false
+
+        if (newToken) {
+          this.onRefreshed(newToken)
+
+          // Повторяем оригинальный запрос с новым токеном
+          const newOptions = {
+            ...options,
+            headers: {
+              ...options?.headers,
+              Authorization: `Bearer ${newToken}`,
+            },
+          }
+          return fetch(url, newOptions)
+        } else {
+          // Не удалось обновить токен - редирект на логин
+          this.logout()
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login'
+          }
+        }
+      }
+
       return response
     } catch (error) {
       // Используем logger вместо console.error
@@ -240,12 +344,13 @@ export class ApiClient {
       throw new Error(errorMessage)
     }
 
-    // Новый формат ответа: { success, message, data: { user, access_token } }
+    // Новый формат ответа: { success, message, data: { user, accessToken, refreshToken } }
     const result = await response.json()
     // Адаптируем к старому формату для совместимости
     if (result.success && result.data) {
       return {
         access_token: result.data.accessToken,
+        refresh_token: result.data.refreshToken,
         user: result.data.user
       }
     }
@@ -284,6 +389,7 @@ export class ApiClient {
     // Сначала очищаем локальные данные
     if (typeof window !== 'undefined') {
       localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
     }
 
