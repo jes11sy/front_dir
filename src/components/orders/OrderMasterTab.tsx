@@ -129,7 +129,7 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
                 min="0"
                 max="100"
                 className={`w-full h-10 px-3 pr-9 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-                placeholder="Введите %"
+                placeholder="Введите % партнера..."
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">%</span>
             </div>

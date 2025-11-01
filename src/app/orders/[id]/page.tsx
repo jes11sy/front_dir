@@ -82,13 +82,23 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
       
       if (resultAmount > 0) {
         const cleanAmount = resultAmount - expenditureAmount // Чистыми = Итог - Расход
-        const masterChangeAmount = cleanAmount / 2 // Сдача мастера = Чистыми / 2
+        
+        // Расчет сдачи мастера с учетом партнерства
+        let masterChangeAmount
+        if (isPartner && partnerPercent && partnerPercent.trim() !== '') {
+          // Если партнер, то: Сдача мастера = Чистыми * (100% - % партнера)
+          const partnerPercentValue = Number(partnerPercent)
+          masterChangeAmount = cleanAmount * (100 - partnerPercentValue) / 100
+        } else {
+          // Иначе: Сдача мастера = Чистыми / 2
+          masterChangeAmount = cleanAmount / 2
+        }
         
         setClean(cleanAmount.toString())
         setMasterChange(masterChangeAmount.toString())
       }
     }
-  }, [result, expenditure, orderStatus])
+  }, [result, expenditure, orderStatus, isPartner, partnerPercent])
 
 
   // Функция для получения доступных статусов в зависимости от текущего статуса
