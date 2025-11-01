@@ -100,8 +100,8 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
       </div>
 
       {/* Чекбокс партнер с полем процента */}
-      <div className="flex items-start gap-4">
-        <div className="flex items-center">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center h-10">
           <input
             type="checkbox"
             id="isPartner"
@@ -119,7 +119,7 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
         </div>
         
         {isPartner && (
-          <div className="flex-1 max-w-xs">
+          <div className="w-40">
             <div className="relative">
               <input
                 type="number"
@@ -128,10 +128,10 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
                 disabled={isFieldsDisabled()}
                 min="0"
                 max="100"
-                className={`w-full px-3 py-2 pr-8 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full h-10 px-3 pr-9 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
                 placeholder="Введите %"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">%</span>
             </div>
           </div>
         )}
