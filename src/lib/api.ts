@@ -550,8 +550,11 @@ export class ApiClient {
     return result.success && result.data ? result.data : result
   }
 
-  async logout(): Promise<void> {
-    // Сначала очищаем локальные данные
+  logout(): void {
+    // Сначала сохраняем токен для отправки на сервер
+    const token = this.getToken()
+    
+    // Сразу очищаем локальные данные СИНХРОННО
     if (typeof window !== 'undefined') {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
@@ -562,17 +565,15 @@ export class ApiClient {
       sessionStorage.removeItem('user')
     }
 
-    // Затем пытаемся уведомить сервер (необязательно)
-    const token = this.getToken()
+    // Уведомляем сервер в фоне (не ждем ответа)
     if (token) {
-      try {
-        await this.safeFetch(`${this.baseURL}/auth/logout`, {
-          method: 'POST',
-          headers: this.getAuthHeaders(),
-        })
-      } catch (error) {
+      this.safeFetch(`${this.baseURL}/auth/logout`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+      }).catch((error) => {
         // Игнорируем ошибку - токен уже удален локально
-      }
+        console.warn('Ошибка при выходе на сервере (игнорируется):', error)
+      })
     }
   }
 
