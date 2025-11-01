@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { apiClient } from '@/lib/api'
 
 const navigationItems = [
   { name: 'Заказы', href: '/orders' },
@@ -33,8 +34,19 @@ const navigationItems = [
 
 export function CustomNavigation() {
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null)
+
+  const handleLogout = async () => {
+    try {
+      await apiClient.logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      router.push('/login')
+    }
+  }
 
   return (
     <>
@@ -212,8 +224,11 @@ export function CustomNavigation() {
               
               {/* Кнопка выхода для мобильной версии */}
               <div className="pt-2 mt-2 border-t" style={{borderColor: '#e5e7eb'}}>
-                <Link
-                  href="/logout"
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleLogout()
+                  }}
                   className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
                   style={{
                     color: '#374151',
@@ -227,13 +242,12 @@ export function CustomNavigation() {
                     e.currentTarget.style.color = '#374151'
                     e.currentTarget.style.backgroundColor = 'transparent'
                   }}
-                  onClick={() => setMobileMenuOpen(false)}
                 >
                   <svg className="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                   Выйти
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -363,8 +377,8 @@ export function CustomNavigation() {
 
         {/* Кнопка выхода для десктопа */}
         <div className="px-4 py-4 border-t" style={{borderColor: '#e5e7eb'}}>
-          <Link
-            href="/logout"
+          <button
+            onClick={handleLogout}
             className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg hover:bg-red-50 hover:text-red-600"
             style={{
               color: '#374151',
@@ -375,7 +389,7 @@ export function CustomNavigation() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             Выйти
-          </Link>
+          </button>
         </div>
       </div>
     </nav>
