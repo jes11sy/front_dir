@@ -41,6 +41,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const [prepayment, setPrepayment] = useState<string>('')
   const [dateClosmod, setDateClosmod] = useState<string>('')
   
+  // Состояние для партнера
+  const [isPartner, setIsPartner] = useState<boolean>(false)
+  const [partnerPercent, setPartnerPercent] = useState<string>('')
+  
   // Файлы документов через хуки
   const bsoUpload = useFileUpload()
   const expenditureUpload = useFileUpload()
@@ -134,6 +138,8 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         setComment(order.comment || '')
         setPrepayment(order.prepayment?.toString() || '')
         setDateClosmod(order.dateClosmod ? new Date(order.dateClosmod).toISOString().split('T')[0] : '')
+        setIsPartner(order.isPartner || false)
+        setPartnerPercent(order.partnerPercent?.toString() || '')
         
         // Загружаем подписанные URL для существующих файлов
         if (order.bsoDoc) {
@@ -213,6 +219,8 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
       const updateData: Partial<Order> = {
         statusOrder: orderStatus,
         masterId: selectedMaster ? Number(selectedMaster) : undefined,
+        isPartner: isPartner,
+        partnerPercent: partnerPercent && partnerPercent.trim() !== '' ? Number(partnerPercent) : undefined,
         result: result && result.trim() !== '' ? Number(result) : undefined,
         expenditure: expenditure && expenditure.trim() !== '' ? Number(expenditure) : undefined,
         clean: clean && clean.trim() !== '' ? Number(clean) : undefined,
@@ -389,6 +397,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
                     selectedMaster={selectedMaster}
                     setSelectedMaster={setSelectedMaster}
                     masters={masters}
+                    isPartner={isPartner}
+                    setIsPartner={setIsPartner}
+                    partnerPercent={partnerPercent}
+                    setPartnerPercent={setPartnerPercent}
                     result={result}
                     setResult={setResult}
                     expenditure={expenditure}
