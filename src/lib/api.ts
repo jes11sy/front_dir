@@ -31,8 +31,6 @@ export interface Order {
   callRecord?: string
   statusOrder: string
   masterId?: number
-  isPartner?: boolean
-  partnerPercent?: number
   result?: number
   expenditure?: number
   clean?: number
