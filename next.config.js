@@ -81,7 +81,7 @@ const nextConfig = {
       // Fonts: разрешаем свои и data URIs
       "font-src 'self' data:",
       // Connect (API): разрешаем свой домен и API сервер
-      "connect-src 'self' https://api.test-shem.ru wss://api.test-shem.ru https://s3.twcstorage.ru",
+      "connect-src 'self' https://api.lead-schem.ru wss://api.lead-schem.ru https://s3.twcstorage.ru",
       // Media: только свои источники
       "media-src 'self' https://s3.twcstorage.ru",
       // Objects: запрещаем
