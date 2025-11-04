@@ -19,9 +19,10 @@ function EmployeesContent() {
     const fetchEmployees = async () => {
       try {
         setLoading(true)
-        const data = await apiClient.getEmployees()
+        // Используем getMasters() вместо getEmployees() - директора не должны видеть других директоров
+        const data = await apiClient.getMasters()
         
-        // Фильтруем сотрудников по городам текущего директора
+        // Фильтруем мастеров по городам текущего директора
         const currentUser = apiClient.getCurrentUser()
         const directorCities = currentUser?.cities || []
         
