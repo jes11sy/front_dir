@@ -659,15 +659,27 @@ function EmployeeViewContent() {
                           <div className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-200 rounded-md shadow-lg">
                             <div
                               className="px-3 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
-                              onClick={() => handleStatusChange('Работает')}
+                              onClick={() => handleStatusChange('работает')}
                             >
                               Работает
                             </div>
                             <div
                               className="px-3 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
-                              onClick={() => handleStatusChange('Уволен')}
+                              onClick={() => handleStatusChange('уволен')}
                             >
                               Уволен
+                            </div>
+                            <div
+                              className="px-3 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
+                              onClick={() => handleStatusChange('отпуск')}
+                            >
+                              Отпуск
+                            </div>
+                            <div
+                              className="px-3 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
+                              onClick={() => handleStatusChange('больничный')}
+                            >
+                              Больничный
                             </div>
                           </div>
                         )}
