@@ -1385,6 +1385,22 @@ export class ApiClient {
       throw new Error(error.message || 'Ошибка отметки чата как прочитанного')
     }
   }
+
+  async getAvitoVoiceUrls(avitoAccountName: string, voiceIds: string[]): Promise<{ [key: string]: string }> {
+    const response = await fetch(`${this.baseURL}/avito-messenger/voice-files?avitoAccountName=${avitoAccountName}`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ voiceIds }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Ошибка получения URL голосовых сообщений')
+    }
+
+    const result = await response.json()
+    return result.data || {}
+  }
 }
 
 export const apiClient = new ApiClient()
