@@ -411,6 +411,20 @@ function OrdersContent() {
                       <span className="text-gray-800">{order.city}</span>
                     </div>
                     <div className="flex justify-between">
+                      <span className="text-gray-600">Дата встречи:</span>
+                      <span className="text-gray-800">
+                        {order.dateMeeting ? (() => {
+                          const date = new Date(order.dateMeeting);
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const year = date.getFullYear();
+                          const hours = String(date.getHours()).padStart(2, '0');
+                          const minutes = String(date.getMinutes()).padStart(2, '0');
+                          return `${day}.${month}.${year}, ${hours}:${minutes}`;
+                        })() : '-'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-gray-600">Мастер:</span>
                       <span className="text-gray-800">{order.master?.name || '-'}</span>
                     </div>
