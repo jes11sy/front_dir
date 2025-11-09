@@ -17,6 +17,12 @@ export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): P
     throw new Error('File key is required');
   }
 
+  // Если fileKey уже является полным URL, возвращаем его как есть
+  if (fileKey.startsWith('http://') || fileKey.startsWith('https://')) {
+    console.warn('⚠️ File key is already a full URL, returning as is:', fileKey);
+    return fileKey;
+  }
+
   try {
     const token = localStorage.getItem('access_token');
     if (!token) {
@@ -100,7 +106,8 @@ export async function uploadFile(file: File, folderType: string): Promise<string
 
     const result = await response.json();
     // API возвращает { success: true, data: { key: "..." } }
-    return result.data?.key || result.data?.url;
+    // ВАЖНО: Всегда используем key, а не url, чтобы сохранить только путь к файлу
+    return result.data?.key;
   } catch (error) {
     console.error('Error uploading file:', error);
     throw error;
