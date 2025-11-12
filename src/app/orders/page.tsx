@@ -41,7 +41,7 @@ function OrdersContent() {
       setLoading(true)
       setError(null)
       
-      const [response, statuses, masters] = await Promise.all([
+      const [response, statuses, mastersData] = await Promise.all([
         apiClient.getOrders({
           page: currentPage,
           limit: itemsPerPage,
@@ -54,9 +54,15 @@ function OrdersContent() {
         apiClient.getMasters().catch(() => [])
       ])
       
+      // Фильтруем мастеров только со статусом "работает"
+      const masters = (Array.isArray(mastersData) ? mastersData : []).filter(master => {
+        const status = (master.statusWork || '').toLowerCase();
+        return status.includes('работает') || status.includes('работающий') || status === 'active';
+      });
+      
       setOrders(Array.isArray(response.data?.orders) ? response.data.orders : [])
       setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
-      setAllMasters(Array.isArray(masters) ? masters : [])
+      setAllMasters(masters)
       setPagination(response.data?.pagination || response.pagination || {
         page: 1,
         limit: itemsPerPage,

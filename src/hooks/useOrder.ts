@@ -28,7 +28,7 @@ export function useOrder(orderId: string) {
 
   // Загрузка мастеров
   const {
-    data: masters,
+    data: mastersData,
     loading: mastersLoading,
   } = useAsync<Master[]>(
     () => apiClient.getMasters(),
@@ -39,6 +39,12 @@ export function useOrder(orderId: string) {
       },
     }
   );
+
+  // Фильтруем мастеров только со статусом "работает"
+  const masters = (mastersData || []).filter(master => {
+    const status = (master.statusWork || '').toLowerCase();
+    return status.includes('работает') || status.includes('работающий') || status === 'active';
+  });
 
   // Обновление заказа
   const {
@@ -62,7 +68,7 @@ export function useOrder(orderId: string) {
 
   return {
     order,
-    masters: masters || [],
+    masters,
     loading,
     error,
     updating,
