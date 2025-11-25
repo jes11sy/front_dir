@@ -784,7 +784,7 @@ export class ApiClient {
 
   // Cash API (Cash Service)
   async getCashTransactions(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash`, {
+    const response = await fetch(`${this.baseURL}/cash?limit=10000`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -806,7 +806,7 @@ export class ApiClient {
   }
 
   async getCashIncome(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?type=приход`, {
+    const response = await fetch(`${this.baseURL}/cash?type=приход&limit=10000`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
@@ -821,7 +821,7 @@ export class ApiClient {
   }
 
   async getCashExpense(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?type=расход`, {
+    const response = await fetch(`${this.baseURL}/cash?type=расход&limit=10000`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     })
