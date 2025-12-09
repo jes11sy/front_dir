@@ -20,7 +20,7 @@ function OrdersContent() {
   // Новые фильтры
   const [rkFilter, setRkFilter] = useState('')
   const [typeEquipmentFilter, setTypeEquipmentFilter] = useState('')
-  const [dateType, setDateType] = useState<'create' | 'close'>('create')
+  const [dateType, setDateType] = useState<'create' | 'close' | 'meeting'>('create')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
 
@@ -152,7 +152,7 @@ function OrdersContent() {
     setCurrentPage(1)
   }
 
-  const handleDateTypeChange = (value: 'create' | 'close') => {
+  const handleDateTypeChange = (value: 'create' | 'close' | 'meeting') => {
     setDateType(value)
     setCurrentPage(1)
   }
@@ -419,7 +419,7 @@ function OrdersContent() {
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         Фильтр по дате
                       </label>
-                      <Select value={dateType} onValueChange={(value: 'create' | 'close') => handleDateTypeChange(value)}>
+                      <Select value={dateType} onValueChange={(value: 'create' | 'close' | 'meeting') => handleDateTypeChange(value)}>
                         <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
                           <SelectValue placeholder="Тип даты" />
                         </SelectTrigger>
@@ -429,6 +429,9 @@ function OrdersContent() {
                           </SelectItem>
                           <SelectItem value="close" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
                             Дата закрытия
+                          </SelectItem>
+                          <SelectItem value="meeting" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
+                            Дата встречи
                           </SelectItem>
                         </SelectContent>
                       </Select>

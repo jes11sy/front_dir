@@ -165,6 +165,21 @@ export interface CityReport {
     totalMasterChange: number  // Сумма сдача мастера
     avgCheck: number      // Средний чек = totalClean / closedOrders
   }
+  stats?: {
+    turnover: number           // Оборот
+    profit: number             // Прибыль
+    totalOrders: number        // Заказов (всего)
+    notOrders: number          // Не заказ
+    zeroOrders: number         // Ноль
+    completedOrders: number    // Выполненных
+    completedPercent: number   // Вып в деньги (%)
+    microCheckCount: number    // Микрочек (до 10к)
+    over10kCount: number       // От 10к
+    efficiency: number         // Эффективность
+    avgCheck: number           // Ср чек
+    maxCheck: number           // Макс чек
+    masterHandover: number     // СД
+  }
   cash: {
     totalAmount: number   // Касса (все приходы-расходы за все время)
   }
@@ -608,7 +623,7 @@ export class ApiClient {
     master?: string
     rk?: string
     typeEquipment?: string
-    dateType?: 'create' | 'close'
+    dateType?: 'create' | 'close' | 'meeting'
     dateFrom?: string
     dateTo?: string
   } = {}): Promise<OrdersResponse> {
