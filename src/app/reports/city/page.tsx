@@ -91,9 +91,6 @@ function CityReportContent() {
   // Вып в деньги % берём из API (там считается как Готово с clean>0 / (Готово+Отказ))
   const completedPercent = filteredReports.reduce((sum, r) => sum + (r.stats?.completedPercent || 0), 0) / (filteredReports.length || 1)
   const avgCheck = totals.completedOrders > 0 ? totals.turnover / totals.completedOrders : 0
-  // Эффективность = (Выполненных + СД) / (Заказов - Не заказ) * 100
-  const ordersWithoutNotOrders = totals.totalOrders - totals.notOrders
-  const efficiency = ordersWithoutNotOrders > 0 ? ((totals.completedOrders + totals.masterHandover) / ordersWithoutNotOrders) * 100 : 0
 
   // Экспорт в Excel
   const exportToExcel = () => {
@@ -210,13 +207,6 @@ function CityReportContent() {
     },
     { label: 'Микрочек (до 10к)', value: totals.microCheckCount, color: 'text-gray-600' },
     { label: 'От 10к', value: totals.over10kCount, color: 'text-purple-600', bold: true },
-    { 
-      label: 'Эффективность', 
-      value: formatPercent(efficiency), 
-      color: efficiency >= 80 ? 'text-green-600' : efficiency >= 60 ? 'text-yellow-600' : 'text-red-600',
-      badge: true,
-      badgeColor: efficiency >= 80 ? 'bg-green-100' : efficiency >= 60 ? 'bg-yellow-100' : 'bg-red-100'
-    },
     { label: 'Ср чек', value: formatNumber(Math.round(avgCheck)) + ' ₽', color: 'text-gray-800' },
     { label: 'Макс чек', value: formatNumber(totals.maxCheck) + ' ₽', color: 'text-purple-600', bold: true },
     { label: 'СД', value: totals.masterHandover, color: 'text-teal-600', bold: true },
