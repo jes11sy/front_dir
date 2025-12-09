@@ -606,6 +606,11 @@ export class ApiClient {
     city?: string
     search?: string
     master?: string
+    rk?: string
+    typeEquipment?: string
+    dateType?: 'create' | 'close'
+    dateFrom?: string
+    dateTo?: string
   } = {}): Promise<OrdersResponse> {
     const searchParams = new URLSearchParams()
     
@@ -615,6 +620,11 @@ export class ApiClient {
     if (params.city) searchParams.append('city', params.city)
     if (params.search) searchParams.append('search', params.search)
     if (params.master) searchParams.append('master', params.master)
+    if (params.rk) searchParams.append('rk', params.rk)
+    if (params.typeEquipment) searchParams.append('typeEquipment', params.typeEquipment)
+    if (params.dateType) searchParams.append('dateType', params.dateType)
+    if (params.dateFrom) searchParams.append('dateFrom', params.dateFrom)
+    if (params.dateTo) searchParams.append('dateTo', params.dateTo)
     
     const response = await this.safeFetch(`${this.baseURL}/orders?${searchParams}`, {
       method: 'GET',
@@ -697,6 +707,21 @@ export class ApiClient {
 
     const result = await response.json()
     return result.data || result
+  }
+
+  async getFilterOptions(): Promise<{ rks: string[], typeEquipments: string[] }> {
+    const response = await this.safeFetch(`${this.baseURL}/orders/filter-options`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Ошибка получения опций фильтров')
+    }
+
+    const result = await response.json()
+    return result.data || { rks: [], typeEquipments: [] }
   }
 
   // Masters API (Users Service)

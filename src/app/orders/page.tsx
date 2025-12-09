@@ -16,11 +16,20 @@ function OrdersContent() {
   const [cityFilter, setCityFilter] = useState('')
   const [masterFilter, setMasterFilter] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  
+  // Новые фильтры
+  const [rkFilter, setRkFilter] = useState('')
+  const [typeEquipmentFilter, setTypeEquipmentFilter] = useState('')
+  const [dateType, setDateType] = useState<'create' | 'close'>('create')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   // Состояние для данных
   const [orders, setOrders] = useState<Order[]>([])
   const [allStatuses, setAllStatuses] = useState<string[]>([])
   const [allMasters, setAllMasters] = useState<{id: number, name: string}[]>([])
+  const [allRks, setAllRks] = useState<string[]>([])
+  const [allTypeEquipments, setAllTypeEquipments] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pagination, setPagination] = useState({
@@ -41,7 +50,7 @@ function OrdersContent() {
       setLoading(true)
       setError(null)
       
-      const [response, statuses, mastersData] = await Promise.all([
+      const [response, statuses, mastersData, filterOptions] = await Promise.all([
         apiClient.getOrders({
           page: currentPage,
           limit: itemsPerPage,
@@ -49,9 +58,15 @@ function OrdersContent() {
           city: cityFilter || undefined,
           search: searchTerm || undefined,
           master: masterFilter || undefined,
+          rk: rkFilter || undefined,
+          typeEquipment: typeEquipmentFilter || undefined,
+          dateType: (dateFrom || dateTo) ? dateType : undefined,
+          dateFrom: dateFrom || undefined,
+          dateTo: dateTo || undefined,
         }),
         apiClient.getOrderStatuses().catch(() => ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ']),
-        apiClient.getMasters().catch(() => [])
+        apiClient.getMasters().catch(() => []),
+        apiClient.getFilterOptions().catch(() => ({ rks: [], typeEquipments: [] }))
       ])
       
       // Фильтруем мастеров только со статусом "работает"
@@ -60,9 +75,15 @@ function OrdersContent() {
         return status.includes('работает') || status.includes('работающий') || status === 'active';
       });
       
-      setOrders(Array.isArray(response.data?.orders) ? response.data.orders : [])
+      const ordersData = Array.isArray(response.data?.orders) ? response.data.orders : []
+      setOrders(ordersData)
       setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
       setAllMasters(masters)
+      
+      // Устанавливаем РК и Направления из опций фильтров
+      setAllRks(filterOptions.rks || [])
+      setAllTypeEquipments(filterOptions.typeEquipments || [])
+      
       setPagination(response.data?.pagination || response.pagination || {
         page: 1,
         limit: itemsPerPage,
@@ -86,7 +107,7 @@ function OrdersContent() {
     if (itemsPerPage > 0) {
       loadOrders()
     }
-  }, [currentPage, statusFilter, cityFilter, masterFilter, itemsPerPage])
+  }, [currentPage, statusFilter, cityFilter, masterFilter, itemsPerPage, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
 
 
   // Обработчики фильтров
@@ -121,6 +142,31 @@ function OrdersContent() {
     setCurrentPage(1)
   }
 
+  const handleRkChange = (value: string) => {
+    setRkFilter(value)
+    setCurrentPage(1)
+  }
+
+  const handleTypeEquipmentChange = (value: string) => {
+    setTypeEquipmentFilter(value)
+    setCurrentPage(1)
+  }
+
+  const handleDateTypeChange = (value: 'create' | 'close') => {
+    setDateType(value)
+    setCurrentPage(1)
+  }
+
+  const handleDateFromChange = (value: string) => {
+    setDateFrom(value)
+    setCurrentPage(1)
+  }
+
+  const handleDateToChange = (value: string) => {
+    setDateTo(value)
+    setCurrentPage(1)
+  }
+
   // Получаем уникальные значения для фильтров из загруженных данных
   const safeOrders = Array.isArray(orders) ? orders : []
   const uniqueCities = Array.from(new Set(safeOrders.map(order => order.city)))
@@ -131,6 +177,11 @@ function OrdersContent() {
     setStatusFilter('')
     setCityFilter('')
     setMasterFilter('')
+    setRkFilter('')
+    setTypeEquipmentFilter('')
+    setDateType('create')
+    setDateFrom('')
+    setDateTo('')
     setCurrentPage(1)
   }
 
@@ -228,6 +279,7 @@ function OrdersContent() {
               
               {showFilters && (
                 <div className="space-y-4 animate-slide-in-right">
+                  {/* Первая строка: Поиск и Статус */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Поиск */}
                     <div>
@@ -266,6 +318,7 @@ function OrdersContent() {
                     </div>
                   </div>
                   
+                  {/* Вторая строка: Город и Мастер */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Город */}
                     <div>
@@ -309,6 +362,102 @@ function OrdersContent() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                  </div>
+
+                  {/* Третья строка: РК и Направление */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* РК */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        РК
+                      </label>
+                      <Select value={rkFilter || "all"} onValueChange={(value) => handleRkChange(value === "all" ? "" : value)}>
+                        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
+                          <SelectValue placeholder="Все РК" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-gray-300">
+                          <SelectItem value="all" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
+                            Все РК
+                          </SelectItem>
+                          {Array.isArray(allRks) && allRks.map(rk => (
+                            <SelectItem key={rk} value={rk} className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
+                              {rk}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Направление */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Направление
+                      </label>
+                      <Select value={typeEquipmentFilter || "all"} onValueChange={(value) => handleTypeEquipmentChange(value === "all" ? "" : value)}>
+                        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
+                          <SelectValue placeholder="Все направления" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-gray-300">
+                          <SelectItem value="all" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
+                            Все направления
+                          </SelectItem>
+                          {Array.isArray(allTypeEquipments) && allTypeEquipments.map(type => (
+                            <SelectItem key={type} value={type} className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Четвёртая строка: Фильтр по дате */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Тип даты */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Фильтр по дате
+                      </label>
+                      <Select value={dateType} onValueChange={(value: 'create' | 'close') => handleDateTypeChange(value)}>
+                        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
+                          <SelectValue placeholder="Тип даты" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-gray-300">
+                          <SelectItem value="create" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
+                            Дата создания
+                          </SelectItem>
+                          <SelectItem value="close" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
+                            Дата закрытия
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Дата от */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        С даты
+                      </label>
+                      <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => handleDateFromChange(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
+                      />
+                    </div>
+                    
+                    {/* Дата до */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        По дату
+                      </label>
+                      <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => handleDateToChange(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
+                      />
                     </div>
                   </div>
                   
