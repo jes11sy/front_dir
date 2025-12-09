@@ -166,19 +166,19 @@ export interface CityReport {
     avgCheck: number      // Средний чек = totalClean / closedOrders
   }
   stats?: {
-    turnover: number           // Оборот
-    profit: number             // Прибыль
+    turnover: number           // Оборот = сумма чистыми
+    profit: number             // Прибыль = сумма сдача мастера
     totalOrders: number        // Заказов (всего)
     notOrders: number          // Не заказ
-    zeroOrders: number         // Ноль
+    zeroOrders: number         // Ноль (Готово/Отказ с clean=0)
     completedOrders: number    // Выполненных
-    completedPercent: number   // Вып в деньги (%)
-    microCheckCount: number    // Микрочек (до 10к)
-    over10kCount: number       // От 10к
+    completedPercent: number   // Вып в деньги (%) - Готово с clean>0 / (Готово+Отказ)
+    microCheckCount: number    // Микрочек (до 10к) - Готово с clean<10000
+    over10kCount: number       // От 10к - Готово с clean>=10000
     efficiency: number         // Эффективность
     avgCheck: number           // Ср чек
-    maxCheck: number           // Макс чек
-    masterHandover: number     // СД
+    maxCheck: number           // Макс чек (по clean)
+    masterHandover: number     // СД = кол-во Модерн
   }
   cash: {
     totalAmount: number   // Касса (все приходы-расходы за все время)

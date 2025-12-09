@@ -76,23 +76,24 @@ function CityReportContent() {
   // Расчёт общих итогов по всем городам для сводной таблицы
   const totals = {
     turnover: filteredReports.reduce((sum, r) => sum + (r.stats?.turnover || r.orders?.totalClean || 0), 0),
-    profit: filteredReports.reduce((sum, r) => sum + (r.stats?.profit || r.orders?.totalClean || 0), 0),
+    profit: filteredReports.reduce((sum, r) => sum + (r.stats?.profit || r.orders?.totalMasterChange || 0), 0),
     totalOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.totalOrders || r.orders?.closedOrders || 0), 0),
     notOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.notOrders || r.orders?.notOrders || 0), 0),
     zeroOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     completedOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.completedOrders || 0), 0),
-    refusals: filteredReports.reduce((sum, r) => sum + (r.orders?.refusals || 0), 0),
     microCheckCount: filteredReports.reduce((sum, r) => sum + (r.stats?.microCheckCount || 0), 0),
     over10kCount: filteredReports.reduce((sum, r) => sum + (r.stats?.over10kCount || 0), 0),
-    masterHandover: filteredReports.reduce((sum, r) => sum + (r.stats?.masterHandover || r.orders?.totalMasterChange || 0), 0),
+    masterHandover: filteredReports.reduce((sum, r) => sum + (r.stats?.masterHandover || 0), 0),
     maxCheck: Math.max(...filteredReports.map(r => r.stats?.maxCheck || 0), 0),
   }
   
   // Рассчитываем проценты для сводной
-  const closedOrders = totals.completedOrders + totals.refusals
-  const completedPercent = closedOrders > 0 ? (totals.completedOrders / closedOrders) * 100 : 0
-  const efficiency = totals.totalOrders > 0 ? (totals.completedOrders / totals.totalOrders) * 100 : 0
+  // Вып в деньги % берём из API (там считается как Готово с clean>0 / (Готово+Отказ))
+  const completedPercent = filteredReports.reduce((sum, r) => sum + (r.stats?.completedPercent || 0), 0) / (filteredReports.length || 1)
   const avgCheck = totals.completedOrders > 0 ? totals.turnover / totals.completedOrders : 0
+  // Эффективность = (Выполненных + СД) / (Заказов - Не заказ) * 100
+  const ordersWithoutNotOrders = totals.totalOrders - totals.notOrders
+  const efficiency = ordersWithoutNotOrders > 0 ? ((totals.completedOrders + totals.masterHandover) / ordersWithoutNotOrders) * 100 : 0
 
   // Экспорт в Excel
   const exportToExcel = () => {
@@ -212,13 +213,13 @@ function CityReportContent() {
     { 
       label: 'Эффективность', 
       value: formatPercent(efficiency), 
-      color: efficiency >= 50 ? 'text-green-600' : efficiency >= 30 ? 'text-yellow-600' : 'text-red-600',
+      color: efficiency >= 80 ? 'text-green-600' : efficiency >= 60 ? 'text-yellow-600' : 'text-red-600',
       badge: true,
-      badgeColor: efficiency >= 50 ? 'bg-green-100' : efficiency >= 30 ? 'bg-yellow-100' : 'bg-red-100'
+      badgeColor: efficiency >= 80 ? 'bg-green-100' : efficiency >= 60 ? 'bg-yellow-100' : 'bg-red-100'
     },
     { label: 'Ср чек', value: formatNumber(Math.round(avgCheck)) + ' ₽', color: 'text-gray-800' },
     { label: 'Макс чек', value: formatNumber(totals.maxCheck) + ' ₽', color: 'text-purple-600', bold: true },
-    { label: 'СД', value: formatNumber(totals.masterHandover) + ' ₽', color: 'text-teal-600', bold: true },
+    { label: 'СД', value: totals.masterHandover, color: 'text-teal-600', bold: true },
   ]
 
   return (
@@ -350,7 +351,6 @@ function CityReportContent() {
 
             {/* НОВАЯ СВОДНАЯ ТАБЛИЦА */}
             <div className="mb-8">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">Сводная статистика по всем городам</h2>
               <div className="overflow-hidden rounded-xl border border-gray-200 shadow-lg">
                 <table className="w-full">
                   <thead>
@@ -379,10 +379,6 @@ function CityReportContent() {
                     ))}
                   </tbody>
                 </table>
-              </div>
-              {/* Легенда для сводной */}
-              <div className="mt-2 text-xs text-gray-500">
-                <span className="font-medium">Расшифровка:</span> Оборот — сумма итогов | Прибыль — сумма чистыми | Вып % — Готово/(Готово+Отказ) | Эффект. — Готово/Заказов | СД — сдача мастера
               </div>
             </div>
 
