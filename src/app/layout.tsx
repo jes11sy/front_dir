@@ -15,8 +15,13 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'DirCRM - Client Management',
-  description: 'Modern CRM system for client management',
+  title: 'Новые схемы',
+  description: 'CRM Директора',
+  icons: {
+    icon: '/images/logo.png',
+    shortcut: '/images/logo.png',
+    apple: '/images/logo.png',
+  },
 }
 
 export default function RootLayout({
