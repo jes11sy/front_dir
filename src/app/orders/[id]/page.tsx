@@ -138,41 +138,14 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         setPartnerPercent(order.partnerPercent?.toString() || '')
         
         // Загружаем подписанные URL для существующих файлов
-        // Предполагаем что в БД хранится массив путей через запятую или JSON
-        if (order.bsoDoc) {
-          try {
-            // Пытаемся распарсить как JSON массив
-            const bsoDocs = JSON.parse(order.bsoDoc)
-            if (Array.isArray(bsoDocs)) {
-              const bsoUrls = await Promise.all(bsoDocs.map(doc => getSignedUrl(doc)))
-              bsoUpload.setExistingPreviews(bsoUrls)
-            } else {
-              // Если не массив, то один документ
-              const bsoUrl = await getSignedUrl(order.bsoDoc)
-              bsoUpload.setExistingPreviews([bsoUrl])
-            }
-          } catch {
-            // Если не JSON, возможно разделенные запятой или один файл
-            const bsoDocs = order.bsoDoc.includes(',') ? order.bsoDoc.split(',') : [order.bsoDoc]
-            const bsoUrls = await Promise.all(bsoDocs.map(doc => getSignedUrl(doc.trim())))
-            bsoUpload.setExistingPreviews(bsoUrls)
-          }
+        // БД теперь хранит массивы напрямую (String[])
+        if (order.bsoDoc && Array.isArray(order.bsoDoc) && order.bsoDoc.length > 0) {
+          const bsoUrls = await Promise.all(order.bsoDoc.map(doc => getSignedUrl(doc)))
+          bsoUpload.setExistingPreviews(bsoUrls)
         }
-        if (order.expenditureDoc) {
-          try {
-            const expenditureDocs = JSON.parse(order.expenditureDoc)
-            if (Array.isArray(expenditureDocs)) {
-              const expenditureUrls = await Promise.all(expenditureDocs.map(doc => getSignedUrl(doc)))
-              expenditureUpload.setExistingPreviews(expenditureUrls)
-            } else {
-              const expenditureUrl = await getSignedUrl(order.expenditureDoc)
-              expenditureUpload.setExistingPreviews([expenditureUrl])
-            }
-          } catch {
-            const expenditureDocs = order.expenditureDoc.includes(',') ? order.expenditureDoc.split(',') : [order.expenditureDoc]
-            const expenditureUrls = await Promise.all(expenditureDocs.map(doc => getSignedUrl(doc.trim())))
-            expenditureUpload.setExistingPreviews(expenditureUrls)
-          }
+        if (order.expenditureDoc && Array.isArray(order.expenditureDoc) && order.expenditureDoc.length > 0) {
+          const expenditureUrls = await Promise.all(order.expenditureDoc.map(doc => getSignedUrl(doc)))
+          expenditureUpload.setExistingPreviews(expenditureUrls)
         }
         
         // Устанавливаем выбранного мастера
@@ -211,8 +184,9 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
     try {
       
       // Загружаем файлы в S3 если они есть (множественная загрузка)
-      let bsoDocPath = order.bsoDoc
-      let expenditureDocPath = order.expenditureDoc
+      // БД теперь хранит массивы напрямую (String[])
+      let bsoDocPaths: string[] = []
+      let expenditureDocPaths: string[] = []
 
       // Загружаем новые BSO файлы (только те, у которых есть объект File)
       const newBsoFiles = bsoUpload.files.filter(f => f.file !== null).map(f => f.file);
@@ -221,33 +195,23 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
           const bsoResults = await Promise.all(
             newBsoFiles.map(file => apiClient.uploadOrderBso(file))
           )
-          const bsoPaths = bsoResults.map(res => res.filePath)
+          const newBsoPaths = bsoResults.map(res => res.filePath)
           
-          // Объединяем с существующими путями если есть
-          const existingBsoPaths: string[] = []
-          if (order.bsoDoc) {
-            try {
-              const parsed = JSON.parse(order.bsoDoc)
-              if (Array.isArray(parsed)) existingBsoPaths.push(...parsed)
-              else existingBsoPaths.push(order.bsoDoc)
-            } catch {
-              existingBsoPaths.push(...order.bsoDoc.split(',').map(p => p.trim()))
-            }
-          }
+          // Получаем существующие пути из файлов без объекта File (уже загруженные ранее)
+          const existingBsoPaths = bsoUpload.files
+            .filter(f => f.file === null)
+            .map(f => f.preview)
           
-          const allBsoPaths = [...existingBsoPaths, ...bsoPaths]
-          bsoDocPath = JSON.stringify(allBsoPaths)
+          bsoDocPaths = [...existingBsoPaths, ...newBsoPaths]
         } catch (uploadError) {
           logger.error('Error uploading BSO', uploadError)
           return
         }
-      } else if (bsoUpload.files.length === 0) {
-        // Если нет файлов вообще, значит все удалили
-        bsoDocPath = null
       } else {
-        // Есть только существующие файлы - сохраняем их
-        const existingBsoPaths = bsoUpload.files.filter(f => f.file === null).map(f => f.preview);
-        bsoDocPath = existingBsoPaths.length > 0 ? JSON.stringify(existingBsoPaths) : null;
+        // Только существующие файлы
+        bsoDocPaths = bsoUpload.files
+          .filter(f => f.file === null)
+          .map(f => f.preview)
       }
 
       // Загружаем новые файлы расходов (только те, у которых есть объект File)
@@ -257,32 +221,23 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
           const expenditureResults = await Promise.all(
             newExpenditureFiles.map(file => apiClient.uploadOrderExpenditure(file))
           )
-          const expenditurePaths = expenditureResults.map(res => res.filePath)
+          const newExpenditurePaths = expenditureResults.map(res => res.filePath)
           
-          // Объединяем с существующими путями
-          const existingExpenditurePaths: string[] = []
-          if (order.expenditureDoc) {
-            try {
-              const parsed = JSON.parse(order.expenditureDoc)
-              if (Array.isArray(parsed)) existingExpenditurePaths.push(...parsed)
-              else existingExpenditurePaths.push(order.expenditureDoc)
-            } catch {
-              existingExpenditurePaths.push(...order.expenditureDoc.split(',').map(p => p.trim()))
-            }
-          }
+          // Получаем существующие пути
+          const existingExpenditurePaths = expenditureUpload.files
+            .filter(f => f.file === null)
+            .map(f => f.preview)
           
-          const allExpenditurePaths = [...existingExpenditurePaths, ...expenditurePaths]
-          expenditureDocPath = JSON.stringify(allExpenditurePaths)
+          expenditureDocPaths = [...existingExpenditurePaths, ...newExpenditurePaths]
         } catch (uploadError) {
           logger.error('Error uploading expenditure doc', uploadError)
           return
         }
-      } else if (expenditureUpload.files.length === 0) {
-        expenditureDocPath = null
       } else {
-        // Есть только существующие файлы - сохраняем их
-        const existingExpenditurePaths = expenditureUpload.files.filter(f => f.file === null).map(f => f.preview);
-        expenditureDocPath = existingExpenditurePaths.length > 0 ? JSON.stringify(existingExpenditurePaths) : null;
+        // Только существующие файлы
+        expenditureDocPaths = expenditureUpload.files
+          .filter(f => f.file === null)
+          .map(f => f.preview)
       }
       
       const updateData: Partial<Order> = {
@@ -297,8 +252,8 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         comment: comment && comment.trim() !== '' ? comment : undefined,
         prepayment: prepayment && prepayment.trim() !== '' ? Number(prepayment) : undefined,
         dateClosmod: dateClosmod && dateClosmod.trim() !== '' ? new Date(dateClosmod).toISOString() : undefined,
-        bsoDoc: bsoDocPath,
-        expenditureDoc: expenditureDocPath,
+        bsoDoc: bsoDocPaths,
+        expenditureDoc: expenditureDocPaths,
       }
       
       await updateOrder(updateData)

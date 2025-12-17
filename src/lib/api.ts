@@ -35,8 +35,8 @@ export interface Order {
   expenditure?: number
   clean?: number
   masterChange?: number
-  bsoDoc?: string | null
-  expenditureDoc?: string | null
+  bsoDoc?: string[] | null
+  expenditureDoc?: string[] | null
   operatorNameId: number
   createDate: string
   closingData?: string
