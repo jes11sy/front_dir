@@ -9,9 +9,9 @@ import { StatusSelect } from '@/components/orders/StatusSelect'
 import { getSignedUrl } from '@/lib/s3-utils'
 import { logger } from '@/lib/logger'
 import { useOrder, useOrderCalls } from '@/hooks/useOrder'
-import { useFileUpload } from '@/hooks/useFileUpload'
+import { useMultipleFileUpload } from '@/hooks/useMultipleFileUpload'
 import { OrderMasterTab } from '@/components/orders/OrderMasterTab'
-import { OrderFileUpload } from '@/components/orders/OrderFileUpload'
+import { OrderMultipleFileUpload } from '@/components/orders/OrderMultipleFileUpload'
 import { OrderInfoTabContent } from '@/components/orders/OrderInfoTabContent'
 import { OrderPageStyles } from '@/components/orders/OrderPageStyles'
 import { OrderCallsTab } from '@/components/orders/OrderCallsTab'
@@ -45,9 +45,9 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const [isPartner, setIsPartner] = useState<boolean>(false)
   const [partnerPercent, setPartnerPercent] = useState<string>('')
   
-  // Файлы документов через хуки
-  const bsoUpload = useFileUpload()
-  const expenditureUpload = useFileUpload()
+  // Файлы документов через хуки (множественная загрузка до 10 файлов)
+  const bsoUpload = useMultipleFileUpload(10)
+  const expenditureUpload = useMultipleFileUpload(10)
 
   const tabs = [
     { id: 'main', label: 'Информация по заказу' },
@@ -120,22 +120,6 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
     return ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ']
   }
 
-  // Функции для работы с файлами через хуки
-  const handleFile = (file: File, type: 'bso' | 'expenditure') => {
-    if (type === 'bso') {
-      bsoUpload.handleFile(file)
-    } else {
-      expenditureUpload.handleFile(file)
-    }
-  }
-
-  const removeFile = (type: 'bso' | 'expenditure') => {
-    if (type === 'bso') {
-      bsoUpload.removeFile()
-    } else {
-      expenditureUpload.removeFile()
-    }
-  }
 
 
   // Синхронизация данных заказа с локальными состояниями формы
@@ -154,13 +138,41 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         setPartnerPercent(order.partnerPercent?.toString() || '')
         
         // Загружаем подписанные URL для существующих файлов
+        // Предполагаем что в БД хранится массив путей через запятую или JSON
         if (order.bsoDoc) {
-          const bsoUrl = await getSignedUrl(order.bsoDoc)
-          bsoUpload.setExistingPreview(bsoUrl)
+          try {
+            // Пытаемся распарсить как JSON массив
+            const bsoDocs = JSON.parse(order.bsoDoc)
+            if (Array.isArray(bsoDocs)) {
+              const bsoUrls = await Promise.all(bsoDocs.map(doc => getSignedUrl(doc)))
+              bsoUpload.setExistingPreviews(bsoUrls)
+            } else {
+              // Если не массив, то один документ
+              const bsoUrl = await getSignedUrl(order.bsoDoc)
+              bsoUpload.setExistingPreviews([bsoUrl])
+            }
+          } catch {
+            // Если не JSON, возможно разделенные запятой или один файл
+            const bsoDocs = order.bsoDoc.includes(',') ? order.bsoDoc.split(',') : [order.bsoDoc]
+            const bsoUrls = await Promise.all(bsoDocs.map(doc => getSignedUrl(doc.trim())))
+            bsoUpload.setExistingPreviews(bsoUrls)
+          }
         }
         if (order.expenditureDoc) {
-          const expenditureUrl = await getSignedUrl(order.expenditureDoc)
-          expenditureUpload.setExistingPreview(expenditureUrl)
+          try {
+            const expenditureDocs = JSON.parse(order.expenditureDoc)
+            if (Array.isArray(expenditureDocs)) {
+              const expenditureUrls = await Promise.all(expenditureDocs.map(doc => getSignedUrl(doc)))
+              expenditureUpload.setExistingPreviews(expenditureUrls)
+            } else {
+              const expenditureUrl = await getSignedUrl(order.expenditureDoc)
+              expenditureUpload.setExistingPreviews([expenditureUrl])
+            }
+          } catch {
+            const expenditureDocs = order.expenditureDoc.includes(',') ? order.expenditureDoc.split(',') : [order.expenditureDoc]
+            const expenditureUrls = await Promise.all(expenditureDocs.map(doc => getSignedUrl(doc.trim())))
+            expenditureUpload.setExistingPreviews(expenditureUrls)
+          }
         }
         
         // Устанавливаем выбранного мастера
@@ -198,34 +210,79 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
     
     try {
       
-      // Загружаем файлы в S3 если они есть
+      // Загружаем файлы в S3 если они есть (множественная загрузка)
       let bsoDocPath = order.bsoDoc
       let expenditureDocPath = order.expenditureDoc
 
-      if (bsoUpload.file) {
+      // Загружаем новые BSO файлы (только те, у которых есть объект File)
+      const newBsoFiles = bsoUpload.files.filter(f => f.file !== null).map(f => f.file);
+      if (newBsoFiles.length > 0) {
         try {
-          const bsoResult = await apiClient.uploadOrderBso(bsoUpload.file)
-          bsoDocPath = bsoResult.filePath
+          const bsoResults = await Promise.all(
+            newBsoFiles.map(file => apiClient.uploadOrderBso(file))
+          )
+          const bsoPaths = bsoResults.map(res => res.filePath)
+          
+          // Объединяем с существующими путями если есть
+          const existingBsoPaths: string[] = []
+          if (order.bsoDoc) {
+            try {
+              const parsed = JSON.parse(order.bsoDoc)
+              if (Array.isArray(parsed)) existingBsoPaths.push(...parsed)
+              else existingBsoPaths.push(order.bsoDoc)
+            } catch {
+              existingBsoPaths.push(...order.bsoDoc.split(',').map(p => p.trim()))
+            }
+          }
+          
+          const allBsoPaths = [...existingBsoPaths, ...bsoPaths]
+          bsoDocPath = JSON.stringify(allBsoPaths)
         } catch (uploadError) {
           logger.error('Error uploading BSO', uploadError)
           return
         }
-      } else if (!bsoUpload.preview) {
-        // Если файл был удален (нет ни нового файла, ни превью), обнуляем путь
+      } else if (bsoUpload.files.length === 0) {
+        // Если нет файлов вообще, значит все удалили
         bsoDocPath = null
+      } else {
+        // Есть только существующие файлы - сохраняем их
+        const existingBsoPaths = bsoUpload.files.filter(f => f.file === null).map(f => f.preview);
+        bsoDocPath = existingBsoPaths.length > 0 ? JSON.stringify(existingBsoPaths) : null;
       }
 
-      if (expenditureUpload.file) {
+      // Загружаем новые файлы расходов (только те, у которых есть объект File)
+      const newExpenditureFiles = expenditureUpload.files.filter(f => f.file !== null).map(f => f.file);
+      if (newExpenditureFiles.length > 0) {
         try {
-          const expenditureResult = await apiClient.uploadOrderExpenditure(expenditureUpload.file)
-          expenditureDocPath = expenditureResult.filePath
+          const expenditureResults = await Promise.all(
+            newExpenditureFiles.map(file => apiClient.uploadOrderExpenditure(file))
+          )
+          const expenditurePaths = expenditureResults.map(res => res.filePath)
+          
+          // Объединяем с существующими путями
+          const existingExpenditurePaths: string[] = []
+          if (order.expenditureDoc) {
+            try {
+              const parsed = JSON.parse(order.expenditureDoc)
+              if (Array.isArray(parsed)) existingExpenditurePaths.push(...parsed)
+              else existingExpenditurePaths.push(order.expenditureDoc)
+            } catch {
+              existingExpenditurePaths.push(...order.expenditureDoc.split(',').map(p => p.trim()))
+            }
+          }
+          
+          const allExpenditurePaths = [...existingExpenditurePaths, ...expenditurePaths]
+          expenditureDocPath = JSON.stringify(allExpenditurePaths)
         } catch (uploadError) {
           logger.error('Error uploading expenditure doc', uploadError)
           return
         }
-      } else if (!expenditureUpload.preview) {
-        // Если файл был удален (нет ни нового файла, ни превью), обнуляем путь
+      } else if (expenditureUpload.files.length === 0) {
         expenditureDocPath = null
+      } else {
+        // Есть только существующие файлы - сохраняем их
+        const existingExpenditurePaths = expenditureUpload.files.filter(f => f.file === null).map(f => f.preview);
+        expenditureDocPath = existingExpenditurePaths.length > 0 ? JSON.stringify(existingExpenditurePaths) : null;
       }
       
       const updateData: Partial<Order> = {
@@ -246,20 +303,8 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
       
       await updateOrder(updateData)
       
-      // Обновляем превью файлов после успешного сохранения (получаем подписанные URL)
-      if (bsoDocPath) {
-        const bsoUrl = await getSignedUrl(bsoDocPath)
-        bsoUpload.setExistingPreview(bsoUrl)
-      } else {
-        bsoUpload.removeFile()
-      }
-      
-      if (expenditureDocPath) {
-        const expenditureUrl = await getSignedUrl(expenditureDocPath)
-        expenditureUpload.setExistingPreview(expenditureUrl)
-      } else {
-        expenditureUpload.removeFile()
-      }
+      // После сохранения перезагружаем страницу для обновления данных
+      // Данные обновятся в useEffect при загрузке заказа
       
       // Создаем или обновляем транзакцию в кассе при статусе "Готово" с заполненными данными
       if (orderStatus === 'Готово' && result && masterChange) {
@@ -386,13 +431,12 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
               </nav>
             </div>
 
-            {/* Состояние загрузки */}
-            {loading && <OrderLoadingSpinner />}
+            {/* Состояние загрузки - встроено выше в главной логике */}
 
             {/* Ошибка */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 animate-slide-in-left">
-                <p className="text-red-600">{error}</p>
+                <p className="text-red-600">{(error as Error).message || String(error)}</p>
               </div>
             )}
 
@@ -418,45 +462,45 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
                     expenditure={expenditure}
                     setExpenditure={setExpenditure}
                     clean={clean}
+                    setClean={setClean}
                     masterChange={masterChange}
+                    setMasterChange={setMasterChange}
                     comment={comment}
                     setComment={setComment}
                     prepayment={prepayment}
                     setPrepayment={setPrepayment}
                     dateClosmod={dateClosmod}
                     setDateClosmod={setDateClosmod}
-                    bsoFile={bsoUpload.file}
-                    expenditureFile={expenditureUpload.file}
-                    bsoPreview={bsoUpload.preview}
-                    expenditurePreview={expenditureUpload.preview}
-                    handleFile={handleFile}
-                    removeFile={removeFile}
                     isFieldsDisabled={isFieldsDisabled}
                     shouldHideFinancialFields={shouldHideFinancialFields}
                     openSelect={openSelect}
                     setOpenSelect={setOpenSelect}
-                    setBsoDragOver={bsoUpload.setDragOver}
-                    setExpenditureDragOver={expenditureUpload.setDragOver}
-                    bsoDragOver={bsoUpload.dragOver}
-                    expenditureDragOver={expenditureUpload.dragOver}
                   />
                   
-                  {/* Поля "Документ" и "Чек" */}
+                  {/* Поля "Документ" и "Чек" - множественная загрузка */}
                   {!shouldHideFinancialFields() && orderStatus !== 'Модерн' && (
-                    <OrderFileUpload
-                      order={order}
-                      bsoFile={bsoUpload.file}
-                      expenditureFile={expenditureUpload.file}
-                      bsoPreview={bsoUpload.preview}
-                      expenditurePreview={expenditureUpload.preview}
-                      handleFile={handleFile}
-                      removeFile={removeFile}
-                      isFieldsDisabled={isFieldsDisabled}
-                      setBsoDragOver={bsoUpload.setDragOver}
-                      setExpenditureDragOver={expenditureUpload.setDragOver}
-                      bsoDragOver={bsoUpload.dragOver}
-                      expenditureDragOver={expenditureUpload.dragOver}
-                    />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <OrderMultipleFileUpload
+                        label="Документ БСО"
+                        filesWithPreviews={bsoUpload.files}
+                        dragOver={bsoUpload.dragOver}
+                        setDragOver={bsoUpload.setDragOver}
+                        handleFiles={bsoUpload.handleFiles}
+                        removeFile={bsoUpload.removeFile}
+                        isFieldsDisabled={isFieldsDisabled}
+                        canAddMore={bsoUpload.canAddMore}
+                      />
+                      <OrderMultipleFileUpload
+                        label="Чеки расходов"
+                        filesWithPreviews={expenditureUpload.files}
+                        dragOver={expenditureUpload.dragOver}
+                        setDragOver={expenditureUpload.setDragOver}
+                        handleFiles={expenditureUpload.handleFiles}
+                        removeFile={expenditureUpload.removeFile}
+                        isFieldsDisabled={isFieldsDisabled}
+                        canAddMore={expenditureUpload.canAddMore}
+                      />
+                    </div>
                       )}
                     </>
               )}
@@ -466,7 +510,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
                   order={order}
                   calls={calls}
                   callsLoading={callsLoading}
-                  callsError={callsError}
+                  callsError={callsError ? (callsError instanceof Error ? callsError.message : String(callsError)) : null}
                 />
               )}
             </div>

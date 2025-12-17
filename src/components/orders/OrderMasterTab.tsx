@@ -20,27 +20,19 @@ interface OrderMasterTabProps {
   expenditure: string;
   setExpenditure: (value: string) => void;
   clean: string;
+  setClean: (value: string) => void;
   masterChange: string;
+  setMasterChange: (value: string) => void;
   comment: string;
   setComment: (value: string) => void;
   prepayment: string;
   setPrepayment: (value: string) => void;
   dateClosmod: string;
   setDateClosmod: (value: string) => void;
-  bsoFile: File | null;
-  expenditureFile: File | null;
-  bsoPreview: string | null;
-  expenditurePreview: string | null;
-  handleFile: (file: File, type: 'bso' | 'expenditure') => void;
-  removeFile: (type: 'bso' | 'expenditure') => void;
   isFieldsDisabled: () => boolean;
   shouldHideFinancialFields: () => boolean;
   openSelect: string | null;
   setOpenSelect: (id: string | null) => void;
-  setBsoDragOver: (value: boolean) => void;
-  setExpenditureDragOver: (value: boolean) => void;
-  bsoDragOver: boolean;
-  expenditureDragOver: boolean;
 }
 
 export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
@@ -57,27 +49,19 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
   expenditure,
   setExpenditure,
   clean,
+  setClean,
   masterChange,
+  setMasterChange,
   comment,
   setComment,
   prepayment,
   setPrepayment,
   dateClosmod,
   setDateClosmod,
-  bsoFile,
-  expenditureFile,
-  bsoPreview,
-  expenditurePreview,
-  handleFile,
-  removeFile,
   isFieldsDisabled,
   shouldHideFinancialFields,
   openSelect,
   setOpenSelect,
-  setBsoDragOver,
-  setExpenditureDragOver,
-  bsoDragOver,
-  expenditureDragOver,
 }) => {
   return (
     <div className="space-y-6">
