@@ -148,7 +148,8 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         setComment(order.comment || '')
         setPrepayment(order.prepayment?.toString() || '')
         setDateClosmod(order.dateClosmod ? new Date(order.dateClosmod).toISOString().split('T')[0] : '')
-        // isPartner и partnerPercent не загружаем - они используются только для расчетов
+        setIsPartner(order.partner || false)
+        setPartnerPercent(order.partnerPercent?.toString() || '')
         
         // Загружаем подписанные URL для существующих файлов
         if (order.bsoDoc) {
@@ -228,7 +229,8 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
       const updateData: Partial<Order> = {
         statusOrder: orderStatus,
         masterId: selectedMaster ? Number(selectedMaster) : undefined,
-        // isPartner и partnerPercent не отправляем на бэкенд (используются только для расчетов на фронте)
+        partner: isPartner,
+        partnerPercent: partnerPercent && partnerPercent.trim() !== '' ? Number(partnerPercent) : undefined,
         result: result && result.trim() !== '' ? Number(result) : undefined,
         expenditure: expenditure && expenditure.trim() !== '' ? Number(expenditure) : undefined,
         clean: clean && clean.trim() !== '' ? Number(clean) : undefined,

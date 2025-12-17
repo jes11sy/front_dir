@@ -51,6 +51,8 @@ export interface Order {
   cashReceiptDoc?: string
   cashApprovedBy?: number
   cashApprovedDate?: string
+  partner?: boolean
+  partnerPercent?: number
   operator?: {
     id: number
     name: string
