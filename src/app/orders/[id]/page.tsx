@@ -90,8 +90,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
           const partnerPercentValue = Number(partnerPercent)
           masterChangeAmount = cleanAmount * (100 - partnerPercentValue) / 100
         } else {
-          // Иначе: Сдача мастера = Чистыми / 2
-          masterChangeAmount = cleanAmount / 2
+          // Иначе: Сдача мастера зависит от суммы
+          // До 5000 - 60%, выше 5000 - 50%
+          const masterPercent = resultAmount <= 5000 ? 0.6 : 0.5
+          masterChangeAmount = cleanAmount * masterPercent
         }
         
         setClean(cleanAmount.toString())
