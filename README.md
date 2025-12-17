@@ -1,6 +1,7 @@
 # 🚀 DirCRM Frontend - Оптимизированная версия
 
 Modern, secure, and performant CRM frontend built with Next.js 15
+API: https://api.test-shem.ru
 
 ---
 
