@@ -83,7 +83,7 @@ const nextConfig = {
       // Connect (API): разрешаем свой домен и API сервер
       "connect-src 'self' https://api.lead-schem.ru wss://api.lead-schem.ru https://api.test-shem.ru wss://api.test-shem.ru https://s3.twcstorage.ru",
       // Media: только свои источники
-      "media-src 'self' https://s3.twcstorage.ru",
+      "media-src 'self' https://s3.twcstorage.ru https://s3.timeweb.com",
       // Objects: запрещаем
       "object-src 'none'",
       // Base URI: только свой домен
