@@ -512,7 +512,7 @@ export class ApiClient {
     
     const response = await this.safeFetch(`${this.baseURL}/orders?${searchParams}`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
+      // 🍪 Headers добавляются автоматически в safeFetch
     })
 
     if (!response.ok) {
@@ -526,7 +526,7 @@ export class ApiClient {
   async getOrder(id: number): Promise<Order> {
     const response = await this.safeFetch(`${this.baseURL}/orders/${id}`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
+      // 🍪 Headers добавляются автоматически в safeFetch
     })
 
     if (!response.ok) {
@@ -542,7 +542,7 @@ export class ApiClient {
   async updateOrder(id: number, data: Partial<Order>): Promise<Order> {
     const response = await this.safeFetch(`${this.baseURL}/orders/${id}`, {
       method: 'PUT',
-      headers: this.getAuthHeaders(),
+      // 🍪 Headers добавляются автоматически в safeFetch
       body: JSON.stringify(data),
     })
 
@@ -563,9 +563,8 @@ export class ApiClient {
   }
 
   async getOrdersStats(): Promise<OrdersStats> {
-    const response = await fetch(`${this.baseURL}/orders/stats/summary`, {
+    const response = await this.safeFetch(`${this.baseURL}/orders/stats/summary`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -581,7 +580,7 @@ export class ApiClient {
   async getOrderStatuses(): Promise<string[]> {
     const response = await this.safeFetch(`${this.baseURL}/orders/statuses`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
+      // 🍪 Headers добавляются автоматически в safeFetch
     })
 
     if (!response.ok) {
@@ -596,7 +595,7 @@ export class ApiClient {
   async getFilterOptions(): Promise<{ rks: string[], typeEquipments: string[] }> {
     const response = await this.safeFetch(`${this.baseURL}/orders/filter-options`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
+      // 🍪 Headers добавляются автоматически в safeFetch
     })
 
     if (!response.ok) {
@@ -612,7 +611,7 @@ export class ApiClient {
   async getMasters(): Promise<Master[]> {
     const response = await this.safeFetch(`${this.baseURL}/masters`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
+      // 🍪 Headers добавляются автоматически в safeFetch
     })
 
     if (!response.ok) {
@@ -626,9 +625,8 @@ export class ApiClient {
 
   // Employees API
   async getEmployees(): Promise<Employee[]> {
-    const response = await fetch(`${this.baseURL}/employees`, {
+    const response = await this.safeFetch(`${this.baseURL}/employees`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -642,9 +640,8 @@ export class ApiClient {
   }
 
   async getEmployee(id: number): Promise<Employee> {
-    const response = await fetch(`${this.baseURL}/employees/${id}`, {
+    const response = await this.safeFetch(`${this.baseURL}/employees/${id}`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -658,9 +655,8 @@ export class ApiClient {
   }
 
   async createEmployee(data: CreateEmployeeDto): Promise<Employee> {
-    const response = await fetch(`${this.baseURL}/employees`, {
+    const response = await this.safeFetch(`${this.baseURL}/employees`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     })
 
@@ -675,9 +671,8 @@ export class ApiClient {
   }
 
   async updateEmployee(id: number, data: CreateEmployeeDto): Promise<Employee> {
-    const response = await fetch(`${this.baseURL}/employees/${id}`, {
+    const response = await this.safeFetch(`${this.baseURL}/employees/${id}`, {
       method: 'PUT',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     })
 
@@ -693,9 +688,8 @@ export class ApiClient {
 
   // Cash API (Cash Service)
   async getCashTransactions(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?limit=10000`, {
+    const response = await this.safeFetch(`${this.baseURL}/cash?limit=10000`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -715,9 +709,8 @@ export class ApiClient {
   }
 
   async getCashIncome(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?type=приход&limit=10000`, {
+    const response = await this.safeFetch(`${this.baseURL}/cash?type=приход&limit=10000`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -730,9 +723,8 @@ export class ApiClient {
   }
 
   async getCashExpense(): Promise<CashTransaction[]> {
-    const response = await fetch(`${this.baseURL}/cash?type=расход&limit=10000`, {
+    const response = await this.safeFetch(`${this.baseURL}/cash?type=расход&limit=10000`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -747,9 +739,8 @@ export class ApiClient {
   async createCashTransaction(data: Partial<CashTransaction>): Promise<CashTransaction> {
     console.log('Creating cash transaction with data:', data)
     
-    const response = await fetch(`${this.baseURL}/cash`, {
+    const response = await this.safeFetch(`${this.baseURL}/cash`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({
         name: data.name,
         amount: data.amount || 0,
@@ -776,9 +767,8 @@ export class ApiClient {
   }
 
   async checkCashTransactionByOrder(orderId: number): Promise<CashTransaction | null> {
-    const response = await fetch(`${this.baseURL}/cash?orderId=${orderId}`, {
+    const response = await this.safeFetch(`${this.baseURL}/cash?orderId=${orderId}`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -809,9 +799,8 @@ export class ApiClient {
       throw new Error('Транзакция не найдена')
     }
     
-    const response = await fetch(`${this.baseURL}/cash/${transaction.id}`, {
+    const response = await this.safeFetch(`${this.baseURL}/cash/${transaction.id}`, {
       method: 'PUT',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     })
 
@@ -856,7 +845,7 @@ export class ApiClient {
     /* Старый код с отдельным endpoint
     const response = await fetch(`${this.baseURL}/cash/balance`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
+      // 🍪 Headers добавляются автоматически в safeFetch
     })
 
     if (!response.ok) {
@@ -869,9 +858,8 @@ export class ApiClient {
   }
 
   async getCallsByOrderId(orderId: number): Promise<Call[]> {
-    const response = await fetch(`${this.baseURL}/calls/order/${orderId}`, {
+    const response = await this.safeFetch(`${this.baseURL}/calls/order/${orderId}`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -886,9 +874,8 @@ export class ApiClient {
   // Master Handover API
   // Master Handover API (Cash Service - Handover)
   async getMasterHandoverSummary(): Promise<{ masters: any[], totalAmount: number }> {
-    const response = await fetch(`${this.baseURL}/master-handover/summary`, {
+    const response = await this.safeFetch(`${this.baseURL}/master-handover/summary`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -906,9 +893,8 @@ export class ApiClient {
   }
 
   async getMasterHandoverDetails(masterId: number): Promise<{ master: any, orders: any[] }> {
-    const response = await fetch(`${this.baseURL}/master-handover/${masterId}`, {
+    const response = await this.safeFetch(`${this.baseURL}/master-handover/${masterId}`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -921,9 +907,8 @@ export class ApiClient {
   }
 
   async approveMasterHandover(orderId: number): Promise<void> {
-    const response = await fetch(`${this.baseURL}/master-handover/approve/${orderId}`, {
+    const response = await this.safeFetch(`${this.baseURL}/master-handover/approve/${orderId}`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({}),
     })
 
@@ -934,9 +919,8 @@ export class ApiClient {
   }
 
   async rejectMasterHandover(orderId: number): Promise<void> {
-    const response = await fetch(`${this.baseURL}/master-handover/reject/${orderId}`, {
+    const response = await this.safeFetch(`${this.baseURL}/master-handover/reject/${orderId}`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({}),
     })
 
@@ -981,9 +965,8 @@ export class ApiClient {
     const queryString = params.toString();
     const url = queryString ? `${this.baseURL}/reports/city?${queryString}` : `${this.baseURL}/reports/city`;
     
-    const response = await fetch(url, {
+    const response = await this.safeFetch(url, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -996,9 +979,8 @@ export class ApiClient {
   }
 
   async getCityDetailedReport(city: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/reports/city/${encodeURIComponent(city)}`, {
+    const response = await this.safeFetch(`${this.baseURL}/reports/city/${encodeURIComponent(city)}`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -1019,9 +1001,8 @@ export class ApiClient {
     const queryString = params.toString();
     const url = queryString ? `${this.baseURL}/reports/masters?${queryString}` : `${this.baseURL}/reports/masters`;
     
-    const response = await fetch(url, {
+    const response = await this.safeFetch(url, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -1035,9 +1016,8 @@ export class ApiClient {
 
   // Методы для работы с профилем пользователя
   async getCurrentUserProfile(): Promise<any> {
-    const response = await fetch(`${this.baseURL}/users/profile`, {
+    const response = await this.safeFetch(`${this.baseURL}/users/profile`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -1057,9 +1037,10 @@ export class ApiClient {
     const response = await fetch(`${this.baseURL}/users/profile`, {
       method: 'PUT',
       headers: {
-        ...this.getAuthHeaders(),
         'Content-Type': 'application/json',
+        'X-Use-Cookies': 'true',
       },
+      credentials: 'include' as RequestCredentials,
       body: JSON.stringify(data),
     })
 
@@ -1071,7 +1052,7 @@ export class ApiClient {
     return response.json()
   }
 
-  // Методы для загрузки файлов директоров
+  // 🍪 Методы для загрузки файлов директоров с httpOnly cookies
   async uploadDirectorContract(file: File): Promise<{ filePath: string }> {
     console.log(`Загружаем договор: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB`)
     
@@ -1081,8 +1062,9 @@ export class ApiClient {
     try {
       const response = await fetch(`${this.baseURL}/files/upload?folder=director/directors/contract_doc`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
+          'X-Use-Cookies': 'true',
         },
         body: formData,
       })
@@ -1106,8 +1088,9 @@ export class ApiClient {
 
     const response = await fetch(`${this.baseURL}/files/upload?folder=director/directors/passport_doc`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
-        'Authorization': `Bearer ${this.getToken()}`,
+        'X-Use-Cookies': 'true',
       },
       body: formData,
     })
@@ -1130,8 +1113,9 @@ export class ApiClient {
     try {
       const response = await fetch(`${this.baseURL}/files/upload?folder=director/masters/contract_doc`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
+          'X-Use-Cookies': 'true',
         },
         body: formData,
       })
@@ -1158,8 +1142,9 @@ export class ApiClient {
     try {
       const response = await fetch(`${this.baseURL}/files/upload?folder=director/masters/passport_doc`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
+          'X-Use-Cookies': 'true',
         },
         body: formData,
       })
@@ -1186,8 +1171,9 @@ export class ApiClient {
     try {
       const response = await fetch(`${this.baseURL}/files/upload?folder=director/orders/bso_doc`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
+          'X-Use-Cookies': 'true',
         },
         body: formData,
       })
@@ -1214,8 +1200,9 @@ export class ApiClient {
     try {
       const response = await fetch(`${this.baseURL}/files/upload?folder=director/orders/expenditure_doc`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
+          'X-Use-Cookies': 'true',
         },
         body: formData,
       })
@@ -1235,9 +1222,8 @@ export class ApiClient {
 
   // Avito Chat API
   async getOrderAvitoChat(orderId: number): Promise<{ chatId: string; avitoAccountName: string; clientName: string; phone: string } | null> {
-    const response = await fetch(`${this.baseURL}/orders/${orderId}/avito-chat`, {
+    const response = await this.safeFetch(`${this.baseURL}/orders/${orderId}/avito-chat`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -1253,9 +1239,8 @@ export class ApiClient {
   }
 
   async getAvitoMessages(chatId: string, avitoAccountName: string, limit: number = 100): Promise<any[]> {
-    const response = await fetch(`${this.baseURL}/avito-messenger/chats/${chatId}/messages?avitoAccountName=${avitoAccountName}&limit=${limit}`, {
+    const response = await this.safeFetch(`${this.baseURL}/avito-messenger/chats/${chatId}/messages?avitoAccountName=${avitoAccountName}&limit=${limit}`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -1268,9 +1253,8 @@ export class ApiClient {
   }
 
   async sendAvitoMessage(chatId: string, text: string, avitoAccountName: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/avito-messenger/chats/${chatId}/messages`, {
+    const response = await this.safeFetch(`${this.baseURL}/avito-messenger/chats/${chatId}/messages`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({ text, avitoAccountName }),
     })
 
@@ -1284,9 +1268,8 @@ export class ApiClient {
   }
 
   async markAvitoChatAsRead(chatId: string, avitoAccountName: string): Promise<void> {
-    const response = await fetch(`${this.baseURL}/avito-messenger/chats/${chatId}/read`, {
+    const response = await this.safeFetch(`${this.baseURL}/avito-messenger/chats/${chatId}/read`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({ avitoAccountName }),
     })
 
@@ -1297,9 +1280,8 @@ export class ApiClient {
   }
 
   async getAvitoVoiceUrls(avitoAccountName: string, voiceIds: string[]): Promise<{ [key: string]: string }> {
-    const response = await fetch(`${this.baseURL}/avito-messenger/voice-files?avitoAccountName=${avitoAccountName}`, {
+    const response = await this.safeFetch(`${this.baseURL}/avito-messenger/voice-files?avitoAccountName=${avitoAccountName}`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({ voiceIds }),
     })
 
