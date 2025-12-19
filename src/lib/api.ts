@@ -200,139 +200,39 @@ export interface MasterReport {
 export class ApiClient {
   private baseURL: string
   private isRefreshing: boolean = false
-  private refreshSubscribers: ((token: string) => void)[] = []
+  private refreshSubscribers: (() => void)[] = []
 
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL
-    
-    // Запускаем проверку истечения токена
-    if (typeof window !== 'undefined') {
-      this.startTokenExpiryCheck()
-    }
+    // 🍪 Токены теперь хранятся в httpOnly cookies на сервере
+    // Не нужно проверять истечение - сервер сам обработает
   }
 
-  // Проверка истечения токена и проактивное обновление
-  private startTokenExpiryCheck() {
-    if (typeof window === 'undefined') return
+  // 🍪 Проверка токенов не нужна - они в httpOnly cookies на сервере
 
-    // Проверяем каждые 60 секунд
-    setInterval(() => {
-      const token = this.getToken()
-      if (!token) return
+  // 🍪 Authorization через httpOnly cookies
 
-      try {
-        // Декодируем JWT токен
-        const base64Url = token.split('.')[1]
-        if (!base64Url) return
+  // 🍪 Токены в httpOnly cookies - не нужны get/set методы
 
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-        const jsonPayload = decodeURIComponent(
-          atob(base64)
-            .split('')
-            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-            .join('')
-        )
-
-        const payload = JSON.parse(jsonPayload)
-        
-        // Проверяем, когда истекает токен
-        if (payload.exp) {
-          const expiryTime = payload.exp * 1000 // Конвертируем в миллисекунды
-          const currentTime = Date.now()
-          const timeUntilExpiry = expiryTime - currentTime
-
-          // Если токен истекает через 2 минуты или меньше, обновляем его проактивно
-          if (timeUntilExpiry > 0 && timeUntilExpiry < 2 * 60 * 1000) {
-            console.log('⏰ Токен скоро истечет, проактивно обновляем...')
-            this.refreshAccessToken().catch(err => {
-              console.error('Ошибка проактивного обновления токена:', err)
-            })
-          }
-        }
-      } catch (error) {
-        // Игнорируем ошибки декодирования
-      }
-    }, 60000) // Проверяем каждую минуту
-  }
-
-  private getAuthHeaders(): HeadersInit {
-    const token = this.getToken()
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    }
-  }
-
-  /**
-   * Получить access токен из хранилища
-   * БЕЗОПАСНОСТЬ: Приоритет sessionStorage (более безопасное) над localStorage
-   */
-  private getToken(): string | null {
-    if (typeof window === 'undefined') return null
-    // Сначала проверяем sessionStorage (безопаснее - очищается при закрытии вкладки)
-    return sessionStorage.getItem('access_token') || localStorage.getItem('access_token')
-  }
-
-  /**
-   * Получить refresh токен из хранилища
-   * БЕЗОПАСНОСТЬ: Приоритет sessionStorage над localStorage
-   */
-  private getRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null
-    // Сначала проверяем sessionStorage (безопаснее)
-    return sessionStorage.getItem('refresh_token') || localStorage.getItem('refresh_token')
-  }
-
-  /**
-   * Сохранить access токен
-   * БЕЗОПАСНОСТЬ: По умолчанию remember=false для использования sessionStorage
-   * @param token - access токен
-   * @param remember - true = localStorage (постоянно), false = sessionStorage (до закрытия вкладки)
-   */
-  private setToken(token: string, remember: boolean = false) {
-    if (typeof window === 'undefined') return
-    
-    if (remember) {
-      // ТОЛЬКО если пользователь явно выбрал "Запомнить меня"
-      localStorage.setItem('access_token', token)
-      localStorage.setItem('remember_me', 'true')
-      // Очищаем sessionStorage чтобы избежать дублирования
-      sessionStorage.removeItem('access_token')
-    } else {
-      // ПО УМОЛЧАНИЮ: sessionStorage (безопаснее - очищается при закрытии)
-      sessionStorage.setItem('access_token', token)
-      // Очищаем localStorage для безопасности
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('remember_me')
-    }
-  }
-
-  /**
-   * Сохранить refresh токен
-   * БЕЗОПАСНОСТЬ: По умолчанию remember=false для использования sessionStorage
-   * @param refreshToken - refresh токен
-   * @param remember - true = localStorage, false = sessionStorage
-   */
-  private setRefreshToken(refreshToken: string, remember: boolean = false) {
-    if (typeof window === 'undefined') return
-    
-    if (remember) {
-      localStorage.setItem('refresh_token', refreshToken)
-      sessionStorage.removeItem('refresh_token')
-    } else {
-      // ПО УМОЛЧАНИЮ: sessionStorage (безопаснее)
-      sessionStorage.setItem('refresh_token', refreshToken)
-      localStorage.removeItem('refresh_token')
-    }
-  }
-
-  private onRefreshed(token: string) {
-    this.refreshSubscribers.forEach(callback => callback(token))
+  private onRefreshed() {
+    this.refreshSubscribers.forEach(callback => callback())
     this.refreshSubscribers = []
   }
 
-  private addRefreshSubscriber(callback: (token: string) => void) {
+  private addRefreshSubscriber(callback: () => void) {
     this.refreshSubscribers.push(callback)
+  }
+
+  /**
+   * 🍪 Очистить данные пользователя из localStorage
+   * Токены хранятся в httpOnly cookies и очищаются на сервере
+   */
+  clearToken() {
+    if (typeof window === 'undefined') return
+    
+    // Очищаем только данные пользователя
+    sessionStorage.removeItem('user')
+    localStorage.removeItem('user')
   }
 
   /**
@@ -353,97 +253,74 @@ export class ApiClient {
   }
 
   /**
-   * Обновление access токена через refresh token
+   * 🍪 Обновление токенов через httpOnly cookies
+   * Сервер автоматически обновит cookies
    */
-  private async refreshAccessToken(): Promise<string | null> {
-    const refreshToken = this.getRefreshToken()
-    if (!refreshToken) {
-      return null
-    }
-
+  private async refreshAccessToken(): Promise<boolean> {
     try {
       const response = await fetch(`${this.baseURL}/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Use-Cookies': 'true',
         },
-        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
+        body: JSON.stringify({}),
       })
 
-      if (!response.ok) {
-        return null
-      }
-
-      const result = await response.json()
-      const data = result.data || result
-      
-      const newAccessToken = data.accessToken
-      const newRefreshToken = data.refreshToken
-
-      if (newAccessToken && newRefreshToken) {
-        // Сохраняем токены с учетом настройки "Запомнить меня"
-        const remember = typeof window !== 'undefined' && localStorage.getItem('remember_me') === 'true'
-        this.setToken(newAccessToken, remember)
-        this.setRefreshToken(newRefreshToken, remember)
-        return newAccessToken
-      }
-
-      return null
+      return response.ok
     } catch (error) {
-      return null
+      return false
     }
   }
 
   /**
-   * Безопасная обработка fetch запросов с автоматическим обновлением токена и retry
+   * 🍪 Безопасная обработка запросов с httpOnly cookies
+   * Автоматически добавляет credentials и X-Use-Cookies header
    */
   private async safeFetch(url: string, options?: RequestInit): Promise<Response> {
     try {
+      // Добавляем credentials и X-Use-Cookies для всех запросов
+      const enhancedOptions: RequestInit = {
+        ...options,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Use-Cookies': 'true',
+          ...options?.headers,
+        },
+      }
+
       // Используем fetchWithRetry для GET запросов (безопасно повторять)
-      // POST/PUT/DELETE запросы не повторяем автоматически (могут изменить данные дважды)
       const shouldRetry = !options?.method || options.method === 'GET'
       
       const response = shouldRetry 
-        ? await this.fetchWithRetry(url, options)
-        : await fetch(url, options)
+        ? await this.fetchWithRetry(url, enhancedOptions)
+        : await fetch(url, enhancedOptions)
       
       // Если 401 ошибка и это не логин/рефреш - пытаемся обновить токен
       if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
         if (this.isRefreshing) {
           // Если токен уже обновляется, ждем завершения
           return new Promise((resolve) => {
-            this.addRefreshSubscriber((token: string) => {
-              // Повторяем запрос с новым токеном
-              const newOptions = {
-                ...options,
-                headers: {
-                  ...options?.headers,
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-              resolve(fetch(url, newOptions))
+            this.addRefreshSubscriber(() => {
+              // Повторяем запрос с обновленными cookies
+              resolve(fetch(url, enhancedOptions))
             })
           })
         }
 
         this.isRefreshing = true
 
-        const newToken = await this.refreshAccessToken()
+        const refreshSuccess = await this.refreshAccessToken()
         
         this.isRefreshing = false
 
-        if (newToken) {
-          this.onRefreshed(newToken)
+        if (refreshSuccess) {
+          this.onRefreshed()
 
-          // Повторяем оригинальный запрос с новым токеном
-          const newOptions = {
-            ...options,
-            headers: {
-              ...options?.headers,
-              Authorization: `Bearer ${newToken}`,
-            },
-          }
-          return fetch(url, newOptions)
+          // Повторяем оригинальный запрос с обновленными cookies
+          return fetch(url, enhancedOptions)
         } else {
           // Не удалось обновить токен - редирект на логин
           this.logout()
@@ -481,12 +358,13 @@ export class ApiClient {
     }
   }
 
+  /**
+   * 🍪 Авторизация с httpOnly cookies
+   * Токены автоматически устанавливаются сервером в cookies
+   */
   async login(login: string, password: string, remember: boolean = false): Promise<LoginResponse> {
     const response = await this.safeFetch(`${this.baseURL}/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ 
         login, 
         password,
@@ -495,7 +373,6 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      // Безопасная обработка ошибки - проверяем Content-Type
       const contentType = response.headers.get('content-type')
       let errorMessage = 'Ошибка авторизации'
       
@@ -511,42 +388,34 @@ export class ApiClient {
       throw new Error(errorMessage)
     }
 
-    // Новый формат ответа: { success, message, data: { user, accessToken, refreshToken } }
     const result = await response.json()
-    // Адаптируем к старому формату для совместимости
-    if (result.success && result.data) {
-      // Сохраняем токены с учетом remember
-      this.setToken(result.data.accessToken, remember)
-      this.setRefreshToken(result.data.refreshToken, remember)
-      
-      // Сохраняем пользователя с учетом безопасности
+    
+    // Сохраняем данные пользователя
+    if (result.success && result.data && result.data.user) {
       if (typeof window !== 'undefined') {
-        if (remember) {
-          localStorage.setItem('user', JSON.stringify(result.data.user))
-          sessionStorage.removeItem('user') // Очищаем для безопасности
-        } else {
-          sessionStorage.setItem('user', JSON.stringify(result.data.user))
-          localStorage.removeItem('user') // Очищаем для безопасности
-        }
+        localStorage.setItem('user', JSON.stringify(result.data.user))
       }
       
       return {
-        access_token: result.data.accessToken,
-        refresh_token: result.data.refreshToken,
+        access_token: '', // Токены теперь в cookies
+        refresh_token: '',
         user: result.data.user
       }
     }
+    
     return result
   }
 
+  /**
+   * 🍪 Получение профиля пользователя с httpOnly cookies
+   * Используется для проверки валидности сессии
+   */
   async getProfile(): Promise<User> {
-    const response = await this.safeFetch(`${this.baseURL}/users/profile`, {
+    const response = await this.safeFetch(`${this.baseURL}/auth/profile`, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
     })
 
     if (!response.ok) {
-      // Безопасная обработка ошибки
       const contentType = response.headers.get('content-type')
       let errorMessage = 'Ошибка получения профиля'
       
@@ -562,40 +431,38 @@ export class ApiClient {
       throw new Error(errorMessage)
     }
 
-    // Новый формат: { success, data: { ...user, role } }
     const result = await response.json()
     return result.success && result.data ? result.data : result
   }
 
-  logout(): void {
-    // Сначала сохраняем токен для отправки на сервер
-    const token = this.getToken()
-    
-    // Сразу очищаем локальные данные СИНХРОННО
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user')
-      localStorage.removeItem('remember_me')
-      sessionStorage.removeItem('access_token')
-      sessionStorage.removeItem('refresh_token')
-      sessionStorage.removeItem('user')
-    }
-
-    // Уведомляем сервер в фоне (не ждем ответа)
-    if (token) {
-      this.safeFetch(`${this.baseURL}/auth/logout`, {
+  /**
+   * 🍪 Выход с очисткой httpOnly cookies на сервере
+   */
+  async logout(): Promise<void> {
+    try {
+      // Отправляем запрос на сервер для очистки cookies
+      await this.safeFetch(`${this.baseURL}/auth/logout`, {
         method: 'POST',
-        headers: this.getAuthHeaders(),
-      }).catch((error) => {
-        // Игнорируем ошибку - токен уже удален локально
-        console.warn('Ошибка при выходе на сервере (игнорируется):', error)
       })
+    } catch (error) {
+      console.warn('Ошибка при выходе на сервере:', error)
+    } finally {
+      // Очищаем локальные данные
+      this.clearToken()
     }
   }
 
-  isAuthenticated(): boolean {
-    return !!this.getToken()
+  /**
+   * 🍪 Проверка аутентификации через API
+   * Нельзя проверить httpOnly cookies на клиенте - нужен запрос к серверу
+   */
+  async isAuthenticated(): Promise<boolean> {
+    try {
+      await this.getProfile()
+      return true
+    } catch {
+      return false
+    }
   }
 
   /**
@@ -1079,18 +946,19 @@ export class ApiClient {
     }
   }
 
-  // File Upload API
+  /**
+   * 🍪 Загрузка файлов с httpOnly cookies
+   */
   async uploadReceipt(file: File, type: 'cash' | 'order'): Promise<{ filePath: string }> {
     const formData = new FormData()
     formData.append('file', file)
 
-    const token = localStorage.getItem('access_token')
     const response = await fetch(`${this.baseURL}/files/upload?folder=director/cash/receipt_doc`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        // Не устанавливаем Content-Type для FormData - браузер сам установит правильный
+        'X-Use-Cookies': 'true',
       },
+      credentials: 'include',
       body: formData,
     })
 

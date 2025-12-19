@@ -24,16 +24,12 @@ export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): P
   }
 
   try {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
     const response = await fetch(
       `${API_BASE_URL}/files/download/${encodeURIComponent(fileKey)}`,
       {
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'X-Use-Cookies': 'true',
         },
       }
     );
@@ -69,11 +65,6 @@ export async function uploadFile(file: File, folderType: string): Promise<string
   }
 
   try {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
     const formData = new FormData();
     formData.append('file', file);
 
@@ -92,8 +83,9 @@ export async function uploadFile(file: File, folderType: string): Promise<string
       `${API_BASE_URL}/files/upload?folder=${encodeURIComponent(folder)}`,
       {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'X-Use-Cookies': 'true',
         },
         body: formData,
       }

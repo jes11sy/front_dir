@@ -61,7 +61,9 @@ export const useAuthStore = create<AuthState>()(
       checkAuth: async (): Promise<boolean> => {
         set({ isLoading: true });
         try {
-          if (!apiClient.isAuthenticated()) {
+          // 🍪 isAuthenticated теперь async - проверяет httpOnly cookies через API
+          const isAuth = await apiClient.isAuthenticated();
+          if (!isAuth) {
             set({ isLoading: false, isAuthenticated: false });
             return false;
           }
