@@ -953,7 +953,10 @@ export class ApiClient {
     }
 
     const result = await response.json()
-    return { filePath: result.data?.key || result.data?.url }
+    if (!result.data?.key) {
+      throw new Error('Backend не вернул key файла')
+    }
+    return { filePath: result.data.key }
   }
 
   // Reports API
@@ -1076,7 +1079,10 @@ export class ApiClient {
       }
 
       const result = await response.json()
-      return { filePath: result.data?.key || result.data?.url }
+      if (!result.data?.key) {
+        throw new Error('Backend не вернул key файла')
+      }
+      return { filePath: result.data.key }
     } catch (error) {
       console.error('Ошибка при загрузке файла:', error)
       throw error
@@ -1102,7 +1108,10 @@ export class ApiClient {
     }
 
     const result = await response.json()
-    return { filePath: result.data?.key || result.data?.url }
+    if (!result.data?.key) {
+      throw new Error('Backend не вернул key файла')
+    }
+    return { filePath: result.data.key }
   }
 
   async uploadMasterContract(file: File): Promise<{ filePath: string }> {
@@ -1127,7 +1136,10 @@ export class ApiClient {
       }
 
       const result = await response.json()
-      return { filePath: result.data?.key || result.data?.url }
+      if (!result.data?.key) {
+        throw new Error('Backend не вернул key файла')
+      }
+      return { filePath: result.data.key }
     } catch (error) {
       console.error('Ошибка при загрузке договора мастера:', error)
       throw error
@@ -1156,7 +1168,10 @@ export class ApiClient {
       }
 
       const result = await response.json()
-      return { filePath: result.data?.key || result.data?.url }
+      if (!result.data?.key) {
+        throw new Error('Backend не вернул key файла')
+      }
+      return { filePath: result.data.key }
     } catch (error) {
       console.error('Ошибка при загрузке паспорта мастера:', error)
       throw error
@@ -1185,7 +1200,13 @@ export class ApiClient {
       }
 
       const result = await response.json()
-      return { filePath: result.data?.key || result.data?.url }
+      // ВАЖНО: ВСЕГДА используем только key, НИКОГДА не url!
+      // key - это путь типа "director/orders/bso_doc/xxx.jpg"
+      // url - это временный signed URL который истекает через час
+      if (!result.data?.key) {
+        throw new Error('Backend не вернул key файла')
+      }
+      return { filePath: result.data.key }
     } catch (error) {
       console.error('Ошибка при загрузке БСО заказа:', error)
       throw error
@@ -1214,7 +1235,11 @@ export class ApiClient {
       }
 
       const result = await response.json()
-      return { filePath: result.data?.key || result.data?.url }
+      // ВАЖНО: ВСЕГДА используем только key, НИКОГДА не url!
+      if (!result.data?.key) {
+        throw new Error('Backend не вернул key файла')
+      }
+      return { filePath: result.data.key }
     } catch (error) {
       console.error('Ошибка при загрузке документа расхода заказа:', error)
       throw error
