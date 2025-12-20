@@ -298,8 +298,9 @@ export class ApiClient {
         ? await this.fetchWithRetry(url, enhancedOptions)
         : await fetch(url, enhancedOptions)
       
-      // Если 401 ошибка и это не логин/рефреш - пытаемся обновить токен
-      if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
+      // Если 401/403 ошибка и это не логин/рефреш - пытаемся обновить токен
+      // 403 может быть из-за истекшего токена, который прошел JWT validation но не прошел роли
+      if ((response.status === 401 || response.status === 403) && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
         if (this.isRefreshing) {
           // Если токен уже обновляется, ждем завершения
           return new Promise((resolve) => {
