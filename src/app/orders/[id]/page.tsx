@@ -2,7 +2,6 @@
 
 import { useState, use, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import AuthGuard from "@/components/auth-guard"
 import { apiClient, Order, Master, Call } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { StatusSelect } from '@/components/orders/StatusSelect'
@@ -492,9 +491,5 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 }
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  return (
-    <AuthGuard>
-      <OrderDetailContent params={params} />
-    </AuthGuard>
-  )
+  return <OrderDetailContent params={params} />
 }

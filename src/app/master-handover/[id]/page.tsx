@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { apiClient } from '@/lib/api'
-import AuthGuard from "@/components/auth-guard"
 import { logger } from '@/lib/logger'
 import { toast } from '@/components/ui/toast'
 
@@ -267,9 +266,5 @@ function MasterHandoverDetailContent() {
 }
 
 export default function MasterHandoverDetailPage() {
-  return (
-    <AuthGuard>
-      <MasterHandoverDetailContent />
-    </AuthGuard>
-  )
+  return <MasterHandoverDetailContent />
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import AuthGuard from "@/components/auth-guard"
 import { apiClient, CashTransaction } from '@/lib/api'
 import { getSignedUrl } from '@/lib/s3-utils'
 
@@ -402,9 +401,5 @@ function HistoryContent() {
 }
 
 export default function HistoryPage() {
-  return (
-    <AuthGuard>
-      <HistoryContent />
-    </AuthGuard>
-  )
+  return <HistoryContent />
 }

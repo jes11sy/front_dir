@@ -1,5 +1,3 @@
-import AuthGuard from "@/components/auth-guard"
-
 function CashContent() {
   return (
     <div className="container mx-auto px-4 py-8">
@@ -10,9 +8,5 @@ function CashContent() {
 }
 
 export default function CashPage() {
-  return (
-    <AuthGuard>
-      <CashContent />
-    </AuthGuard>
-  )
+  return <CashContent />
 }

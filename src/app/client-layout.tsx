@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { CustomNavigation } from '@/components/custom-navigation'
 import { ErrorBoundary } from '@/components/error-boundary'
+import AuthGuard from '@/components/auth-guard'
 import React, { useEffect, useLayoutEffect } from 'react'
 
 interface ClientLayoutProps {
@@ -13,6 +14,7 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
   const pathname = usePathname()
   const isLoginPage = pathname === '/login'
   const isLogoutPage = pathname === '/logout'
+  const isPublicPage = isLoginPage || isLogoutPage
 
   // Принудительно скроллим в начало при смене страницы
   useLayoutEffect(() => {
@@ -29,7 +31,8 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
     return () => clearTimeout(timer)
   }, [pathname])
 
-  if (isLoginPage || isLogoutPage) {
+  // Публичные страницы (login, logout) - без AuthGuard
+  if (isPublicPage) {
     return (
       <ErrorBoundary>
         {children}
@@ -37,10 +40,13 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
     )
   }
 
+  // Защищенные страницы - с AuthGuard
   return (
     <ErrorBoundary>
-      <CustomNavigation />
-      <main className="pt-16 md:pt-0 md:ml-64">{children}</main>
+      <AuthGuard>
+        <CustomNavigation />
+        <main className="pt-16 md:pt-0 md:ml-64">{children}</main>
+      </AuthGuard>
     </ErrorBoundary>
   )
 })

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
-import AuthGuard from "@/components/auth-guard"
 import { apiClient, Order } from '@/lib/api'
 
 interface Message {
@@ -402,10 +401,6 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
 }
 
 export default function AvitoChatPage({ params }: { params: Promise<{ id: string }> }) {
-  return (
-    <AuthGuard>
-      <AvitoChatContent params={params} />
-    </AuthGuard>
-  )
+  return <AvitoChatContent params={params} />
 }
 

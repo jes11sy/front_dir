@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import AuthGuard from "@/components/auth-guard"
 import { apiClient, CityReport } from '@/lib/api'
 import * as XLSX from 'xlsx'
 
@@ -503,9 +502,5 @@ function CityReportContent() {
 }
 
 export default function CityReportPage() {
-  return (
-    <AuthGuard>
-      <CityReportContent />
-    </AuthGuard>
-  )
+  return <CityReportContent />
 }

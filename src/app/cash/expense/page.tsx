@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import AuthGuard from "@/components/auth-guard"
 import { apiClient, CashTransaction } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 
@@ -500,9 +499,5 @@ function ExpenseContent() {
 }
 
 export default function ExpensePage() {
-  return (
-    <AuthGuard>
-      <ExpenseContent />
-    </AuthGuard>
-  )
+  return <ExpenseContent />
 }

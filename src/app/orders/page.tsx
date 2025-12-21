@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import AuthGuard from "@/components/auth-guard"
 import { apiClient, Order, OrdersResponse, OrdersStats } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -699,10 +698,6 @@ function OrdersContent() {
 }
 
 export default function OrdersPage() {
-  return (
-    <AuthGuard>
-      <OrdersContent />
-    </AuthGuard>
-  )
+  return <OrdersContent />
 }
 

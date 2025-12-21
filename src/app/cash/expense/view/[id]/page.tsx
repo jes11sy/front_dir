@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import AuthGuard from "@/components/auth-guard"
 import { getSignedUrl } from '@/lib/s3-utils'
 import { apiClient, CashTransaction } from '@/lib/api'
 
@@ -249,9 +248,5 @@ function ExpenseViewContent() {
 }
 
 export default function ExpenseViewPage() {
-  return (
-    <AuthGuard>
-      <ExpenseViewContent />
-    </AuthGuard>
-  )
+  return <ExpenseViewContent />
 }

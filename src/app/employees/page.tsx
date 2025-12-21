@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { apiClient, Employee } from '@/lib/api'
 
-import AuthGuard from "@/components/auth-guard"
 
 function EmployeesContent() {
   const router = useRouter()
@@ -217,9 +216,5 @@ function EmployeesContent() {
 }
 
 export default function EmployeesPage() {
-  return (
-    <AuthGuard>
-      <EmployeesContent />
-    </AuthGuard>
-  )
+  return <EmployeesContent />
 }

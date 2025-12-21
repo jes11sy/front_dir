@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { apiClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
-import AuthGuard from "@/components/auth-guard"
 
 function MasterHandoverContent() {
   const router = useRouter()
@@ -129,9 +128,5 @@ function MasterHandoverContent() {
 }
 
 export default function MasterHandoverPage() {
-  return (
-    <AuthGuard>
-      <MasterHandoverContent />
-    </AuthGuard>
-  )
+  return <MasterHandoverContent />
 }

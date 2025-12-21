@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import AuthGuard from "@/components/auth-guard"
 import { apiClient, MasterReport } from '@/lib/api'
 import * as XLSX from 'xlsx'
 
@@ -397,9 +396,5 @@ function MastersReportContent() {
 }
 
 export default function MastersReportPage() {
-  return (
-    <AuthGuard>
-      <MastersReportContent />
-    </AuthGuard>
-  )
+  return <MastersReportContent />
 }

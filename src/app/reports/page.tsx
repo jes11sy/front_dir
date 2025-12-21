@@ -1,4 +1,3 @@
-import AuthGuard from "@/components/auth-guard"
 
 function ReportsContent() {
   return (
@@ -10,9 +9,5 @@ function ReportsContent() {
 }
 
 export default function ReportsPage() {
-  return (
-    <AuthGuard>
-      <ReportsContent />
-    </AuthGuard>
-  )
+  return <ReportsContent />
 }

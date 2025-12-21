@@ -1,4 +1,3 @@
-import AuthGuard from "@/components/auth-guard"
 
 function ProfileContent() {
   return (
@@ -10,9 +9,5 @@ function ProfileContent() {
 }
 
 export default function ProfilePage() {
-  return (
-    <AuthGuard>
-      <ProfileContent />
-    </AuthGuard>
-  )
+  return <ProfileContent />
 }

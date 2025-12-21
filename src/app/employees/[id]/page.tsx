@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label'
 import { apiClient, Employee } from '@/lib/api'
 import { logger } from '@/lib/logger'
 
-import AuthGuard from "@/components/auth-guard"
 
 function EmployeeViewContent() {
   const router = useRouter()
@@ -1007,9 +1006,5 @@ function EmployeeViewContent() {
 }
 
 export default function EmployeeViewPage() {
-  return (
-    <AuthGuard>
-      <EmployeeViewContent />
-    </AuthGuard>
-  )
+  return <EmployeeViewContent />
 }

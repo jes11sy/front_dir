@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import AuthGuard from "@/components/auth-guard"
 import { apiClient, CashTransaction } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 
@@ -532,9 +531,5 @@ function IncomeContent() {
 }
 
 export default function IncomePage() {
-  return (
-    <AuthGuard>
-      <IncomeContent />
-    </AuthGuard>
-  )
+  return <IncomeContent />
 }

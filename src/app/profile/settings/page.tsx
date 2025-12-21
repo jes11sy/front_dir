@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import AuthGuard from "@/components/auth-guard"
 import { apiClient } from '@/lib/api'
 import { getSignedUrl } from '@/lib/s3-utils'
 
@@ -520,9 +519,5 @@ function SettingsContent() {
 }
 
 export default function SettingsPage() {
-  return (
-    <AuthGuard>
-      <SettingsContent />
-    </AuthGuard>
-  )
+  return <SettingsContent />
 }

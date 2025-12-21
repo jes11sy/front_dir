@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { apiClient, CreateEmployeeDto } from '@/lib/api'
 import { logger } from '@/lib/logger'
 
-import AuthGuard from "@/components/auth-guard"
 
 function AddEmployeeContent() {
   const router = useRouter()
@@ -623,9 +622,5 @@ function AddEmployeeContent() {
 }
 
 export default function AddEmployeePage() {
-  return (
-    <AuthGuard>
-      <AddEmployeeContent />
-    </AuthGuard>
-  )
+  return <AddEmployeeContent />
 }
