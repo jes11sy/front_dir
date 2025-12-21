@@ -16,7 +16,7 @@ interface AuthState {
   
   // Actions
   login: (token: string, user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateUser: (user: Partial<User>) => void;
   checkAuth: () => Promise<boolean>;
   refreshUser: () => Promise<void>;
@@ -39,13 +39,13 @@ export const useAuthStore = create<AuthState>()(
         logger.info('User logged in successfully');
       },
 
-      logout: () => {
+      logout: async () => {
         set({
           user: null,
           token: null,
           isAuthenticated: false,
         });
-        apiClient.logout();
+        await apiClient.logout();
         logger.info('User logged out');
       },
 

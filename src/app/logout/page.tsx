@@ -8,10 +8,14 @@ export default function LogoutPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Выполняем logout синхронно
-    apiClient.logout()
-    // Сразу перенаправляем на логин
-    router.replace('/login')
+    // Выполняем logout асинхронно и ждем завершения
+    const performLogout = async () => {
+      await apiClient.logout()
+      // Перенаправляем на логин только после очистки cookies
+      router.replace('/login')
+    }
+    
+    performLogout()
   }, [router])
 
   // Возвращаем null для мгновенного редиректа
