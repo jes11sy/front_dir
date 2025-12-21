@@ -441,15 +441,21 @@ export class ApiClient {
    */
   async logout(): Promise<void> {
     try {
+      console.log('🚪 Sending logout request to server...')
       // Отправляем запрос на сервер для очистки cookies
-      await this.safeFetch(`${this.baseURL}/auth/logout`, {
+      const response = await this.safeFetch(`${this.baseURL}/auth/logout`, {
         method: 'POST',
+        body: JSON.stringify({}), // Пустой объект для POST запроса
       })
+      console.log('✅ Logout response:', response.status, response.statusText)
+      const data = await response.json()
+      console.log('📦 Logout data:', data)
     } catch (error) {
-      console.warn('Ошибка при выходе на сервере:', error)
+      console.error('❌ Ошибка при выходе на сервере:', error)
     } finally {
       // Очищаем локальные данные
       this.clearToken()
+      console.log('🧹 Local data cleared')
     }
   }
 
