@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
@@ -23,12 +23,73 @@ function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ login?: string; password?: string }>({})
+  const [isCheckingAutoLogin, setIsCheckingAutoLogin] = useState(true)
   
   // Rate Limiting: защита от брутфорс атак
   const [attemptCount, setAttemptCount] = useState(0)
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null)
   const MAX_ATTEMPTS = 10 // Максимум попыток
   const BLOCK_DURATION = 5 * 60 * 1000 // 5 минут в миллисекундах
+  
+  // Проверяем автовход при загрузке страницы логина
+  useEffect(() => {
+    const tryAutoLogin = async () => {
+      try {
+        const { getSavedCredentials } = await import('@/lib/remember-me')
+        const credentials = await getSavedCredentials()
+        
+        if (credentials) {
+          console.log('[Login] Found saved credentials, attempting auto-login...')
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('auto_login_debug', 'Попытка автовхода на странице логина')
+            localStorage.setItem('auto_login_last_attempt', new Date().toISOString())
+          }
+          
+          setIsLoading(true)
+          const loginResponse = await apiClient.login(
+            credentials.login,
+            credentials.password,
+            true
+          )
+          
+          if (loginResponse && loginResponse.user) {
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('auto_login_debug', 'Автовход успешен!')
+              localStorage.setItem('auto_login_last_success', new Date().toISOString())
+            }
+            // Сразу редиректим БЕЗ изменения isCheckingAutoLogin чтобы не было мигания
+            router.replace(getSafeRedirectUrl())
+            return
+          } else {
+            console.warn('[Login] Auto-login failed')
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('auto_login_debug', 'Автовход не удался: неверные данные')
+            }
+            // Только если автовход не удался - показываем форму
+            setIsLoading(false)
+            setIsCheckingAutoLogin(false)
+          }
+        } else {
+          console.log('[Login] No saved credentials found')
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('auto_login_debug', 'Нет сохраненных данных для автовхода')
+          }
+          // Нет сохраненных данных - показываем форму
+          setIsCheckingAutoLogin(false)
+        }
+      } catch (error) {
+        console.error('[Login] Auto-login error:', error)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auto_login_debug', 'Ошибка автовхода: ' + String(error))
+        }
+        // Ошибка - показываем форму
+        setIsLoading(false)
+        setIsCheckingAutoLogin(false)
+      }
+    }
+    
+    tryAutoLogin()
+  }, [router])
   
   /**
    * Безопасная валидация redirect URL
@@ -161,6 +222,21 @@ function LoginForm() {
       
       setIsLoading(false)
     }
+  }
+
+  // Показываем загрузку во время проверки автовхода
+  if (isCheckingAutoLogin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
+        <div className="text-center">
+          <svg className="animate-spin h-12 w-12 text-white mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="text-white text-lg">Проверка авторизации...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

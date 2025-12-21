@@ -397,6 +397,17 @@ export class ApiClient {
         localStorage.setItem('user', JSON.stringify(result.data.user))
       }
       
+      // Если включен "Запомнить меня" - сохраняем учетные данные в IndexedDB
+      if (remember) {
+        try {
+          const { saveCredentials } = await import('./remember-me')
+          await saveCredentials(login, password)
+        } catch (error) {
+          console.error('[Login] Failed to save credentials:', error)
+          // Не прерываем процесс логина, если не удалось сохранить
+        }
+      }
+      
       return {
         access_token: '', // Токены теперь в cookies
         refresh_token: '',
@@ -440,6 +451,14 @@ export class ApiClient {
    * 🍪 Выход с очисткой httpOnly cookies на сервере
    */
   async logout(): Promise<void> {
+    // Очищаем сохраненные учетные данные из IndexedDB
+    try {
+      const { clearSavedCredentials } = await import('./remember-me')
+      await clearSavedCredentials()
+    } catch (error) {
+      console.error('[Logout] Failed to clear saved credentials:', error)
+    }
+
     try {
       console.log('🚪 Sending logout request to server...')
       // Отправляем запрос на сервер для очистки cookies
