@@ -196,7 +196,7 @@ function CityReportContent() {
     { label: 'Заказов', value: totals.totalOrders, color: 'text-gray-800' },
     { label: 'Не заказ', value: totals.notOrders, color: 'text-orange-600' },
     { label: 'Ноль', value: totals.zeroOrders, color: 'text-red-500' },
-    { label: 'Выполненных', value: totals.completedOrders, color: 'text-green-600', bold: true },
+    { label: 'Выполненных в деньги', value: totals.completedOrders, color: 'text-green-600', bold: true },
     { 
       label: 'Вып в деньги (%)', 
       value: formatPercent(completedPercent), 
