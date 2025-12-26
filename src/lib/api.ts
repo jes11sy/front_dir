@@ -515,7 +515,7 @@ export class ApiClient {
     status?: string
     city?: string
     search?: string
-    master?: string
+    master?: string  // ID мастера (для обратной совместимости)
     rk?: string
     typeEquipment?: string
     dateType?: 'create' | 'close' | 'meeting'
@@ -529,7 +529,8 @@ export class ApiClient {
     if (params.status) searchParams.append('status', params.status)
     if (params.city) searchParams.append('city', params.city)
     if (params.search) searchParams.append('search', params.search)
-    if (params.master) searchParams.append('master', params.master)
+    // ✅ ИСПРАВЛЕНИЕ: отправляем masterId вместо master
+    if (params.master) searchParams.append('masterId', params.master)
     if (params.rk) searchParams.append('rk', params.rk)
     if (params.typeEquipment) searchParams.append('typeEquipment', params.typeEquipment)
     if (params.dateType) searchParams.append('dateType', params.dateType)
