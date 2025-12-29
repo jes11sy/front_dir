@@ -49,20 +49,25 @@ function OrdersContent() {
       setLoading(true)
       setError(null)
       
-      const [response, statuses, mastersData, filterOptions] = await Promise.all([
-        apiClient.getOrders({
-          page: currentPage,
-          limit: itemsPerPage,
-          status: statusFilter || undefined,
-          city: cityFilter || undefined,
-          search: searchTerm || undefined,
-          master: masterFilter || undefined,
-          rk: rkFilter || undefined,
-          typeEquipment: typeEquipmentFilter || undefined,
-          dateType: (dateFrom || dateTo) ? dateType : undefined,
-          dateFrom: dateFrom || undefined,
-          dateTo: dateTo || undefined,
-        }),
+      // Делаем запросы с небольшой задержкой чтобы избежать rate limiting на прокси
+      // Сначала основной запрос заказов, потом остальные с задержкой
+      const response = await apiClient.getOrders({
+        page: currentPage,
+        limit: itemsPerPage,
+        status: statusFilter?.trim() || undefined,
+        city: cityFilter?.trim() || undefined,
+        search: searchTerm?.trim() || undefined,
+        master: masterFilter?.trim() || undefined,
+        rk: rkFilter?.trim() || undefined,
+        typeEquipment: typeEquipmentFilter?.trim() || undefined,
+        dateType: (dateFrom?.trim() || dateTo?.trim()) ? dateType : undefined,
+        dateFrom: dateFrom?.trim() || undefined,
+        dateTo: dateTo?.trim() || undefined,
+      })
+      
+      // Остальные запросы с небольшой задержкой (50ms между запросами)
+      await new Promise(resolve => setTimeout(resolve, 50))
+      const [statuses, mastersData, filterOptions] = await Promise.all([
         apiClient.getOrderStatuses().catch(() => ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ']),
         apiClient.getMasters().catch(() => []),
         apiClient.getFilterOptions().catch(() => ({ rks: [], typeEquipments: [] }))

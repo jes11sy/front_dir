@@ -1,6 +1,6 @@
 import { fetchWithRetry as fetchWithRetryUtil, getUserFriendlyErrorMessage, classifyNetworkError, type NetworkError } from './fetch-with-retry'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.lead-schem.ru/api/v1'
 
 export interface User {
   id: string
@@ -258,7 +258,8 @@ export class ApiClient {
    */
   private async refreshAccessToken(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseURL}/auth/refresh`, {
+      // Используем fetchWithRetry для refresh токена чтобы избежать 502
+      const response = await this.fetchWithRetry(`${this.baseURL}/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -303,33 +304,46 @@ export class ApiClient {
       if ((response.status === 401 || response.status === 403) && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
         if (this.isRefreshing) {
           // Если токен уже обновляется, ждем завершения
-          return new Promise((resolve) => {
+          return new Promise((resolve, reject) => {
             this.addRefreshSubscriber(() => {
               // Повторяем запрос с обновленными cookies (используем fetchWithRetry для надежности)
-              resolve(this.fetchWithRetry(url, enhancedOptions))
+              this.fetchWithRetry(url, enhancedOptions).then(resolve).catch(reject)
             })
           })
         }
 
         this.isRefreshing = true
 
-        const refreshSuccess = await this.refreshAccessToken()
-        
-        this.isRefreshing = false
+        try {
+          const refreshSuccess = await this.refreshAccessToken()
+          
+          if (refreshSuccess) {
+            this.onRefreshed()
 
-        if (refreshSuccess) {
-          this.onRefreshed()
-
-          // Повторяем оригинальный запрос с обновленными cookies (используем fetchWithRetry)
-          return this.fetchWithRetry(url, enhancedOptions)
-        } else {
-          // Не удалось обновить токен - редирект на логин
-          this.logout()
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login'
+            // Повторяем оригинальный запрос с обновленными cookies (используем fetchWithRetry)
+            const retryResponse = await this.fetchWithRetry(url, enhancedOptions)
+            this.isRefreshing = false
+            return retryResponse
+          } else {
+            // Не удалось обновить токен - редирект на логин
+            this.isRefreshing = false
+            this.logout()
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login'
+            }
+            // Выбрасываем специальную ошибку, чтобы прервать выполнение
+            throw new Error('SESSION_EXPIRED')
           }
-          // Выбрасываем специальную ошибку, чтобы прервать выполнение
-          throw new Error('SESSION_EXPIRED')
+        } catch (error) {
+          this.isRefreshing = false
+          // Если ошибка при обновлении токена - тоже редирект на логин
+          if (error instanceof Error && error.message !== 'SESSION_EXPIRED') {
+            this.logout()
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login'
+            }
+          }
+          throw error
         }
       }
 
