@@ -74,7 +74,15 @@ function OrdersContent() {
         return status.includes('работает') || status.includes('работающий') || status === 'active';
       });
       
-      const ordersData = Array.isArray(response.data?.orders) ? response.data.orders : []
+      // API может возвращать данные в разных форматах - обрабатываем оба
+      // Формат 1: { data: { orders: [...], pagination: {...} } }
+      // Формат 2: { data: [...], pagination: {...} }
+      const responseData = response as any
+      const ordersData = Array.isArray(responseData.data?.orders) 
+        ? responseData.data.orders 
+        : Array.isArray(responseData.data) 
+          ? responseData.data 
+          : []
       setOrders(ordersData)
       setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
       setAllMasters(masters)
@@ -83,7 +91,7 @@ function OrdersContent() {
       setAllRks(filterOptions.rks || [])
       setAllTypeEquipments(filterOptions.typeEquipments || [])
       
-      setPagination(response.data?.pagination || response.pagination || {
+      setPagination(responseData.data?.pagination || responseData.pagination || {
         page: 1,
         limit: itemsPerPage,
         total: 0,
@@ -539,7 +547,7 @@ function OrdersContent() {
                         </span>
                       </td>
                       <td className="py-2 px-2 text-gray-800">{order.master?.name || '-'}</td>
-                      <td className="py-2 px-2 text-gray-800 font-semibold">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</td>
+                      <td className="py-2 px-2 text-gray-800 font-semibold">{order.result && typeof order.result === 'number' ? `${order.result.toLocaleString()} ₽` : '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -563,7 +571,7 @@ function OrdersContent() {
                         {order.typeOrder}
                       </span>
                     </div>
-                    <span className="text-gray-800 font-semibold">{order.result ? `${order.result.toLocaleString()} ₽` : '-'}</span>
+                    <span className="text-gray-800 font-semibold">{order.result && typeof order.result === 'number' ? `${order.result.toLocaleString()} ₽` : '-'}</span>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
@@ -576,14 +584,7 @@ function OrdersContent() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Дата встречи:</span>
-                      <span className="text-gray-800">{order.dateMeeting ? new Date(order.dateMeeting).toLocaleDateString('ru-RU', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        timeZone: 'UTC'
-                      }) : '-'}</span>
+                      <span className="text-gray-800">{formatDate(order.dateMeeting)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Мастер:</span>

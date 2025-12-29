@@ -543,11 +543,22 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения заказов')
+      try {
+        const error = await response.json()
+        throw new Error(error.message || 'Ошибка получения заказов')
+      } catch {
+        throw new Error(`Ошибка получения заказов: ${response.status}`)
+      }
     }
 
-    return response.json()
+    // Безопасный парсинг JSON - защита от ошибки "The string did not match the expected pattern"
+    try {
+      return await response.json()
+    } catch (parseError) {
+      console.error('Failed to parse orders response:', parseError)
+      // Возвращаем пустой результат вместо падения (структура совместима с ожидаемой)
+      return { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } } as OrdersResponse
+    }
   }
 
   async getOrder(id: number): Promise<Order> {
@@ -611,12 +622,15 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения статусов')
+      throw new Error('Ошибка получения статусов')
     }
 
-    const result = await response.json()
-    return result.data || result
+    try {
+      const result = await response.json()
+      return result.data || result
+    } catch {
+      return ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ']
+    }
   }
 
   async getFilterOptions(): Promise<{ rks: string[], typeEquipments: string[] }> {
@@ -626,12 +640,15 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения опций фильтров')
+      throw new Error('Ошибка получения опций фильтров')
     }
 
-    const result = await response.json()
-    return result.data || { rks: [], typeEquipments: [] }
+    try {
+      const result = await response.json()
+      return result.data || { rks: [], typeEquipments: [] }
+    } catch {
+      return { rks: [], typeEquipments: [] }
+    }
   }
 
   // Masters API (Users Service)
@@ -642,12 +659,15 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения мастеров')
+      throw new Error('Ошибка получения мастеров')
     }
 
-    const result = await response.json()
-    return result.data || result
+    try {
+      const result = await response.json()
+      return result.data || result
+    } catch {
+      return []
+    }
   }
 
   // Employees API
