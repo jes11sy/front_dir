@@ -144,15 +144,15 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
             .filter((doc): doc is string => !!doc && typeof doc === 'string' && doc.trim() !== '')
             .map(doc => doc.startsWith('http') ? doc : `${S3_BASE_URL}/${doc}`)
           if (bsoUrls.length > 0) {
-            bsoUpload.setExistingPreviews(bsoUrls)
-          }
+          bsoUpload.setExistingPreviews(bsoUrls)
+        }
         }
         if (order.expenditureDoc && Array.isArray(order.expenditureDoc)) {
           const expenditureUrls = order.expenditureDoc
             .filter((doc): doc is string => !!doc && typeof doc === 'string' && doc.trim() !== '')
             .map(doc => doc.startsWith('http') ? doc : `${S3_BASE_URL}/${doc}`)
           if (expenditureUrls.length > 0) {
-            expenditureUpload.setExistingPreviews(expenditureUrls)
+          expenditureUpload.setExistingPreviews(expenditureUrls)
           }
         }
         

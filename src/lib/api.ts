@@ -246,7 +246,7 @@ export class ApiClient {
         maxRetries: 2,        // Всего 2 повторные попытки (итого 3 запроса)
         retryDelay: 1000,     // 1 секунда между попытками
         backoff: true,        // Экспоненциальная задержка (1s, 2s, 4s...)
-        timeout: 30000,       // 30 секунд таймаут
+        timeout: 10000,       // 10 секунд таймаут (меньше чем у прокси/ingress чтобы избежать 502)
         retryOn: ['NETWORK_ERROR', 'TIMEOUT', 'SERVER_ERROR'], // Только на эти ошибки
       },
     })
@@ -305,8 +305,8 @@ export class ApiClient {
           // Если токен уже обновляется, ждем завершения
           return new Promise((resolve) => {
             this.addRefreshSubscriber(() => {
-              // Повторяем запрос с обновленными cookies
-              resolve(fetch(url, enhancedOptions))
+              // Повторяем запрос с обновленными cookies (используем fetchWithRetry для надежности)
+              resolve(this.fetchWithRetry(url, enhancedOptions))
             })
           })
         }
@@ -320,8 +320,8 @@ export class ApiClient {
         if (refreshSuccess) {
           this.onRefreshed()
 
-          // Повторяем оригинальный запрос с обновленными cookies
-          return fetch(url, enhancedOptions)
+          // Повторяем оригинальный запрос с обновленными cookies (используем fetchWithRetry)
+          return this.fetchWithRetry(url, enhancedOptions)
         } else {
           // Не удалось обновить токен - редирект на логин
           this.logout()

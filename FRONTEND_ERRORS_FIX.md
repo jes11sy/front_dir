@@ -4,16 +4,26 @@
 
 ### Исправлена плавающая ошибка "The string did not match the expected pattern"
 
-**Причина**: Массивы `bsoDoc` и `expenditureDoc` в заказах иногда содержали `null`, `undefined` или пустые строки. При попытке построить URL для таких значений возникала ошибка.
+**Возможные причины**:
+1. Невалидный JSON ответ от API (иногда сервер возвращает пустой или некорректный ответ)
+2. Невалидные данные в полях `dateMeeting`, `result` (не число а строка)
+3. `null`/`undefined` в массивах `bsoDoc`/`expenditureDoc`
 
-**Решение**:
-1. Убрана асинхронная функция `getSignedUrl()` - это была просто конкатенация строк, файлы публичные в S3
-2. Добавлена фильтрация невалидных значений перед построением URL
-3. Добавлена защита от `null`/`undefined` дат в `formatDate()`
+**Решение (страница списка заказов - основной фикс)**:
+1. Защитный парсинг JSON в `api.ts` для `getOrders()`, `getMasters()`, `getOrderStatuses()`, `getFilterOptions()`
+2. Защита `formatDate()` от невалидных дат (`null`, `undefined`, `Invalid Date`)
+3. Защита `toLocaleString()` для `result` - проверка что это число
+4. Унифицированное использование `formatDate()` в мобильных карточках
+5. Гибкая обработка разных форматов ответа API
+
+**Решение (страница деталей заказа)**:
+1. Убрана асинхронная функция `getSignedUrl()` - это просто конкатенация строк, S3 публичный
+2. Добавлена фильтрация `null`/пустых значений в массивах документов
 
 **Изменённые файлы**:
+- `src/lib/api.ts` - безопасный парсинг JSON с fallback значениями
+- `src/app/orders/page.tsx` - защита `formatDate()`, `toLocaleString()`, гибкий парсинг ответа
 - `src/app/orders/[id]/page.tsx` - прямое построение S3 URL с фильтрацией
-- `src/app/orders/page.tsx` - защита `formatDate()` от невалидных дат
 - `src/components/orders/OrderMultipleFileUpload.tsx` - упрощён, убран `getSignedUrl`
 - `src/components/orders/OrderFileUpload.tsx` - упрощён, убран `getSignedUrl`
 - `src/components/orders/OrderInfoTabContent.tsx` - защита от null дат
