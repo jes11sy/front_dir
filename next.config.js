@@ -33,6 +33,7 @@ const nextConfig = {
         ...config.optimization,
         moduleIds: 'deterministic',
         runtimeChunk: 'single',
+        minimize: true,
         splitChunks: {
           chunks: 'all',
           cacheGroups: {
@@ -57,6 +58,15 @@ const nextConfig = {
           },
         },
       }
+    }
+
+    // Игнорируем определенные модули, которые могут вызывать проблемы
+    config.resolve = config.resolve || {}
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
     }
 
     return config

@@ -4,6 +4,7 @@ import './globals.css'
 import { Navigation } from '@/components/navigation'
 import ClientLayout from './client-layout'
 import { ToastProvider } from '@/components/ui/toast'
+import Script from 'next/script'
 
 // Оптимизация шрифта Inter для производительности
 const inter = Inter({ 
@@ -31,6 +32,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" className={inter.variable}>
+      <head>
+        <Script id="error-handler" strategy="beforeInteractive">
+          {`
+            // Глобальная обработка необработанных ошибок
+            window.addEventListener('error', function(event) {
+              console.error('Global error caught:', event.error);
+              // Предотвращаем падение приложения
+              event.preventDefault();
+            });
+            
+            // Обработка необработанных промисов
+            window.addEventListener('unhandledrejection', function(event) {
+              console.error('Unhandled promise rejection:', event.reason);
+              // Предотвращаем падение приложения
+              event.preventDefault();
+            });
+          `}
+        </Script>
+      </head>
       <body className={inter.className}>
         <ToastProvider>
           <ClientLayout>

@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1';
 
 /**
  * Получить подписанный URL для одного файла
@@ -13,19 +13,24 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/a
  * @returns Подписанный URL для доступа к файлу
  */
 export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): Promise<string> {
-  if (!fileKey) {
+  // Проверяем и очищаем fileKey
+  if (!fileKey || typeof fileKey !== 'string' || fileKey.trim() === '') {
+    console.warn('⚠️ Invalid file key provided:', fileKey);
     throw new Error('File key is required');
   }
 
+  // Очищаем fileKey от потенциально опасных символов
+  const cleanFileKey = fileKey.trim();
+
   // Если fileKey уже является полным URL, возвращаем его как есть
-  if (fileKey.startsWith('http://') || fileKey.startsWith('https://')) {
-    console.warn('⚠️ File key is already a full URL, returning as is:', fileKey);
-    return fileKey;
+  if (cleanFileKey.startsWith('http://') || cleanFileKey.startsWith('https://')) {
+    console.warn('⚠️ File key is already a full URL, returning as is:', cleanFileKey);
+    return cleanFileKey;
   }
 
   try {
     const response = await fetch(
-      `${API_BASE_URL}/files/download/${encodeURIComponent(fileKey)}`,
+      `${API_BASE_URL}/files/download/${encodeURIComponent(cleanFileKey)}`,
       {
         credentials: 'include',
         headers: {
@@ -39,7 +44,7 @@ export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): P
       // ВАЖНО: Это временное решение! Запустите бэкенд для полной безопасности
       console.warn('⚠️ Backend not available, using fallback public URL. This is insecure!');
       const s3BaseUrl = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles';
-      return `${s3BaseUrl}/${fileKey}`;
+      return `${s3BaseUrl}/${cleanFileKey}`;
     }
 
     const result = await response.json();
@@ -49,7 +54,7 @@ export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): P
     console.error('Error getting signed URL, using fallback:', error);
     // Fallback к публичному URL если бэкенд недоступен
     const s3BaseUrl = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles';
-    return `${s3BaseUrl}/${fileKey}`;
+    return `${s3BaseUrl}/${cleanFileKey}`;
   }
 }
 
