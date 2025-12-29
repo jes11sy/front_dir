@@ -35,33 +35,41 @@
 
 ## Внесенные изменения
 
-### 1. `src/lib/s3-utils.ts`
+### 1. `src/lib/s3-utils.ts` - УПРОЩЕНО! 🎉
 ```typescript
-// ДО:
+// ДО: Сложная логика с API запросами и fallback
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): Promise<string> {
-  if (!fileKey) {
-    throw new Error('File key is required');
-  }
-  // ...
+  // 50+ строк кода с fetch, try-catch, fallback...
 }
 
-// ПОСЛЕ:
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1';
+// ПОСЛЕ: Простая прямая ссылка на S3
+const S3_BASE_URL = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles';
 
-export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): Promise<string> {
-  // Проверяем и очищаем fileKey
+export async function getSignedUrl(fileKey: string): Promise<string> {
   if (!fileKey || typeof fileKey !== 'string' || fileKey.trim() === '') {
-    console.warn('⚠️ Invalid file key provided:', fileKey);
     throw new Error('File key is required');
   }
 
-  // Очищаем fileKey от потенциально опасных символов
   const cleanFileKey = fileKey.trim();
-  // ...
+  
+  // Если уже полный URL - возвращаем как есть
+  if (cleanFileKey.startsWith('http://') || cleanFileKey.startsWith('https://')) {
+    return cleanFileKey;
+  }
+
+  // Возвращаем прямую ссылку на S3
+  return `${S3_BASE_URL}/${cleanFileKey}`;
 }
 ```
+
+**Изменения:**
+- ✅ Убрана вся логика с API запросами (не используется)
+- ✅ Убраны fallback и try-catch (не нужны)
+- ✅ Упрощена функция `getSignedUrls()` - теперь просто цикл
+- ✅ Убран параметр `expiresIn` (не используется для прямых ссылок)
+- ✅ Исправлена ошибка **"The string did not match the expected pattern"**
 
 ### 2. `src/app/layout.tsx`
 Добавлены глобальные обработчики ошибок:

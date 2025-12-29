@@ -1,61 +1,33 @@
 /**
- * Утилиты для работы с приватными файлами в S3
+ * Утилиты для работы с файлами в S3
  */
 
 import React from 'react';
 
+const S3_BASE_URL = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1';
 
 /**
- * Получить подписанный URL для одного файла
+ * Получить прямую ссылку на файл в S3
  * @param fileKey - ключ файла в S3 (например: "director/passport_doc/123.pdf")
- * @param expiresIn - время жизни ссылки в секундах (по умолчанию 3600 = 1 час)
- * @returns Подписанный URL для доступа к файлу
+ * @returns Прямая ссылка на файл в S3
  */
-export async function getSignedUrl(fileKey: string, expiresIn: number = 3600): Promise<string> {
-  // Проверяем и очищаем fileKey
+export async function getSignedUrl(fileKey: string): Promise<string> {
+  // Проверяем fileKey
   if (!fileKey || typeof fileKey !== 'string' || fileKey.trim() === '') {
     console.warn('⚠️ Invalid file key provided:', fileKey);
     throw new Error('File key is required');
   }
 
-  // Очищаем fileKey от потенциально опасных символов
   const cleanFileKey = fileKey.trim();
 
   // Если fileKey уже является полным URL, возвращаем его как есть
   if (cleanFileKey.startsWith('http://') || cleanFileKey.startsWith('https://')) {
-    console.warn('⚠️ File key is already a full URL, returning as is:', cleanFileKey);
     return cleanFileKey;
   }
 
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/files/download/${encodeURIComponent(cleanFileKey)}`,
-      {
-        credentials: 'include',
-        headers: {
-          'X-Use-Cookies': 'true',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      // Если бэкенд не доступен, используем старый публичный URL как fallback
-      // ВАЖНО: Это временное решение! Запустите бэкенд для полной безопасности
-      console.warn('⚠️ Backend not available, using fallback public URL. This is insecure!');
-      const s3BaseUrl = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles';
-      return `${s3BaseUrl}/${cleanFileKey}`;
-    }
-
-    const result = await response.json();
-    // API возвращает { success: true, data: { url: "...", cached: true/false } }
-    return result.data?.url || result.signedUrl;
-  } catch (error) {
-    console.error('Error getting signed URL, using fallback:', error);
-    // Fallback к публичному URL если бэкенд недоступен
-    const s3BaseUrl = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles';
-    return `${s3BaseUrl}/${cleanFileKey}`;
-  }
+  // Возвращаем прямую ссылку на S3
+  return `${S3_BASE_URL}/${cleanFileKey}`;
 }
 
 /**
@@ -112,46 +84,35 @@ export async function uploadFile(file: File, folderType: string): Promise<string
 }
 
 /**
- * Получить подписанные URL для нескольких файлов
+ * Получить прямые ссылки на несколько файлов в S3
  * @param fileKeys - массив ключей файлов в S3
- * @param expiresIn - время жизни ссылки в секундах
- * @returns Объект с ключами и подписанными URL
+ * @returns Объект с ключами и прямыми ссылками
  */
-export async function getSignedUrls(
-  fileKeys: string[], 
-  expiresIn: number = 3600
-): Promise<Record<string, string>> {
+export async function getSignedUrls(fileKeys: string[]): Promise<Record<string, string>> {
   if (!fileKeys || fileKeys.length === 0) {
     return {};
   }
 
-  try {
-    // Получаем URL для каждого файла параллельно
-    const urlPromises = fileKeys.map(async (key) => {
-      const url = await getSignedUrl(key, expiresIn);
-      return { key, url };
-    });
-
-    const results = await Promise.all(urlPromises);
-    
-    // Преобразуем массив в объект
-    return results.reduce((acc, { key, url }) => {
-      acc[key] = url;
-      return acc;
-    }, {} as Record<string, string>);
-  } catch (error) {
-    console.error('Error getting signed URLs:', error);
-    throw error;
+  const urls: Record<string, string> = {};
+  
+  for (const key of fileKeys) {
+    try {
+      urls[key] = await getSignedUrl(key);
+    } catch (error) {
+      console.error(`Error getting URL for ${key}:`, error);
+      urls[key] = ''; // Пустая строка в случае ошибки
+    }
   }
+
+  return urls;
 }
 
 /**
- * Хук для загрузки подписанного URL файла
+ * Хук для получения прямой ссылки на файл в S3
  * @param fileKey - ключ файла в S3
- * @param expiresIn - время жизни ссылки
  * @returns URL файла или null
  */
-export function useFileUrl(fileKey: string | null | undefined, expiresIn: number = 3600) {
+export function useFileUrl(fileKey: string | null | undefined) {
   const [url, setUrl] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
@@ -166,7 +127,7 @@ export function useFileUrl(fileKey: string | null | undefined, expiresIn: number
     setLoading(true);
     setError(null);
 
-    getSignedUrl(fileKey, expiresIn)
+    getSignedUrl(fileKey)
       .then(signedUrl => {
         if (mounted) {
           setUrl(signedUrl);
@@ -183,7 +144,7 @@ export function useFileUrl(fileKey: string | null | undefined, expiresIn: number
     return () => {
       mounted = false;
     };
-  }, [fileKey, expiresIn]);
+  }, [fileKey]);
 
   return { url, loading, error };
 }
