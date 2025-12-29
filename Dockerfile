@@ -7,8 +7,8 @@ WORKDIR /app
 # Копируем package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm ci --only=production
+# Устанавливаем зависимости БЕЗ выполнения postinstall скриптов
+RUN npm ci --only=production --ignore-scripts
 
 # Этап сборки
 FROM node:18-alpine AS builder
@@ -17,8 +17,8 @@ WORKDIR /app
 # Копируем package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем все зависимости (включая dev)
-RUN npm ci
+# Устанавливаем все зависимости (включая dev) БЕЗ postinstall скриптов
+RUN npm ci --ignore-scripts
 
 # Копируем исходный код
 COPY . .
@@ -40,11 +40,15 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# 🔒 БЕЗОПАСНОСТЬ: Удаляем опасные утилиты которые используются в эксплойтах
+RUN rm -f /usr/bin/wget /usr/bin/curl /usr/bin/nc /usr/bin/netcat 2>/dev/null || true \
+    && rm -rf /tmp/* /var/tmp/*
+
 # Копируем package.json
 COPY package*.json ./
 
-# Устанавливаем только production зависимости
-RUN npm ci --only=production && npm cache clean --force
+# Устанавливаем только production зависимости БЕЗ postinstall скриптов
+RUN npm ci --only=production --ignore-scripts && npm cache clean --force
 
 # Копируем собранное приложение из builder этапа (standalone)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
