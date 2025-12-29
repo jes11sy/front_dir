@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { apiClient, CityReport } from '@/lib/api'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 
 function CityReportContent() {
@@ -92,9 +92,9 @@ function CityReportContent() {
   const avgCheck = totals.completedOrders > 0 ? totals.turnover / totals.completedOrders : 0
 
   // Экспорт в Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     // Создаем новую книгу Excel
-    const workbook = XLSX.utils.book_new();
+    const workbook = new ExcelJS.Workbook();
 
     // Подготавливаем данные для листа
     const worksheetData = [
@@ -120,73 +120,36 @@ function CityReportContent() {
     ];
 
     // Создаем лист
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const worksheet = workbook.addWorksheet('Отчет по городам');
+    worksheet.addRows(worksheetData);
 
     // Настройка ширины колонок
-    worksheet['!cols'] = [
-      { wch: 20 }, // Город
-      { wch: 18 }, // Закрытых заказов
-      { wch: 18 }, // Средний чек
-      { wch: 18 }, // Оборот
-      { wch: 20 }, // Доход компании
-      { wch: 15 }  // Касса
+    worksheet.columns = [
+      { width: 20 }, // Город
+      { width: 18 }, // Закрытых заказов
+      { width: 18 }, // Средний чек
+      { width: 18 }, // Оборот
+      { width: 20 }, // Доход компании
+      { width: 15 }  // Касса
     ];
 
-    // Стилизация заголовка отчета
-    if (worksheet['A1']) {
-      worksheet['A1'].s = {
-        font: { bold: true, size: 18, color: { rgb: "FFFFFF" } },
-        fill: { fgColor: { rgb: "2A6B68" } },
-        alignment: { horizontal: "center", vertical: "center" }
-      };
-    }
-
-    // Объединяем ячейки для заголовка отчета
-    worksheet['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }
-    ];
-
-    // Стилизация заголовков колонок
-    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3'].forEach(cell => {
-      if (worksheet[cell]) {
-        worksheet[cell].s = {
-          font: { bold: true, color: { rgb: "FFFFFF" } },
-          fill: { fgColor: { rgb: "1A5A57" } },
-          alignment: { horizontal: "center", vertical: "center" },
-          border: {
-            top: { style: "thin", color: { rgb: "000000" } },
-            bottom: { style: "thin", color: { rgb: "000000" } },
-            left: { style: "thin", color: { rgb: "000000" } },
-            right: { style: "thin", color: { rgb: "000000" } }
-          }
-        };
-      }
-    });
-
-    // Стилизация данных
-    (Array.isArray(filteredReports) ? filteredReports : []).forEach((_, index) => {
-      const rowIndex = 4 + index;
-      ['A', 'B', 'C', 'D', 'E', 'F'].forEach(col => {
-        const cell = `${col}${rowIndex}`;
-        if (worksheet[cell]) {
-          worksheet[cell].s = {
-            alignment: { horizontal: col === 'A' ? "left" : "center", vertical: "center" },
-            border: {
-              top: { style: "thin", color: { rgb: "CCCCCC" } },
-              bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-              left: { style: "thin", color: { rgb: "CCCCCC" } },
-              right: { style: "thin", color: { rgb: "CCCCCC" } }
-            }
-          };
-        }
-      });
-    });
-
-    // Добавляем лист в книгу
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Отчет по городам');
+    // Стилизация заголовков (упрощенная для exceljs)
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, size: 18 };
+    headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    
+    // Объединяем ячейки для заголовка
+    worksheet.mergeCells('A1:F1');
 
     // Скачиваем файл
-    XLSX.writeFile(workbook, `отчет_по_городам_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '_')}.xlsx`);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `отчет_по_городам_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '_')}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
   // Данные для сводной таблицы

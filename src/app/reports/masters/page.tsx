@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { apiClient, MasterReport } from '@/lib/api'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 function MastersReportContent() {
   const [startDate, setStartDate] = useState('')
@@ -73,7 +73,7 @@ function MastersReportContent() {
   }
 
   // Экспорт в Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     // Фильтруем мастеров с 0 заказов и группируем данные по городам
     const filteredReports = masterReports.filter(report => report.totalOrders > 0)
     const dataByCity = filteredReports.reduce((acc, report) => {
@@ -85,7 +85,7 @@ function MastersReportContent() {
     }, {} as Record<string, MasterReport[]>);
 
     // Создаем новую книгу Excel
-    const workbook = XLSX.utils.book_new();
+    const workbook = new ExcelJS.Workbook();
 
     // Создаем лист для каждого города
     Object.entries(dataByCity).forEach(([city, cityData]) => {
@@ -107,15 +107,16 @@ function MastersReportContent() {
       ];
 
       // Создаем лист
-      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+      const worksheet = workbook.addWorksheet(city);
+      worksheet.addRows(worksheetData);
 
       // Настройка ширины колонок
-      worksheet['!cols'] = [
+      worksheet.columns = [
         { wch: 25 }, // Мастер
-        { wch: 15 }, // Всего заказов
-        { wch: 15 }, // Оборот
-        { wch: 15 }, // Средний чек
-        { wch: 15 }  // Зарплата
+        { width: 15 }, // Всего заказов
+        { width: 15 }, // Оборот
+        { width: 15 }, // Средний чек
+        { width: 15 }  // Зарплата
       ];
 
       // Стилизация заголовка города
@@ -168,12 +169,17 @@ function MastersReportContent() {
         });
       });
 
-      // Добавляем лист в книгу
-      XLSX.utils.book_append_sheet(workbook, worksheet, city);
     });
 
     // Скачиваем файл
-    XLSX.writeFile(workbook, `отчет_по_мастерам_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '_')}.xlsx`);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `отчет_по_мастерам_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '_')}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
   // Группируем данные по городам (только для мастеров с заказами)
