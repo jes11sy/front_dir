@@ -188,17 +188,23 @@ function OrdersContent() {
     router.push(`/orders/${orderId}`)
   }
 
-  // Функция для форматирования даты
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'UTC'
-    })
+  // Функция для форматирования даты (с защитой от null/undefined/невалидных значений)
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return '-'
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return '-'
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC'
+      })
+    } catch {
+      return '-'
+    }
   }
 
   // Функция для получения цвета статуса

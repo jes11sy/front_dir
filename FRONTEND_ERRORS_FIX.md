@@ -1,6 +1,26 @@
 # Исправление ошибок Frontend Director
 
-## Дата: 29 декабря 2025
+## Обновление: 29 декабря 2025 (v2)
+
+### Исправлена плавающая ошибка "The string did not match the expected pattern"
+
+**Причина**: Массивы `bsoDoc` и `expenditureDoc` в заказах иногда содержали `null`, `undefined` или пустые строки. При попытке построить URL для таких значений возникала ошибка.
+
+**Решение**:
+1. Убрана асинхронная функция `getSignedUrl()` - это была просто конкатенация строк, файлы публичные в S3
+2. Добавлена фильтрация невалидных значений перед построением URL
+3. Добавлена защита от `null`/`undefined` дат в `formatDate()`
+
+**Изменённые файлы**:
+- `src/app/orders/[id]/page.tsx` - прямое построение S3 URL с фильтрацией
+- `src/app/orders/page.tsx` - защита `formatDate()` от невалидных дат
+- `src/components/orders/OrderMultipleFileUpload.tsx` - упрощён, убран `getSignedUrl`
+- `src/components/orders/OrderFileUpload.tsx` - упрощён, убран `getSignedUrl`
+- `src/components/orders/OrderInfoTabContent.tsx` - защита от null дат
+
+---
+
+## Дата: 29 декабря 2025 (v1)
 
 ## Проблемы, которые были обнаружены
 

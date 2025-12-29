@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { X, Download, UploadCloud } from 'lucide-react';
-import { getSignedUrl } from '@/lib/s3-utils';
 
 interface FileWithPreview {
   file: File | null;
@@ -47,21 +46,12 @@ export const OrderMultipleFileUpload: React.FC<OrderMultipleFileUploadProps> = (
     }
   };
 
-  const handleDownload = async (fileWithPreview: FileWithPreview) => {
-    if (fileWithPreview.file) {
-      // Это новый файл - скачиваем blob
-      const link = document.createElement('a');
-      link.href = fileWithPreview.preview;
-      link.download = fileWithPreview.file.name;
-      link.click();
-    } else {
-      // Это существующий файл из S3
-      const downloadUrl = await getSignedUrl(fileWithPreview.preview);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `file_${fileWithPreview.id}`;
-      link.click();
-    }
+  const handleDownload = (fileWithPreview: FileWithPreview) => {
+    const link = document.createElement('a');
+    link.href = fileWithPreview.preview; // preview уже содержит полный URL (blob: или https://s3...)
+    link.download = fileWithPreview.file?.name || `file_${fileWithPreview.id}`;
+    link.target = '_blank';
+    link.click();
   };
 
   return (
@@ -107,9 +97,9 @@ export const OrderMultipleFileUpload: React.FC<OrderMultipleFileUploadProps> = (
                 <div className="absolute top-1 right-1 flex gap-1">
                   <button
                     type="button"
-                    onClick={async (e) => {
+                    onClick={(e) => {
                       e.stopPropagation();
-                      await handleDownload(fileWithPreview);
+                      handleDownload(fileWithPreview);
                     }}
                     className="w-7 h-7 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center transition-all shadow-lg"
                     title="Скачать"

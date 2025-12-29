@@ -55,14 +55,14 @@ export const OrderInfoTabContent: React.FC<OrderInfoTabContentProps> = ({ order 
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Дата встречи</label>
-            <p className="text-gray-800">{new Date(order.dateMeeting).toLocaleDateString('ru-RU', {
+            <p className="text-gray-800">{order.dateMeeting ? new Date(order.dateMeeting).toLocaleDateString('ru-RU', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
               timeZone: 'UTC'
-            })}</p>
+            }) : '-'}</p>
           </div>
           
           <div>

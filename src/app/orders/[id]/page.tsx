@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { apiClient, Order, Master, Call } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { StatusSelect } from '@/components/orders/StatusSelect'
-import { getSignedUrl } from '@/lib/s3-utils'
 import { logger } from '@/lib/logger'
 import { useOrder, useOrderCalls } from '@/hooks/useOrder'
 import { useMultipleFileUpload } from '@/hooks/useMultipleFileUpload'
@@ -136,15 +135,25 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         setIsPartner(order.partner || false)
         setPartnerPercent(order.partnerPercent?.toString() || '')
         
-        // Загружаем подписанные URL для существующих файлов
-        // БД теперь хранит массивы напрямую (String[])
-        if (order.bsoDoc && Array.isArray(order.bsoDoc) && order.bsoDoc.length > 0) {
-          const bsoUrls = await Promise.all(order.bsoDoc.map(doc => getSignedUrl(doc)))
-          bsoUpload.setExistingPreviews(bsoUrls)
+        // Строим прямые URL для существующих файлов в S3 (публичный доступ)
+        // Фильтруем null, undefined и пустые строки для избежания ошибки "The string did not match the expected pattern"
+        const S3_BASE_URL = 'https://s3.twcstorage.ru/f7eead03-crmfiles'
+        
+        if (order.bsoDoc && Array.isArray(order.bsoDoc)) {
+          const bsoUrls = order.bsoDoc
+            .filter((doc): doc is string => !!doc && typeof doc === 'string' && doc.trim() !== '')
+            .map(doc => doc.startsWith('http') ? doc : `${S3_BASE_URL}/${doc}`)
+          if (bsoUrls.length > 0) {
+            bsoUpload.setExistingPreviews(bsoUrls)
+          }
         }
-        if (order.expenditureDoc && Array.isArray(order.expenditureDoc) && order.expenditureDoc.length > 0) {
-          const expenditureUrls = await Promise.all(order.expenditureDoc.map(doc => getSignedUrl(doc)))
-          expenditureUpload.setExistingPreviews(expenditureUrls)
+        if (order.expenditureDoc && Array.isArray(order.expenditureDoc)) {
+          const expenditureUrls = order.expenditureDoc
+            .filter((doc): doc is string => !!doc && typeof doc === 'string' && doc.trim() !== '')
+            .map(doc => doc.startsWith('http') ? doc : `${S3_BASE_URL}/${doc}`)
+          if (expenditureUrls.length > 0) {
+            expenditureUpload.setExistingPreviews(expenditureUrls)
+          }
         }
         
         // Устанавливаем выбранного мастера

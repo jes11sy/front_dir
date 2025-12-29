@@ -3,11 +3,8 @@
  */
 
 import React from 'react';
-import { Order } from '@/lib/api';
-import { getSignedUrl } from '@/lib/s3-utils';
 
 interface OrderFileUploadProps {
-  order: Order;
   bsoFile: File | null;
   expenditureFile: File | null;
   bsoPreview: string | null;
@@ -22,7 +19,6 @@ interface OrderFileUploadProps {
 }
 
 export const OrderFileUpload: React.FC<OrderFileUploadProps> = ({
-  order,
   bsoFile,
   expenditureFile,
   bsoPreview,
@@ -85,28 +81,21 @@ export const OrderFileUpload: React.FC<OrderFileUploadProps> = ({
                   src={bsoPreview} 
                   alt="Превью БСО" 
                   className="mx-auto max-w-full max-h-48 object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={async (e) => {
+                  onClick={(e) => {
                     e.stopPropagation()
-                    let viewUrl = bsoPreview
-                    if (!bsoPreview.startsWith('blob:') && order.bsoDoc) {
-                      viewUrl = await getSignedUrl(order.bsoDoc)
-                    }
-                    window.open(viewUrl, '_blank')
+                    window.open(bsoPreview, '_blank')
                   }}
                 />
                 <div className="absolute top-2 right-2 flex gap-2 z-20">
                   <button
                     type="button"
-                    onClick={async (e) => {
+                    onClick={(e) => {
                       e.stopPropagation()
                       e.preventDefault()
-                      let downloadUrl = bsoPreview
-                      if (!bsoPreview.startsWith('blob:') && order.bsoDoc) {
-                        downloadUrl = await getSignedUrl(order.bsoDoc)
-                      }
                       const link = document.createElement('a')
-                      link.href = downloadUrl
+                      link.href = bsoPreview
                       link.download = bsoFile?.name || 'bso'
+                      link.target = '_blank'
                       link.click()
                     }}
                     className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg pointer-events-auto"
@@ -201,28 +190,21 @@ export const OrderFileUpload: React.FC<OrderFileUploadProps> = ({
                   src={expenditurePreview} 
                   alt="Превью документа расхода" 
                   className="mx-auto max-w-full max-h-48 object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={async (e) => {
+                  onClick={(e) => {
                     e.stopPropagation()
-                    let viewUrl = expenditurePreview
-                    if (!expenditurePreview.startsWith('blob:') && order.expenditureDoc) {
-                      viewUrl = await getSignedUrl(order.expenditureDoc)
-                    }
-                    window.open(viewUrl, '_blank')
+                    window.open(expenditurePreview, '_blank')
                   }}
                 />
                 <div className="absolute top-2 right-2 flex gap-2 z-20">
                   <button
                     type="button"
-                    onClick={async (e) => {
+                    onClick={(e) => {
                       e.stopPropagation()
                       e.preventDefault()
-                      let downloadUrl = expenditurePreview
-                      if (!expenditurePreview.startsWith('blob:') && order.expenditureDoc) {
-                        downloadUrl = await getSignedUrl(order.expenditureDoc)
-                      }
                       const link = document.createElement('a')
-                      link.href = downloadUrl
+                      link.href = expenditurePreview
                       link.download = expenditureFile?.name || 'expenditure'
+                      link.target = '_blank'
                       link.click()
                     }}
                     className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg pointer-events-auto"
