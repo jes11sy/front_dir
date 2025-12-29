@@ -197,19 +197,21 @@ function OrdersContent() {
   }
 
   // Функция для форматирования даты (с защитой от null/undefined/невалидных значений)
+  // Упрощенная версия для мобильных браузеров которые могут не поддерживать сложные опции локали
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '-'
     try {
-    const date = new Date(dateString)
+      const date = new Date(dateString)
       if (isNaN(date.getTime())) return '-'
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'UTC'
-    })
+      
+      // Простое форматирование без сложных опций локали (работает на всех устройствах)
+      const day = String(date.getUTCDate()).padStart(2, '0')
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+      const year = date.getUTCFullYear()
+      const hours = String(date.getUTCHours()).padStart(2, '0')
+      const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+      
+      return `${day}.${month}.${year} ${hours}:${minutes}`
     } catch {
       return '-'
     }
@@ -547,7 +549,18 @@ function OrdersContent() {
                         </span>
                       </td>
                       <td className="py-2 px-2 text-gray-800">{order.master?.name || '-'}</td>
-                      <td className="py-2 px-2 text-gray-800 font-semibold">{order.result && typeof order.result === 'number' ? `${order.result.toLocaleString()} ₽` : '-'}</td>
+                      <td className="py-2 px-2 text-gray-800 font-semibold">
+                        {order.result && typeof order.result === 'number' 
+                          ? (() => {
+                              try {
+                                // Простое форматирование числа без локали (работает на всех устройствах)
+                                return `${order.result.toLocaleString()} ₽`
+                              } catch {
+                                return `${order.result} ₽`
+                              }
+                            })()
+                          : '-'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -571,7 +584,18 @@ function OrdersContent() {
                         {order.typeOrder}
                       </span>
                     </div>
-                    <span className="text-gray-800 font-semibold">{order.result && typeof order.result === 'number' ? `${order.result.toLocaleString()} ₽` : '-'}</span>
+                    <span className="text-gray-800 font-semibold">
+                      {order.result && typeof order.result === 'number' 
+                        ? (() => {
+                            try {
+                              // Простое форматирование числа без локали (работает на всех устройствах)
+                              return `${order.result.toLocaleString()} ₽`
+                            } catch {
+                              return `${order.result} ₽`
+                            }
+                          })()
+                        : '-'}
+                    </span>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">

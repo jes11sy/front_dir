@@ -522,22 +522,31 @@ export class ApiClient {
     dateFrom?: string
     dateTo?: string
   } = {}): Promise<OrdersResponse> {
-    const searchParams = new URLSearchParams()
+    // Защита от ошибки "The string did not match the expected pattern" в URLSearchParams (Safari iOS строже)
+    // Используем ручное построение query string вместо URLSearchParams для совместимости
+    const queryParts: string[] = []
     
-    if (params.page) searchParams.append('page', params.page.toString())
-    if (params.limit) searchParams.append('limit', params.limit.toString())
-    if (params.status) searchParams.append('status', params.status)
-    if (params.city) searchParams.append('city', params.city)
-    if (params.search) searchParams.append('search', params.search)
-    // ✅ ИСПРАВЛЕНИЕ: отправляем masterId вместо master
-    if (params.master) searchParams.append('masterId', params.master)
-    if (params.rk) searchParams.append('rk', params.rk)
-    if (params.typeEquipment) searchParams.append('typeEquipment', params.typeEquipment)
-    if (params.dateType) searchParams.append('dateType', params.dateType)
-    if (params.dateFrom) searchParams.append('dateFrom', params.dateFrom)
-    if (params.dateTo) searchParams.append('dateTo', params.dateTo)
+    try {
+      if (params.page) queryParts.push(`page=${encodeURIComponent(params.page.toString())}`)
+      if (params.limit) queryParts.push(`limit=${encodeURIComponent(params.limit.toString())}`)
+      if (params.status && params.status.trim()) queryParts.push(`status=${encodeURIComponent(params.status.trim())}`)
+      if (params.city && params.city.trim()) queryParts.push(`city=${encodeURIComponent(params.city.trim())}`)
+      if (params.search && params.search.trim()) queryParts.push(`search=${encodeURIComponent(params.search.trim())}`)
+      if (params.master && params.master.trim()) queryParts.push(`masterId=${encodeURIComponent(params.master.trim())}`)
+      if (params.rk && params.rk.trim()) queryParts.push(`rk=${encodeURIComponent(params.rk.trim())}`)
+      if (params.typeEquipment && params.typeEquipment.trim()) queryParts.push(`typeEquipment=${encodeURIComponent(params.typeEquipment.trim())}`)
+      if (params.dateType) queryParts.push(`dateType=${encodeURIComponent(params.dateType)}`)
+      if (params.dateFrom && params.dateFrom.trim()) queryParts.push(`dateFrom=${encodeURIComponent(params.dateFrom.trim())}`)
+      if (params.dateTo && params.dateTo.trim()) queryParts.push(`dateTo=${encodeURIComponent(params.dateTo.trim())}`)
+    } catch (error) {
+      // Если ошибка - просто не добавляем параметры
+    }
     
-    const response = await this.safeFetch(`${this.baseURL}/orders?${searchParams}`, {
+    const url = queryParts.length > 0
+      ? `${this.baseURL}/orders?${queryParts.join('&')}`
+      : `${this.baseURL}/orders`
+    
+    const response = await this.safeFetch(url, {
       method: 'GET',
       // 🍪 Headers добавляются автоматически в safeFetch
     })

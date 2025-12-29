@@ -131,7 +131,11 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         setMasterChange(order.masterChange?.toString() || '')
         setComment(order.comment || '')
         setPrepayment(order.prepayment?.toString() || '')
-        setDateClosmod(order.dateClosmod ? new Date(order.dateClosmod).toISOString().split('T')[0] : '')
+        try {
+          setDateClosmod(order.dateClosmod ? new Date(order.dateClosmod).toISOString().split('T')[0] : '')
+        } catch {
+          setDateClosmod('')
+        }
         setIsPartner(order.partner || false)
         setPartnerPercent(order.partnerPercent?.toString() || '')
         
@@ -259,7 +263,13 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         masterChange: masterChange && masterChange.trim() !== '' ? Number(masterChange) : undefined,
         comment: comment && comment.trim() !== '' ? comment : undefined,
         prepayment: prepayment && prepayment.trim() !== '' ? Number(prepayment) : undefined,
-        dateClosmod: dateClosmod && dateClosmod.trim() !== '' ? new Date(dateClosmod).toISOString() : undefined,
+        dateClosmod: dateClosmod && dateClosmod.trim() !== '' ? (() => {
+          try {
+            return new Date(dateClosmod).toISOString()
+          } catch {
+            return undefined
+          }
+        })() : undefined,
         bsoDoc: bsoDocPaths,
         expenditureDoc: expenditureDocPaths,
       }
