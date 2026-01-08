@@ -67,6 +67,45 @@ const nextConfig = {
     ].filter(Boolean).join('; ')
 
     return [
+      // Инвалидация кеша для JavaScript файлов и Server Actions
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          },
+        ],
+      },
+      {
+        source: '/_next/server-actions/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate, max-age=0'
+          },
+        ],
+      },
+      {
+        source: '/_next/data/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate, max-age=0'
+          },
+        ],
+      },
+      // HTML файлы - всегда проверять актуальность
+      {
+        source: '/:path*.html',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate, max-age=0'
+          },
+        ],
+      },
+      // Основные заголовки безопасности для всех страниц
       {
         source: '/:path*',
         headers: [
@@ -101,6 +140,11 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+          },
+          // Инвалидация кеша для страниц (чтобы браузер всегда проверял новые версии)
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate, max-age=0'
           },
         ],
       },
