@@ -80,16 +80,8 @@ function CityReportContent() {
     notOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.notOrders || r.orders?.notOrders || 0), 0),
     zeroOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     completedOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.completedOrders || 0), 0),
-    // Отказы = закрытые заказы минус выполненные в деньги (это "Отказ" статус + "Готово" с result < 0)
-    refusals: filteredReports.reduce((sum, r) => {
-      const closedOrders = r.stats?.totalOrders || r.orders?.closedOrders || 0;
-      const completedOrders = r.stats?.completedOrders || 0;
-      // Отказы = все закрытые заказы минус те, что выполнены в деньги (result > 0)
-      // Это включает "Отказ" статус и "Готово" с result <= 0
-      // Но по требованию: только result < 0 (не <= 0), поэтому вычитаем и zeroOrders
-      const zeroOrders = r.stats?.zeroOrders || 0;
-      return sum + (closedOrders - completedOrders - zeroOrders);
-    }, 0),
+    // Отказы = Ноль (заказы со статусом "Отказ" или "Готово" с result < 0)
+    refusals: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     microCheckCount: filteredReports.reduce((sum, r) => sum + (r.stats?.microCheckCount || 0), 0),
     over10kCount: filteredReports.reduce((sum, r) => sum + (r.stats?.over10kCount || 0), 0),
     masterHandover: filteredReports.reduce((sum, r) => sum + (r.stats?.masterHandover || 0), 0),
@@ -376,12 +368,7 @@ function CityReportContent() {
               <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2 text-purple-600">
-                    {(() => {
-                      const totalClosed = (Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.closedOrders || 0), 0)
-                      const totalClean = (Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.totalClean || 0), 0)
-                      const avgCheck = totalClosed > 0 ? totalClean / totalClosed : 0
-                      return formatNumber(Math.round(avgCheck)) + ' ₽'
-                    })()}
+                    {formatNumber(Math.round(avgCheck)) + ' ₽'}
                   </div>
                   <div className="text-gray-600 text-sm">Средний чек</div>
                 </div>
