@@ -80,6 +80,16 @@ function CityReportContent() {
     notOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.notOrders || r.orders?.notOrders || 0), 0),
     zeroOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     completedOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.completedOrders || 0), 0),
+    // Отказы = закрытые заказы минус выполненные в деньги (это "Отказ" статус + "Готово" с result < 0)
+    refusals: filteredReports.reduce((sum, r) => {
+      const closedOrders = r.stats?.totalOrders || r.orders?.closedOrders || 0;
+      const completedOrders = r.stats?.completedOrders || 0;
+      // Отказы = все закрытые заказы минус те, что выполнены в деньги (result > 0)
+      // Это включает "Отказ" статус и "Готово" с result <= 0
+      // Но по требованию: только result < 0 (не <= 0), поэтому вычитаем и zeroOrders
+      const zeroOrders = r.stats?.zeroOrders || 0;
+      return sum + (closedOrders - completedOrders - zeroOrders);
+    }, 0),
     microCheckCount: filteredReports.reduce((sum, r) => sum + (r.stats?.microCheckCount || 0), 0),
     over10kCount: filteredReports.reduce((sum, r) => sum + (r.stats?.over10kCount || 0), 0),
     masterHandover: filteredReports.reduce((sum, r) => sum + (r.stats?.masterHandover || 0), 0),
@@ -339,7 +349,7 @@ function CityReportContent() {
               <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2 text-teal-600">
-                    {formatNumber((Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.closedOrders || 0), 0))}
+                    {formatNumber(totals.totalOrders)}
                   </div>
                   <div className="text-gray-600 text-sm">Закрытых заказов</div>
                 </div>
@@ -348,7 +358,7 @@ function CityReportContent() {
               <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2 text-red-600">
-                    {formatNumber((Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.refusals || 0), 0))}
+                    {formatNumber(totals.refusals)}
                   </div>
                   <div className="text-gray-600 text-sm">Всего отказов</div>
                 </div>
@@ -357,7 +367,7 @@ function CityReportContent() {
               <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2 text-yellow-600">
-                    {formatNumber((Array.isArray(filteredReports) ? filteredReports : []).reduce((sum, city) => sum + (city?.orders?.notOrders || 0), 0))}
+                    {formatNumber(totals.notOrders)}
                   </div>
                   <div className="text-gray-600 text-sm">Всего Незаказов</div>
                 </div>
