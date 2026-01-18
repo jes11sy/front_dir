@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { apiClient, Employee } from '@/lib/api'
 import { logger } from '@/lib/logger'
+import { toast } from '@/components/ui/toast'
 
 
 function EmployeeViewContent() {
@@ -359,6 +360,12 @@ function EmployeeViewContent() {
       setContractFile(null)
       
       // Успешное обновление
+      toast.success('Изменения успешно сохранены')
+      
+      // Перекидываем на страницу сотрудников через небольшую задержку для отображения toast
+      setTimeout(() => {
+        router.push('/employees')
+      }, 500)
       
     } catch (error) {
       logger.error('Ошибка при обновлении сотрудника', error)
