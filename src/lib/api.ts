@@ -1,6 +1,44 @@
 import { fetchWithRetry as fetchWithRetryUtil, getUserFriendlyErrorMessage, classifyNetworkError, type NetworkError } from './fetch-with-retry'
+import { logger } from './logger'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.lead-schem.ru/api/v1'
+
+/**
+ * Безопасный парсинг JSON ответа
+ * Обрабатывает случаи когда сервер возвращает не-JSON (например 502/504 ошибки)
+ */
+async function safeParseJson<T = any>(response: Response, defaultValue?: T): Promise<T> {
+  const text = await response.text()
+  
+  if (!text || text.trim() === '') {
+    if (defaultValue !== undefined) return defaultValue
+    throw new Error('Пустой ответ от сервера')
+  }
+  
+  try {
+    return JSON.parse(text)
+  } catch {
+    // Если не JSON - логируем и выбрасываем понятную ошибку
+    logger.error('Failed to parse JSON response', { 
+      status: response.status, 
+      url: response.url,
+      textPreview: text.substring(0, 200) 
+    })
+    throw new Error(`Ошибка сервера (${response.status}): некорректный ответ`)
+  }
+}
+
+/**
+ * Извлекает сообщение об ошибке из ответа сервера
+ */
+async function extractErrorMessage(response: Response, defaultMessage: string): Promise<string> {
+  try {
+    const data = await safeParseJson(response)
+    return data.message || defaultMessage
+  } catch {
+    return `${defaultMessage}: ${response.status} ${response.statusText}`
+  }
+}
 
 export interface User {
   id: string
@@ -474,25 +512,20 @@ export class ApiClient {
       const { clearSavedCredentials } = await import('./remember-me')
       await clearSavedCredentials()
     } catch (error) {
-      console.error('[Logout] Failed to clear saved credentials:', error)
+      logger.error('Failed to clear saved credentials', error)
     }
 
     try {
-      console.log('🚪 Sending logout request to server...')
-      // Отправляем запрос на сервер для очистки cookies
-      const response = await this.safeFetch(`${this.baseURL}/auth/logout`, {
+      logger.debug('Sending logout request to server')
+      await this.safeFetch(`${this.baseURL}/auth/logout`, {
         method: 'POST',
-        body: JSON.stringify({}), // Пустой объект для POST запроса
+        body: JSON.stringify({}),
       })
-      console.log('✅ Logout response:', response.status, response.statusText)
-      const data = await response.json()
-      console.log('📦 Logout data:', data)
     } catch (error) {
-      console.error('❌ Ошибка при выходе на сервере:', error)
+      logger.error('Ошибка при выходе на сервере', error)
     } finally {
-      // Очищаем локальные данные
       this.clearToken()
-      console.log('🧹 Local data cleared')
+      logger.debug('Local data cleared')
     }
   }
 
@@ -597,16 +630,14 @@ export class ApiClient {
   async getOrder(id: number): Promise<Order> {
     const response = await this.safeFetch(`${this.baseURL}/orders/${id}`, {
       method: 'GET',
-      // 🍪 Headers добавляются автоматически в safeFetch
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения заказа')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения заказа')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
+    const result = await safeParseJson(response)
     return result.data || result
   }
 
@@ -639,12 +670,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения статистики')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения статистики')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
+    const result = await safeParseJson(response)
     return result.data || result
   }
 
@@ -710,11 +740,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения сотрудников')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения сотрудников')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response, { data: [] })
     const data = result.data || result
     return Array.isArray(data) ? data : []
   }
@@ -725,12 +755,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения сотрудника')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения сотрудника')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
+    const result = await safeParseJson(response)
     return result.data || result
   }
 
@@ -741,12 +770,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка создания сотрудника')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка создания сотрудника')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
+    const result = await safeParseJson(response)
     return result.data || result
   }
 
@@ -757,12 +785,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка обновления сотрудника')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка обновления сотрудника')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
-    // API возвращает данные в формате {success: true, data: {...}}
+    const result = await safeParseJson(response)
     return result.data || result
   }
 
@@ -773,15 +800,15 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения транзакций')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения транзакций')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response, { data: [] })
     const data = result.data || result
     
     // Сортируем по дате создания (новые сначала)
-    const sortedData = data.sort((a: CashTransaction, b: CashTransaction) => 
+    const sortedData = (Array.isArray(data) ? data : []).sort((a: CashTransaction, b: CashTransaction) => 
       new Date(b.dateCreate).getTime() - new Date(a.dateCreate).getTime()
     )
     
@@ -794,11 +821,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения приходов')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения приходов')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response, { data: [] })
     return result.data || result
   }
 
@@ -808,16 +835,16 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения расходов')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения расходов')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response, { data: [] })
     return result.data || result
   }
 
   async createCashTransaction(data: Partial<CashTransaction>): Promise<CashTransaction> {
-    console.log('Creating cash transaction with data:', data)
+    logger.debug('Creating cash transaction', { name: data.name, amount: data.amount })
     
     const response = await this.safeFetch(`${this.baseURL}/cash`, {
       method: 'POST',
@@ -832,17 +859,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      try {
-        const error = await response.json()
-        console.error('Cash transaction creation error:', error)
-        throw new Error(error.message || `Ошибка создания транзакции: ${response.status}`)
-      } catch (parseError) {
-        console.error('Failed to parse error response:', parseError)
-        throw new Error(`Ошибка создания транзакции: ${response.status} ${response.statusText}`)
-      }
+      const errorMessage = await extractErrorMessage(response, 'Ошибка создания транзакции')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response)
     return result.data || result
   }
 
@@ -853,25 +874,22 @@ export class ApiClient {
 
     if (!response.ok) {
       if (response.status === 404) {
-        return null // Транзакция не найдена
+        return null
       }
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка проверки транзакции')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка проверки транзакции')
+      throw new Error(errorMessage)
     }
 
-    // Проверяем, есть ли контент для парсинга
-    const text = await response.text()
-    if (!text) {
+    try {
+      return await safeParseJson<CashTransaction | null>(response, null)
+    } catch {
       return null
     }
-
-    return JSON.parse(text)
   }
 
   async updateCashTransactionByOrder(orderId: number, data: Partial<CashTransaction>): Promise<CashTransaction> {
-    console.log('Updating cash transaction for order:', orderId, 'with data:', data)
+    logger.debug('Updating cash transaction for order', { orderId })
     
-    // Сначала найти транзакцию по orderId
     const transactions = await this.getCashTransactions()
     const transaction = transactions.find((t: any) => t.orderId === orderId)
     
@@ -885,23 +903,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      try {
-        const text = await response.text()
-        console.error('Cash transaction update error response:', text)
-        
-        if (text) {
-          const error = JSON.parse(text)
-          throw new Error(error.message || `Ошибка обновления транзакции: ${response.status}`)
-        } else {
-          throw new Error(`Ошибка обновления транзакции: ${response.status} ${response.statusText}`)
-        }
-      } catch (parseError) {
-        console.error('Failed to parse error response:', parseError)
-        throw new Error(`Ошибка обновления транзакции: ${response.status} ${response.statusText}`)
-      }
+      const errorMessage = await extractErrorMessage(response, 'Ошибка обновления транзакции')
+      throw new Error(errorMessage)
     }
 
-    return response.json()
+    return safeParseJson(response)
   }
 
   async getCashBalance(): Promise<{ income: number; expense: number; balance: number }> {
@@ -943,15 +949,14 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения записей звонков')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения записей звонков')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response, { data: [] })
     return result.data || result
   }
 
-  // Master Handover API
   // Master Handover API (Cash Service - Handover)
   async getMasterHandoverSummary(): Promise<{ masters: any[], totalAmount: number }> {
     const response = await this.safeFetch(`${this.baseURL}/master-handover/summary`, {
@@ -959,17 +964,12 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения сводки сдачи мастеров')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения сводки сдачи мастеров')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
-    console.log('API Response:', result)
-    // API возвращает {success: true, data: {masters: [...], totalAmount: ...}}
-    // Нужно извлечь data
-    const data = result.data || result
-    console.log('Extracted data:', data)
-    return data
+    const result = await safeParseJson(response)
+    return result.data || result
   }
 
   async getMasterHandoverDetails(masterId: number): Promise<{ master: any, orders: any[] }> {
@@ -978,11 +978,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения деталей сдачи мастера')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения деталей сдачи мастера')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response)
     return result.data || result
   }
 
@@ -993,8 +993,8 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка одобрения сдачи')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка одобрения сдачи')
+      throw new Error(errorMessage)
     }
   }
 
@@ -1005,8 +1005,8 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка отклонения сдачи')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка отклонения сдачи')
+      throw new Error(errorMessage)
     }
   }
 
@@ -1027,11 +1027,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка загрузки файла')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка загрузки файла')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response)
     if (!result.data?.key) {
       throw new Error('Backend не вернул key файла')
     }
@@ -1053,11 +1053,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения отчета по городам')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения отчета по городам')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response, { data: [] })
     return result.data || result
   }
 
@@ -1067,11 +1067,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения детального отчета по городу')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения детального отчета по городу')
+      throw new Error(errorMessage)
     }
 
-    return response.json()
+    return safeParseJson(response)
   }
 
   async getMastersReport(filters?: { masterId?: number; city?: string; startDate?: string; endDate?: string }): Promise<MasterReport[]> {
@@ -1089,11 +1089,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения отчета по мастерам')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения отчета по мастерам')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response, { data: [] })
     return result.data || result
   }
 
@@ -1104,11 +1104,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения профиля')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения профиля')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response)
     return result.success && result.data ? result.data : result
   }
 
@@ -1128,51 +1128,21 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка обновления профиля')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка обновления профиля')
+      throw new Error(errorMessage)
     }
 
-    return response.json()
+    return safeParseJson(response)
   }
 
   // 🍪 Методы для загрузки файлов директоров с httpOnly cookies
-  async uploadDirectorContract(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем договор: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB`)
+  private async uploadFile(file: File, folder: string, errorMessage: string): Promise<{ filePath: string }> {
+    logger.debug('Uploading file', { name: file.name, size: file.size, folder })
     
     const formData = new FormData()
     formData.append('file', file)
 
-    try {
-      const response = await fetch(`${this.baseURL}/files/upload?folder=director/directors/contract_doc`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'X-Use-Cookies': 'true',
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка загрузки договора')
-      }
-
-      const result = await response.json()
-      if (!result.data?.key) {
-        throw new Error('Backend не вернул key файла')
-      }
-      return { filePath: result.data.key }
-    } catch (error) {
-      console.error('Ошибка при загрузке файла:', error)
-      throw error
-    }
-  }
-
-  async uploadDirectorPassport(file: File): Promise<{ filePath: string }> {
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const response = await fetch(`${this.baseURL}/files/upload?folder=director/directors/passport_doc`, {
+    const response = await fetch(`${this.baseURL}/files/upload?folder=${folder}`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -1182,147 +1152,39 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка загрузки паспорта')
+      const message = await extractErrorMessage(response, errorMessage)
+      throw new Error(message)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response)
     if (!result.data?.key) {
       throw new Error('Backend не вернул key файла')
     }
     return { filePath: result.data.key }
   }
 
+  async uploadDirectorContract(file: File): Promise<{ filePath: string }> {
+    return this.uploadFile(file, 'director/directors/contract_doc', 'Ошибка загрузки договора')
+  }
+
+  async uploadDirectorPassport(file: File): Promise<{ filePath: string }> {
+    return this.uploadFile(file, 'director/directors/passport_doc', 'Ошибка загрузки паспорта')
+  }
+
   async uploadMasterContract(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем договор мастера: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${this.baseURL}/files/upload?folder=director/masters/contract_doc`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'X-Use-Cookies': 'true',
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка загрузки договора мастера')
-      }
-
-      const result = await response.json()
-      if (!result.data?.key) {
-        throw new Error('Backend не вернул key файла')
-      }
-      return { filePath: result.data.key }
-    } catch (error) {
-      console.error('Ошибка при загрузке договора мастера:', error)
-      throw error
-    }
+    return this.uploadFile(file, 'director/masters/contract_doc', 'Ошибка загрузки договора мастера')
   }
 
   async uploadMasterPassport(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем паспорт мастера: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${this.baseURL}/files/upload?folder=director/masters/passport_doc`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'X-Use-Cookies': 'true',
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка загрузки паспорта мастера')
-      }
-
-      const result = await response.json()
-      if (!result.data?.key) {
-        throw new Error('Backend не вернул key файла')
-      }
-      return { filePath: result.data.key }
-    } catch (error) {
-      console.error('Ошибка при загрузке паспорта мастера:', error)
-      throw error
-    }
+    return this.uploadFile(file, 'director/masters/passport_doc', 'Ошибка загрузки паспорта мастера')
   }
 
   async uploadOrderBso(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем БСО заказа: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${this.baseURL}/files/upload?folder=director/orders/bso_doc`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'X-Use-Cookies': 'true',
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка загрузки БСО заказа')
-      }
-
-      const result = await response.json()
-      // ВАЖНО: ВСЕГДА используем только key, НИКОГДА не url!
-      // key - это путь типа "director/orders/bso_doc/xxx.jpg"
-      // url - это временный signed URL который истекает через час
-      if (!result.data?.key) {
-        throw new Error('Backend не вернул key файла')
-      }
-      return { filePath: result.data.key }
-    } catch (error) {
-      console.error('Ошибка при загрузке БСО заказа:', error)
-      throw error
-    }
+    return this.uploadFile(file, 'director/orders/bso_doc', 'Ошибка загрузки БСО заказа')
   }
 
   async uploadOrderExpenditure(file: File): Promise<{ filePath: string }> {
-    console.log(`Загружаем документ расхода заказа: ${file.name}, размер: ${file.size} байт (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
-    
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${this.baseURL}/files/upload?folder=director/orders/expenditure_doc`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'X-Use-Cookies': 'true',
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка загрузки документа расхода заказа')
-      }
-
-      const result = await response.json()
-      // ВАЖНО: ВСЕГДА используем только key, НИКОГДА не url!
-      if (!result.data?.key) {
-        throw new Error('Backend не вернул key файла')
-      }
-      return { filePath: result.data.key }
-    } catch (error) {
-      console.error('Ошибка при загрузке документа расхода заказа:', error)
-      throw error
-    }
+    return this.uploadFile(file, 'director/orders/expenditure_doc', 'Ошибка загрузки документа расхода заказа')
   }
 
   // Avito Chat API
@@ -1335,11 +1197,11 @@ export class ApiClient {
       if (response.status === 404) {
         return null
       }
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения данных чата Авито')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения данных чата Авито')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response)
     return result.data
   }
 
@@ -1349,11 +1211,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения сообщений')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения сообщений')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response, { data: { messages: [] } })
     return result.data?.messages || []
   }
 
@@ -1364,11 +1226,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка отправки сообщения')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка отправки сообщения')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response)
     return result.data
   }
 
@@ -1379,8 +1241,8 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка отметки чата как прочитанного')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка отметки чата как прочитанного')
+      throw new Error(errorMessage)
     }
   }
 
@@ -1391,11 +1253,11 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Ошибка получения URL голосовых сообщений')
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения URL голосовых сообщений')
+      throw new Error(errorMessage)
     }
 
-    const result = await response.json()
+    const result = await safeParseJson(response, { data: {} })
     return result.data || {}
   }
 }

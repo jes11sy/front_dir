@@ -9,6 +9,8 @@ interface AuthGuardProps {
   children: React.ReactNode
 }
 
+const isDevelopment = process.env.NODE_ENV === 'development'
+
 export default function AuthGuard({ children }: AuthGuardProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -18,28 +20,14 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     let isMounted = true
     
     const checkAuth = async () => {
-      // DEBUG: Логируем начало проверки
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_check_start', new Date().toISOString())
-      }
-
       try {
-        // 🍪 Проверяем валидность сессии через httpOnly cookies
-        // Если cookies валидны, получим профиль; если нет - 401
+        // Проверяем валидность сессии через httpOnly cookies
         await apiClient.getProfile()
         if (isMounted) {
           setIsAuthenticated(true)
-          // DEBUG: Профиль получен успешно
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('auto_login_debug', 'Профиль получен через cookies (автовход не требуется)')
-            localStorage.setItem('auth_check_result', 'success_with_cookies')
-          }
         }
       } catch (error) {
         logger.authError('Auth check failed')
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('auth_check_result', 'profile_error_trying_autologin: ' + String(error))
-        }
         
         // Сессия недействительна, пробуем автовход через IndexedDB
         const autoLoginSuccess = await tryAutoLogin()
@@ -57,21 +45,14 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
 
     const tryAutoLogin = async (): Promise<boolean> => {
-      console.log('[Auth] Starting auto-login attempt...')
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auto_login_last_attempt', new Date().toISOString())
-      }
+      logger.debug('Starting auto-login attempt')
 
       try {
         const { getSavedCredentials } = await import('@/lib/remember-me')
-        console.log('[Auth] Checking for saved credentials...')
         const credentials = await getSavedCredentials()
 
         if (credentials) {
-          console.log('[Auth] Found saved credentials for user:', credentials.login)
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('auto_login_debug', 'Найдены данные для: ' + credentials.login)
-          }
+          logger.debug('Found saved credentials', { login: credentials.login })
 
           // Пытаемся авторизоваться с сохраненными данными
           const loginResponse = await apiClient.login(
@@ -80,42 +61,26 @@ export default function AuthGuard({ children }: AuthGuardProps) {
             true
           )
 
-          console.log('[Auth] Login response:', loginResponse)
-
           if (loginResponse && loginResponse.user) {
-            // Успешная авторизация
-            console.log('[Auth] Auto-login successful')
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('auto_login_debug', 'Автовход успешен!')
-              localStorage.setItem('auto_login_last_success', new Date().toISOString())
-            }
+            logger.debug('Auto-login successful')
             return true
           } else {
-            console.warn('[Auth] Login response was not successful')
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('auto_login_debug', 'Ошибка: неверный ответ сервера')
-            }
+            logger.debug('Auto-login failed: invalid response')
           }
         } else {
-          console.log('[Auth] No saved credentials found')
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('auto_login_debug', 'Сохраненные данные не найдены')
-          }
+          logger.debug('No saved credentials found')
         }
 
         return false
       } catch (error) {
-        console.error('[Auth] Auto-login failed:', error)
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('auto_login_debug', 'Ошибка: ' + String(error))
-        }
+        logger.error('Auto-login failed', error)
         
         // Очищаем невалидные данные
         try {
           const { clearSavedCredentials } = await import('@/lib/remember-me')
           await clearSavedCredentials()
         } catch (e) {
-          console.error('[Auth] Failed to clear credentials:', e)
+          logger.error('Failed to clear credentials', e)
         }
         
         return false

@@ -10,8 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { apiClient } from "@/lib/api"
 import { sanitizeString } from "@/lib/sanitize"
 import { logger } from "@/lib/logger"
-import { toast } from "@/components/ui/toast"
 import { getErrorMessage } from "@/lib/utils"
+import { toast } from "@/components/ui/toast"
 import { validators, validateField } from "@/lib/validation"
 
 // Компонент формы логина (использует useSearchParams)
@@ -88,21 +88,18 @@ function LoginForm() {
           try {
             const isAlreadyAuthenticated = await apiClient.isAuthenticated()
             if (isAlreadyAuthenticated) {
-              console.log('[Login] User already authenticated via cookies, redirecting...')
-              // Ждем минимальное время перед редиректом
+              logger.debug('User already authenticated via cookies, redirecting')
               await minLoadingTime
               router.replace(getSafeRedirectUrl())
               return
             } else {
-              // Сессия невалидна - очищаем старые данные
-              console.log('[Login] Session invalid, clearing old data...')
+              logger.debug('Session invalid, clearing old data')
               sessionStorage.removeItem('user')
               localStorage.removeItem('user')
               shouldShowForm = true
             }
           } catch (error) {
-            console.warn('[Login] Auth check failed, clearing data and showing login form:', error)
-            // Ошибка проверки - очищаем данные и показываем форму
+            logger.debug('Auth check failed, clearing data and showing login form')
             sessionStorage.removeItem('user')
             localStorage.removeItem('user')
             shouldShowForm = true
@@ -114,11 +111,7 @@ function LoginForm() {
         const credentials = await getSavedCredentials()
         
         if (credentials) {
-          console.log('[Login] Found saved credentials, attempting auto-login...')
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('auto_login_debug', 'Попытка автовхода на странице логина')
-            localStorage.setItem('auto_login_last_attempt', new Date().toISOString())
-          }
+          logger.debug('Found saved credentials, attempting auto-login')
           
           setIsLoading(true)
           const loginResponse = await apiClient.login(
@@ -128,34 +121,21 @@ function LoginForm() {
           )
           
           if (loginResponse && loginResponse.user) {
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('auto_login_debug', 'Автовход успешен!')
-              localStorage.setItem('auto_login_last_success', new Date().toISOString())
-            }
-            // Ждем минимальное время перед редиректом
+            logger.debug('Auto-login successful')
             await minLoadingTime
             router.replace(getSafeRedirectUrl())
             return
           } else {
-            console.warn('[Login] Auto-login failed')
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('auto_login_debug', 'Автовход не удался: неверные данные')
-            }
+            logger.debug('Auto-login failed: invalid response')
             setIsLoading(false)
             shouldShowForm = true
           }
         } else {
-          console.log('[Login] No saved credentials found')
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('auto_login_debug', 'Нет сохраненных данных для автовхода')
-          }
+          logger.debug('No saved credentials found')
           shouldShowForm = true
         }
       } catch (error) {
-        console.error('[Login] Auto-login error:', error)
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('auto_login_debug', 'Ошибка автовхода: ' + String(error))
-        }
+        logger.error('Auto-login error', error)
         setIsLoading(false)
         shouldShowForm = true
       }

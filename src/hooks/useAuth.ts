@@ -1,30 +1,33 @@
 /**
  * Custom hook для работы с аутентификацией
- * Использует Zustand store вместо прямого обращения к localStorage
+ * Использует Zustand store для централизованного управления состоянием
  */
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 
+/**
+ * Основной hook для доступа к данным аутентификации
+ */
 export function useAuth() {
-  const router = useRouter();
-  const { user, token, isAuthenticated, isLoading, login, logout, checkAuth, refreshUser } = useAuthStore();
+  const { user, isAuthenticated, isLoading, setUser, logout, checkAuth, refreshUser, updateUser } = useAuthStore();
 
   return {
     user,
-    token,
     isAuthenticated,
     isLoading,
-    login,
+    setUser,
     logout,
     checkAuth,
     refreshUser,
+    updateUser,
   };
 }
 
 /**
  * Hook для защиты роутов - редиректит на login если не авторизован
+ * ВАЖНО: Предпочтительнее использовать AuthGuard компонент
  */
 export function useRequireAuth() {
   const router = useRouter();

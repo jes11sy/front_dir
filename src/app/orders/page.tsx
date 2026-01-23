@@ -1,8 +1,8 @@
 "use client"
 
 import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
-import { apiClient, Order, OrdersResponse, OrdersStats } from '@/lib/api'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { apiClient, Order } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -37,26 +37,32 @@ function OrdersContent() {
     total: 0,
     totalPages: 0
   })
-  const [isInitialized, setIsInitialized] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  
+  // Ref для отмены запросов (Race Condition fix)
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const requestIdRef = useRef(0)
 
-  // Загрузка данных
-  const loadOrders = async () => {
-    if (isLoading) return
+  // Загрузка данных с защитой от Race Condition
+  const loadOrders = useCallback(async (searchValue?: string) => {
+    // Отменяем предыдущий запрос
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
+    
+    // Уникальный ID запроса для проверки актуальности
+    const currentRequestId = ++requestIdRef.current
     
     try {
-      setIsLoading(true)
       setLoading(true)
       setError(null)
       
-      // Делаем запросы с небольшой задержкой чтобы избежать rate limiting на прокси
-      // Сначала основной запрос заказов, потом остальные с задержкой
       const response = await apiClient.getOrders({
         page: currentPage,
         limit: itemsPerPage,
         status: statusFilter?.trim() || undefined,
         city: cityFilter?.trim() || undefined,
-        search: searchTerm?.trim() || undefined,
+        search: (searchValue ?? searchTerm)?.trim() || undefined,
         master: masterFilter?.trim() || undefined,
         rk: rkFilter?.trim() || undefined,
         typeEquipment: typeEquipmentFilter?.trim() || undefined,
@@ -65,13 +71,22 @@ function OrdersContent() {
         dateTo: dateTo?.trim() || undefined,
       })
       
-      // Остальные запросы с небольшой задержкой (50ms между запросами)
-      await new Promise(resolve => setTimeout(resolve, 50))
+      // Проверяем, не устарел ли запрос
+      if (currentRequestId !== requestIdRef.current) {
+        return // Игнорируем устаревший ответ
+      }
+      
+      // Остальные запросы
       const [statuses, mastersData, filterOptions] = await Promise.all([
         apiClient.getOrderStatuses().catch(() => ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ']),
         apiClient.getMasters().catch(() => []),
         apiClient.getFilterOptions().catch(() => ({ rks: [], typeEquipments: [] }))
       ])
+      
+      // Повторная проверка актуальности
+      if (currentRequestId !== requestIdRef.current) {
+        return
+      }
       
       // Фильтруем мастеров только со статусом "работает"
       const masters = (Array.isArray(mastersData) ? mastersData : []).filter(master => {
@@ -80,8 +95,6 @@ function OrdersContent() {
       });
       
       // API может возвращать данные в разных форматах - обрабатываем оба
-      // Формат 1: { data: { orders: [...], pagination: {...} } }
-      // Формат 2: { data: [...], pagination: {...} }
       const responseData = response as any
       const ordersData = Array.isArray(responseData.data?.orders) 
         ? responseData.data.orders 
@@ -92,7 +105,6 @@ function OrdersContent() {
       setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
       setAllMasters(masters)
       
-      // Устанавливаем РК и Направления из опций фильтров
       setAllRks(filterOptions.rks || [])
       setAllTypeEquipments(filterOptions.typeEquipments || [])
       
@@ -102,39 +114,50 @@ function OrdersContent() {
         total: 0,
         totalPages: 0
       })
-      setIsInitialized(true)
     } catch (err) {
+      // Игнорируем ошибки отмененных запросов
+      if (err instanceof Error && err.name === 'AbortError') {
+        return
+      }
+      if (currentRequestId !== requestIdRef.current) {
+        return
+      }
       setError(err instanceof Error ? err.message : 'Ошибка загрузки заказов')
       logger.error('Error loading orders', err)
     } finally {
-      setLoading(false)
-      setIsLoading(false)
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false)
+      }
     }
-  }
+  }, [currentPage, itemsPerPage, statusFilter, cityFilter, searchTerm, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
 
-
-
-  // Загружаем данные при изменении фильтров и itemsPerPage (исключаем searchTerm - у него свой дебаунс)
+  // Загружаем данные при изменении фильтров (кроме searchTerm - у него свой дебаунс)
   useEffect(() => {
     if (itemsPerPage > 0) {
       loadOrders()
     }
+    
+    // Очистка при размонтировании
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
   }, [currentPage, statusFilter, cityFilter, masterFilter, itemsPerPage, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
-
 
   // Обработчики фильтров
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
-    setCurrentPage(1) // Сбрасываем на первую страницу при поиске
+    setCurrentPage(1)
   }
 
-  // Дебаунс для поиска
+  // Дебаунс для поиска с защитой от Race Condition
   useEffect(() => {
+    if (searchTerm === '') return
+    
     const timeoutId = setTimeout(() => {
-      if (searchTerm !== '') {
-        loadOrders()
-      }
-    }, 500) // 500ms задержка
+      loadOrders(searchTerm)
+    }, 500)
 
     return () => clearTimeout(timeoutId)
   }, [searchTerm])

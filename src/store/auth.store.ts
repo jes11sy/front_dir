@@ -1,6 +1,9 @@
 /**
  * Zustand store для управления состоянием аутентификации
  * Централизованное хранилище для данных пользователя
+ * 
+ * ВАЖНО: Токены хранятся в httpOnly cookies на сервере
+ * Store используется только для кеширования данных пользователя на клиенте
  */
 
 import { create } from 'zustand';
@@ -10,12 +13,11 @@ import { logger } from '@/lib/logger';
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   
   // Actions
-  login: (token: string, user: User) => void;
+  setUser: (user: User) => void;
   logout: () => Promise<void>;
   updateUser: (user: Partial<User>) => void;
   checkAuth: () => Promise<boolean>;
@@ -26,27 +28,24 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
 
-      login: (token: string, user: User) => {
+      setUser: (user: User) => {
         set({
-          token,
           user,
           isAuthenticated: true,
         });
-        logger.info('User logged in successfully');
+        logger.debug('User set in store');
       },
 
       logout: async () => {
         set({
           user: null,
-          token: null,
           isAuthenticated: false,
         });
         await apiClient.logout();
-        logger.info('User logged out');
+        logger.debug('User logged out');
       },
 
       updateUser: (userData: Partial<User>) => {
@@ -61,10 +60,10 @@ export const useAuthStore = create<AuthState>()(
       checkAuth: async (): Promise<boolean> => {
         set({ isLoading: true });
         try {
-          // 🍪 isAuthenticated теперь async - проверяет httpOnly cookies через API
+          // Проверяем httpOnly cookies через API
           const isAuth = await apiClient.isAuthenticated();
           if (!isAuth) {
-            set({ isLoading: false, isAuthenticated: false });
+            set({ isLoading: false, isAuthenticated: false, user: null });
             return false;
           }
 
@@ -76,10 +75,9 @@ export const useAuthStore = create<AuthState>()(
           });
           return true;
         } catch (error) {
-          logger.authError('Auth check failed', error);
+          logger.authError('Auth check failed');
           set({
             user: null,
-            token: null,
             isAuthenticated: false,
             isLoading: false,
           });
@@ -99,7 +97,6 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       partialize: (state) => ({
-        token: state.token,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
