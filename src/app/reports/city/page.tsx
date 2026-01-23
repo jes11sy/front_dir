@@ -78,8 +78,8 @@ function CityReportContent() {
   // Логика подсчета метрик:
   // - totalOrders = Готово + Отказ + Незаказ (все заказы)
   // - notOrders = статус "Незаказ"
-  // - zeroOrders = (Готово ИЛИ Отказ) где result = 0 или null
-  // - completedOrders = (Готово ИЛИ Отказ) где result > 0
+  // - zeroOrders = Ноль = количество отказов (статус "Отказ")
+  // - completedOrders = Выполненных в деньги = Готово где result > 0
   // - turnover = сумма чистыми по статусу "Готово"
   // - profit = сумма сдача мастера по статусу "Готово"
   const totals = {
@@ -89,7 +89,7 @@ function CityReportContent() {
     notOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.notOrders || 0), 0),
     zeroOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     completedOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.completedOrders || 0), 0),
-    // Отказы = Ноль ((Готово ИЛИ Отказ) с result = 0 или null)
+    // Отказы = Ноль (статус "Отказ")
     refusals: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     microCheckCount: filteredReports.reduce((sum, r) => sum + (r.stats?.microCheckCount || 0), 0),
     over10kCount: filteredReports.reduce((sum, r) => sum + (r.stats?.over10kCount || 0), 0),
@@ -169,8 +169,8 @@ function CityReportContent() {
     { label: 'Прибыль', value: formatNumber(totals.profit) + ' ₽', color: 'text-emerald-600', bold: true },
     { label: 'Заказов', value: totals.totalOrders, color: 'text-gray-800' }, // Готово + Отказ + Незаказ
     { label: 'Не заказ', value: totals.notOrders, color: 'text-orange-600' }, // Статус "Незаказ"
-    { label: 'Ноль', value: totals.zeroOrders, color: 'text-red-500' }, // (Готово ИЛИ Отказ) где result=0
-    { label: 'Выполненных в деньги', value: totals.completedOrders, color: 'text-green-600', bold: true }, // (Готово ИЛИ Отказ) где result>0
+    { label: 'Ноль', value: totals.zeroOrders, color: 'text-red-500' }, // Количество отказов (статус "Отказ")
+    { label: 'Выполненных в деньги', value: totals.completedOrders, color: 'text-green-600', bold: true }, // Готово где result > 0
     { 
       label: 'Вып в деньги (%)', 
       value: formatPercent(completedPercent), 
