@@ -85,10 +85,17 @@ function LoginForm() {
               console.log('[Login] User already authenticated via cookies, redirecting...')
               router.replace(getSafeRedirectUrl())
               return
+            } else {
+              // Сессия невалидна - очищаем старые данные
+              console.log('[Login] Session invalid, clearing old data...')
+              sessionStorage.removeItem('user')
+              localStorage.removeItem('user')
             }
           } catch (error) {
-            console.warn('[Login] Auth check failed, continuing to login form:', error)
-            // Ошибка проверки - продолжаем показывать форму
+            console.warn('[Login] Auth check failed, clearing data and showing login form:', error)
+            // Ошибка проверки - очищаем данные и показываем форму
+            sessionStorage.removeItem('user')
+            localStorage.removeItem('user')
           }
         }
         
