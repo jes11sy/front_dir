@@ -80,7 +80,7 @@ function CityReportContent() {
     notOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.notOrders || r.orders?.notOrders || 0), 0),
     zeroOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     completedOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.completedOrders || 0), 0),
-    // Отказы = Ноль (заказы со статусом "Отказ" или "Готово" с result < 0)
+    // Отказы = Ноль (заказы со статусом "Отказ")
     refusals: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     microCheckCount: filteredReports.reduce((sum, r) => sum + (r.stats?.microCheckCount || 0), 0),
     over10kCount: filteredReports.reduce((sum, r) => sum + (r.stats?.over10kCount || 0), 0),
