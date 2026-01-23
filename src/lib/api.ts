@@ -285,9 +285,12 @@ export class ApiClient {
       const enhancedOptions: RequestInit = {
         ...options,
         credentials: 'include',
+        cache: 'no-store', // Отключаем кэширование на уровне fetch
         headers: {
           'Content-Type': 'application/json',
           'X-Use-Cookies': 'true',
+          'Cache-Control': 'no-cache, no-store, must-revalidate', // Отключаем кэширование API запросов
+          'Pragma': 'no-cache', // Для старых браузеров
           ...options?.headers,
         },
       }
