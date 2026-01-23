@@ -6,6 +6,7 @@ import { getSignedUrl } from '@/lib/s3-utils'
 
 // Импортируем оптимизированный CustomSelect
 import CustomSelect from '@/components/optimized/CustomSelect'
+import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 
 function HistoryContent() {
   const [startDate, setStartDate] = useState('')
@@ -341,36 +342,13 @@ function HistoryContent() {
 
             {/* Пагинация */}
             {!loading && !error && totalPages > 1 && (
-              <div className="mt-6 flex justify-center items-center gap-2 flex-wrap animate-fade-in">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
-                >
-                  ←
-                </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                      currentPage === page
-                        ? 'bg-teal-600 text-white shadow-md'
-                        : 'bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
-                >
-                  →
-                </button>
+              <div className="mt-6 animate-fade-in">
+                <OptimizedPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  maxVisiblePages={7}
+                />
               </div>
             )}
 
