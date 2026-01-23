@@ -409,6 +409,9 @@ export class ApiClient {
     // Сохраняем данные пользователя
     if (result.success && result.data && result.data.user) {
       if (typeof window !== 'undefined') {
+        // Всегда сохраняем в sessionStorage для текущей сессии
+        sessionStorage.setItem('user', JSON.stringify(result.data.user))
+        // И в localStorage для автологина при повторном открытии
         localStorage.setItem('user', JSON.stringify(result.data.user))
       }
       
