@@ -75,12 +75,21 @@ function LoginForm() {
   useEffect(() => {
     const tryAutoLogin = async () => {
       try {
-        // 1. Сначала проверяем, есть ли активная сессия через cookies
-        const isAlreadyAuthenticated = await apiClient.isAuthenticated()
-        if (isAlreadyAuthenticated) {
-          console.log('[Login] User already authenticated via cookies, redirecting...')
-          router.replace(getSafeRedirectUrl())
-          return
+        // 1. Быстрая проверка - есть ли сохраненный пользователь в storage
+        const savedUser = apiClient.getCurrentUser()
+        if (savedUser) {
+          // Есть сохраненный пользователь - проверяем сессию через API (с таймаутом)
+          try {
+            const isAlreadyAuthenticated = await apiClient.isAuthenticated()
+            if (isAlreadyAuthenticated) {
+              console.log('[Login] User already authenticated via cookies, redirecting...')
+              router.replace(getSafeRedirectUrl())
+              return
+            }
+          } catch (error) {
+            console.warn('[Login] Auth check failed, continuing to login form:', error)
+            // Ошибка проверки - продолжаем показывать форму
+          }
         }
         
         // 2. Если нет активной сессии - пробуем автовход через remember-me

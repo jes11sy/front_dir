@@ -495,10 +495,16 @@ export class ApiClient {
   /**
    * 🍪 Проверка аутентификации через API
    * Нельзя проверить httpOnly cookies на клиенте - нужен запрос к серверу
+   * Добавлен таймаут 5 секунд для PWA/мобильных устройств
    */
   async isAuthenticated(): Promise<boolean> {
     try {
-      await this.getProfile()
+      // Таймаут 5 секунд для проверки авторизации
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+      )
+      
+      await Promise.race([this.getProfile(), timeoutPromise])
       return true
     } catch {
       return false
