@@ -172,8 +172,8 @@ export interface CityReport {
     profit: number             // Прибыль = сумма сдача мастера
     totalOrders: number        // Заказов (всего: Готово + Отказ + Незаказ)
     notOrders: number          // Не заказ (статус "Незаказ")
-    zeroOrders: number         // Ноль = (Готово ИЛИ Отказ) где result = 0 или null
-    completedOrders: number    // Выполненных в деньги = (Готово ИЛИ Отказ) где result > 0
+    zeroOrders: number         // Ноль = количество отказов (статус "Отказ")
+    completedOrders: number    // Выполненных в деньги = Готово где result > 0
     completedPercent: number   // Вып в деньги (%) = completedOrders / totalClosed * 100
     microCheckCount: number    // Микрочек (до 10к) - Готово с clean<10000
     over10kCount: number       // От 10к - Готово с clean>=10000

@@ -31,10 +31,59 @@ function LoginForm() {
   const MAX_ATTEMPTS = 10 // Максимум попыток
   const BLOCK_DURATION = 5 * 60 * 1000 // 5 минут в миллисекундах
   
+  /**
+   * Безопасная валидация redirect URL
+   * Защита от Open Redirect атаки
+   */
+  const getSafeRedirectUrl = (): string => {
+    const redirect = searchParams.get('redirect')
+    
+    // Если redirect не указан - дефолтная страница
+    if (!redirect) {
+      return '/orders'
+    }
+    
+    // Проверяем что это внутренний URL
+    // ✅ Разрешено: /orders, /profile, /dashboard
+    // ❌ Запрещено: //evil.com, https://evil.com, javascript:alert(1)
+    
+    // Должен начинаться с /
+    if (!redirect.startsWith('/')) {
+      logger.warn('Blocked external redirect attempt', { redirect })
+      return '/orders'
+    }
+    
+    // НЕ должен начинаться с // (protocol-relative URL)
+    if (redirect.startsWith('//')) {
+      logger.warn('Blocked protocol-relative redirect', { redirect })
+      return '/orders'
+    }
+    
+    // НЕ должен содержать опасные протоколы
+    const dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:']
+    const lowerRedirect = redirect.toLowerCase()
+    if (dangerousProtocols.some(protocol => lowerRedirect.includes(protocol))) {
+      logger.warn('Blocked dangerous protocol in redirect', { redirect })
+      return '/orders'
+    }
+    
+    // Валидация пройдена - можно редиректить
+    return redirect
+  }
+  
   // Проверяем автовход при загрузке страницы логина
   useEffect(() => {
     const tryAutoLogin = async () => {
       try {
+        // 1. Сначала проверяем, есть ли активная сессия через cookies
+        const isAlreadyAuthenticated = await apiClient.isAuthenticated()
+        if (isAlreadyAuthenticated) {
+          console.log('[Login] User already authenticated via cookies, redirecting...')
+          router.replace(getSafeRedirectUrl())
+          return
+        }
+        
+        // 2. Если нет активной сессии - пробуем автовход через remember-me
         const { getSavedCredentials } = await import('@/lib/remember-me')
         const credentials = await getSavedCredentials()
         
@@ -89,47 +138,7 @@ function LoginForm() {
     }
     
     tryAutoLogin()
-  }, [router])
-  
-  /**
-   * Безопасная валидация redirect URL
-   * Защита от Open Redirect атаки
-   */
-  const getSafeRedirectUrl = (): string => {
-    const redirect = searchParams.get('redirect')
-    
-    // Если redirect не указан - дефолтная страница
-    if (!redirect) {
-      return '/orders'
-    }
-    
-    // Проверяем что это внутренний URL
-    // ✅ Разрешено: /orders, /profile, /dashboard
-    // ❌ Запрещено: //evil.com, https://evil.com, javascript:alert(1)
-    
-    // Должен начинаться с /
-    if (!redirect.startsWith('/')) {
-      logger.warn('Blocked external redirect attempt', { redirect })
-      return '/orders'
-    }
-    
-    // НЕ должен начинаться с // (protocol-relative URL)
-    if (redirect.startsWith('//')) {
-      logger.warn('Blocked protocol-relative redirect', { redirect })
-      return '/orders'
-    }
-    
-    // НЕ должен содержать опасные протоколы
-    const dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:']
-    const lowerRedirect = redirect.toLowerCase()
-    if (dangerousProtocols.some(protocol => lowerRedirect.includes(protocol))) {
-      logger.warn('Blocked dangerous protocol in redirect', { redirect })
-      return '/orders'
-    }
-    
-    // Валидация пройдена - можно редиректить
-    return redirect
-  }
+  }, [router, searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
