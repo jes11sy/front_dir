@@ -83,10 +83,10 @@ function CityReportContent() {
   // - turnover = сумма чистыми по статусу "Готово"
   // - profit = сумма сдача мастера по статусу "Готово"
   const totals = {
-    turnover: filteredReports.reduce((sum, r) => sum + (r.stats?.turnover || r.orders?.totalClean || 0), 0),
-    profit: filteredReports.reduce((sum, r) => sum + (r.stats?.profit || r.orders?.totalMasterChange || 0), 0),
-    totalOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.totalOrders || r.orders?.closedOrders || 0), 0),
-    notOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.notOrders || r.orders?.notOrders || 0), 0),
+    turnover: filteredReports.reduce((sum, r) => sum + (r.stats?.turnover || 0), 0),
+    profit: filteredReports.reduce((sum, r) => sum + (r.stats?.profit || 0), 0),
+    totalOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.totalOrders || 0), 0),
+    notOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.notOrders || 0), 0),
     zeroOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     completedOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.completedOrders || 0), 0),
     // Отказы = Ноль ((Готово ИЛИ Отказ) с result = 0 или null)
