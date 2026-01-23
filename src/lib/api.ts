@@ -289,8 +289,6 @@ export class ApiClient {
         headers: {
           'Content-Type': 'application/json',
           'X-Use-Cookies': 'true',
-          'Cache-Control': 'no-cache, no-store, must-revalidate', // Отключаем кэширование API запросов
-          'Pragma': 'no-cache', // Для старых браузеров
           ...options?.headers,
         },
       }
