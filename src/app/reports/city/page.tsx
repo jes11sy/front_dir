@@ -73,6 +73,15 @@ function CityReportContent() {
   }
 
   // Расчёт общих итогов по всем городам для сводной таблицы
+  // Данные приходят с бэкенда из reports-service/reports.service.ts (метод getCityReport)
+  // 
+  // Логика подсчета метрик:
+  // - totalOrders = Готово + Отказ + Незаказ (все заказы)
+  // - notOrders = статус "Незаказ"
+  // - zeroOrders = (Готово ИЛИ Отказ) где result = 0 или null
+  // - completedOrders = (Готово ИЛИ Отказ) где result > 0
+  // - turnover = сумма чистыми по статусу "Готово"
+  // - profit = сумма сдача мастера по статусу "Готово"
   const totals = {
     turnover: filteredReports.reduce((sum, r) => sum + (r.stats?.turnover || r.orders?.totalClean || 0), 0),
     profit: filteredReports.reduce((sum, r) => sum + (r.stats?.profit || r.orders?.totalMasterChange || 0), 0),
@@ -80,7 +89,7 @@ function CityReportContent() {
     notOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.notOrders || r.orders?.notOrders || 0), 0),
     zeroOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     completedOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.completedOrders || 0), 0),
-    // Отказы = Ноль (заказы со статусом "Отказ")
+    // Отказы = Ноль ((Готово ИЛИ Отказ) с result = 0 или null)
     refusals: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     microCheckCount: filteredReports.reduce((sum, r) => sum + (r.stats?.microCheckCount || 0), 0),
     over10kCount: filteredReports.reduce((sum, r) => sum + (r.stats?.over10kCount || 0), 0),
@@ -158,10 +167,10 @@ function CityReportContent() {
   const summaryData = [
     { label: 'Оборот', value: formatNumber(totals.turnover) + ' ₽', color: 'text-teal-600', bold: true },
     { label: 'Прибыль', value: formatNumber(totals.profit) + ' ₽', color: 'text-emerald-600', bold: true },
-    { label: 'Заказов', value: totals.totalOrders, color: 'text-gray-800' },
-    { label: 'Не заказ', value: totals.notOrders, color: 'text-orange-600' },
-    { label: 'Ноль', value: totals.zeroOrders, color: 'text-red-500' },
-    { label: 'Выполненных в деньги', value: totals.completedOrders, color: 'text-green-600', bold: true },
+    { label: 'Заказов', value: totals.totalOrders, color: 'text-gray-800' }, // Готово + Отказ + Незаказ
+    { label: 'Не заказ', value: totals.notOrders, color: 'text-orange-600' }, // Статус "Незаказ"
+    { label: 'Ноль', value: totals.zeroOrders, color: 'text-red-500' }, // (Готово ИЛИ Отказ) где result=0
+    { label: 'Выполненных в деньги', value: totals.completedOrders, color: 'text-green-600', bold: true }, // (Готово ИЛИ Отказ) где result>0
     { 
       label: 'Вып в деньги (%)', 
       value: formatPercent(completedPercent), 

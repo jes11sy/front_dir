@@ -161,7 +161,7 @@ export interface CityReport {
   city: string
   orders: {
     closedOrders: number  // Количество заказов со статусом "Готово" или "Отказ" (всего закрытых)
-    refusals: number      // Отказы - заказы со статусом "Отказ" (= Ноль)
+    refusals: number      // Отказы (не используется, всегда 0)
     notOrders: number     // Не заказ - заказы со статусом "Незаказ"
     totalClean: number    // Сумма чистыми по закрытым заказам
     totalMasterChange: number  // Сумма сдача мастера
@@ -170,11 +170,11 @@ export interface CityReport {
   stats?: {
     turnover: number           // Оборот = сумма чистыми
     profit: number             // Прибыль = сумма сдача мастера
-    totalOrders: number        // Заказов (всего закрытых: Готово + Отказ)
+    totalOrders: number        // Заказов (всего: Готово + Отказ + Незаказ)
     notOrders: number          // Не заказ (статус "Незаказ")
-    zeroOrders: number         // Ноль = количество отказов (статус "Отказ")
-    completedOrders: number    // Выполненных в деньги = Готово где итог > 0
-    completedPercent: number   // Вып в деньги (%) = completedOrders / (Готово+Отказ) * 100
+    zeroOrders: number         // Ноль = (Готово ИЛИ Отказ) где result = 0 или null
+    completedOrders: number    // Выполненных в деньги = (Готово ИЛИ Отказ) где result > 0
+    completedPercent: number   // Вып в деньги (%) = completedOrders / totalClosed * 100
     microCheckCount: number    // Микрочек (до 10к) - Готово с clean<10000
     over10kCount: number       // От 10к - Готово с clean>=10000
     efficiency: number         // Эффективность
