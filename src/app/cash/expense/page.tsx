@@ -256,16 +256,16 @@ function ExpenseContent() {
             {/* Таблица */}
             {!loading && !error && (
               <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
-                <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
+                <table className="w-full border-collapse text-[11px] min-w-[600px] bg-white rounded-lg shadow-lg">
                   <thead>
                     <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">ID</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Тип</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Город</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Назначение платежа</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Сумма</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Комментарий</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Дата</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">ID</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Тип</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Город</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Назначение платежа</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Сумма</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Комментарий</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Дата</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -285,17 +285,17 @@ function ExpenseContent() {
                           style={{borderColor: '#e5e7eb'}}
                           onClick={() => router.push(`/cash/expense/view/${item.id}`)}
                         >
-                          <td className="py-4 px-4 text-gray-800 font-medium">{item.id}</td>
-                          <td className="py-4 px-4">
+                          <td className="py-3 px-3 text-gray-800 font-medium">{item.id}</td>
+                          <td className="py-3 px-3">
                             <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(item.name)}}>
                               {item.name}
                             </span>
                           </td>
-                          <td className="py-4 px-4 text-gray-800">{item.city || directorCities[0] || 'Москва'}</td>
-                          <td className="py-4 px-4 text-gray-800">{item.paymentPurpose || '-'}</td>
-                          <td className="py-4 px-4 text-gray-800 font-semibold text-red-600">{Number(item.amount).toLocaleString()} ₽</td>
-                          <td className="py-4 px-4 text-gray-800">{item.note || '-'}</td>
-                          <td className="py-4 px-4 text-gray-800">{formatDate(item.dateCreate)}</td>
+                          <td className="py-3 px-3 text-gray-800">{item.city || directorCities[0] || 'Москва'}</td>
+                          <td className="py-3 px-3 text-gray-800">{item.paymentPurpose || '-'}</td>
+                          <td className="py-3 px-3 text-gray-800 font-semibold text-red-600">{Number(item.amount).toLocaleString()} ₽</td>
+                          <td className="py-3 px-3 text-gray-800">{item.note || '-'}</td>
+                          <td className="py-3 px-3 text-gray-800">{formatDate(item.dateCreate)}</td>
                         </tr>
                       )
                     })}
