@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { apiClient, CashTransaction } from '@/lib/api'
+import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 
@@ -16,6 +16,8 @@ function ExpenseContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expenseData, setExpenseData] = useState<CashTransaction[]>([])
+  const [totalPages, setTotalPages] = useState(1)
+  // 🔧 FIX: Сумма теперь приходит с сервера (агрегация через SQL)
   const [totalAmount, setTotalAmount] = useState(0)
   const itemsPerPage = 10
   const [openSelect, setOpenSelect] = useState<string | null>(null)
@@ -49,27 +51,38 @@ function ExpenseContent() {
     { value: 'other', label: 'Иное' }
   ]
 
-  // Загрузка данных
-  const loadExpenseData = async () => {
+  // 🔧 FIX: Загрузка данных с серверной пагинацией и агрегацией
+  const loadExpenseData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const expenses = await apiClient.getCashExpense()
-      setExpenseData(expenses)
       
-      // Вычисляем общую сумму
-      const total = expenses.reduce((sum, item) => sum + Number(item.amount), 0)
-      setTotalAmount(total)
+      // 🔧 FIX: Два легких параллельных запроса вместо одного тяжелого с limit=10000
+      const [transactionsResult, statsResult] = await Promise.all([
+        // Запрос транзакций с серверной пагинацией
+        apiClient.getCashTransactionsPaginated({
+          page: currentPage,
+          limit: itemsPerPage,
+          type: 'расход',
+        }),
+        // Запрос статистики (агрегация на сервере через SQL)
+        apiClient.getCashStats({ type: 'расход' }),
+      ])
+      
+      setExpenseData(transactionsResult.data)
+      setTotalPages(transactionsResult.pagination.totalPages)
+      // 🔧 FIX: Сумма считается на сервере - точно и быстро
+      setTotalAmount(statsResult.totalExpense)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки данных')
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage])
 
   useEffect(() => {
     loadExpenseData()
-  }, [])
+  }, [loadExpenseData])
 
   // Функции для работы с формой (мемоизированные)
   const handleInputChange = useCallback((field: string, value: string) => {
@@ -125,12 +138,8 @@ function ExpenseContent() {
     }
   }
 
-  // Вычисляем данные для текущей страницы
-  const safeExpenseData = Array.isArray(expenseData) ? expenseData : []
-  const totalPages = Math.ceil(safeExpenseData.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentData = safeExpenseData.slice(startIndex, endIndex)
+  // 🔧 FIX: Данные уже пагинированы с сервера - не нужна клиентская пагинация
+  const currentData = expenseData
 
   // Форматирование даты
   const formatDate = (dateString: string) => {

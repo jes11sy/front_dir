@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { apiClient, CashTransaction } from '@/lib/api'
+import { useState, useEffect, useCallback } from 'react'
+import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import { getSignedUrl } from '@/lib/s3-utils'
 
 // Импортируем оптимизированный CustomSelect
@@ -16,11 +16,20 @@ function HistoryContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [historyData, setHistoryData] = useState<CashTransaction[]>([])
-  const [filteredData, setFilteredData] = useState<CashTransaction[]>([])
+  const [totalPages, setTotalPages] = useState(1)
   const [typeFilter, setTypeFilter] = useState('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [openSelect, setOpenSelect] = useState<string | null>(null)
   const itemsPerPage = 10
+
+  // 🔧 FIX: Статистика теперь загружается с сервера (агрегация через SQL)
+  const [stats, setStats] = useState<CashStats>({
+    totalIncome: 0,
+    totalExpense: 0,
+    balance: 0,
+    incomeCount: 0,
+    expenseCount: 0,
+  })
 
   // Получаем города директора
   const currentUser = apiClient.getCurrentUser()
@@ -41,68 +50,50 @@ function HistoryContent() {
     }))
   ]
 
-  // Загрузка данных
-  const loadHistoryData = async () => {
+  // 🔧 FIX: Загрузка данных с серверной пагинацией и статистикой
+  const loadHistoryData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiClient.getCashTransactions()
-      const safeData = Array.isArray(data) ? data : []
-      setHistoryData(safeData)
-      setFilteredData(safeData)
+      
+      // Параметры для запросов
+      const filterParams = {
+        city: cityFilter !== 'all' ? cityFilter : undefined,
+        type: typeFilter !== 'all' ? typeFilter as 'приход' | 'расход' : undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      }
+      
+      // 🔧 FIX: Два легких параллельных запроса вместо одного тяжелого с limit=10000
+      const [transactionsResult, statsResult] = await Promise.all([
+        // Запрос транзакций с серверной пагинацией
+        apiClient.getCashTransactionsPaginated({
+          page: currentPage,
+          limit: itemsPerPage,
+          ...filterParams,
+        }),
+        // Запрос статистики (агрегация на сервере через SQL)
+        apiClient.getCashStats(filterParams),
+      ])
+      
+      setHistoryData(transactionsResult.data)
+      setTotalPages(transactionsResult.pagination.totalPages)
+      setStats(statsResult)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки данных')
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, typeFilter, cityFilter, startDate, endDate])
 
   useEffect(() => {
     loadHistoryData()
-  }, [])
+  }, [loadHistoryData])
 
-  // Фильтрация данных
+  // Сбрасываем на первую страницу при изменении фильтров
   useEffect(() => {
-    let filtered = [...historyData]
-
-    // Фильтр по типу
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(item => item.name === typeFilter)
-    }
-
-    // Фильтр по городу
-    if (cityFilter !== 'all') {
-      filtered = filtered.filter(item => item.city === cityFilter)
-    }
-
-    // Фильтр по дате
-    if (startDate) {
-      filtered = filtered.filter(item => {
-        const itemDate = new Date(item.dateCreate)
-        const start = new Date(startDate)
-        return itemDate >= start
-      })
-    }
-
-    if (endDate) {
-      filtered = filtered.filter(item => {
-        const itemDate = new Date(item.dateCreate)
-        const end = new Date(endDate)
-        end.setHours(23, 59, 59, 999) // Включаем весь день
-        return itemDate <= end
-      })
-    }
-
-    setFilteredData(filtered)
-    setCurrentPage(1) // Сбрасываем на первую страницу при изменении фильтров
-  }, [historyData, typeFilter, cityFilter, startDate, endDate])
-
-  // Вычисляем данные для текущей страницы
-  const safeFilteredData = Array.isArray(filteredData) ? filteredData : []
-  const totalPages = Math.ceil(safeFilteredData.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentData = safeFilteredData.slice(startIndex, endIndex)
+    setCurrentPage(1)
+  }, [typeFilter, cityFilter, startDate, endDate])
 
   // Форматирование даты
   const formatDate = (dateString: string) => {
@@ -116,16 +107,10 @@ function HistoryContent() {
     })
   }
 
-  // Подсчет статистики
-  const totalIncome = filteredData
-    .filter(item => item.name === 'приход')
-    .reduce((sum, item) => sum + Number(item.amount), 0)
-  
-  const totalExpense = filteredData
-    .filter(item => item.name === 'расход')
-    .reduce((sum, item) => sum + Number(item.amount), 0)
-
-  const balance = totalIncome - totalExpense
+  // 🔧 FIX: Статистика теперь приходит с сервера
+  const totalIncome = stats.totalIncome
+  const totalExpense = stats.totalExpense
+  const balance = stats.balance
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
@@ -287,7 +272,8 @@ function HistoryContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentData.map((item) => {
+                    {/* 🔧 FIX: Данные уже пагинированы с сервера */}
+                    {historyData.map((item) => {
                       const getTypeColor = (type: string) => {
                         switch (type) {
                           case 'приход': return '#14b8a6'

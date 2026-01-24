@@ -195,6 +195,28 @@ export interface CashTransaction {
   updatedAt: string
 }
 
+/**
+ * 🔧 FIX: Статистика кассы - считается на сервере через SQL
+ * Решает проблему с limit=10000 и 502 ошибками
+ */
+export interface CashStats {
+  totalIncome: number
+  totalExpense: number
+  balance: number
+  incomeCount: number
+  expenseCount: number
+}
+
+export interface CashTransactionsResponse {
+  data: CashTransaction[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
 export interface CityReport {
   city: string
   orders: {
@@ -276,16 +298,18 @@ export class ApiClient {
   /**
    * Fetch с retry логикой (только для GET запросов)
    * БЕЗОПАСНО: Не повторяет POST/PUT/DELETE чтобы избежать дублирования действий
+   * 
+   * 🔧 УЛУЧШЕНО: Увеличены retries и timeout для обработки 502 cold start ошибок
    */
   private async fetchWithRetry(url: string, options?: RequestInit): Promise<Response> {
     return fetchWithRetryUtil(url, {
       ...options,
       retryOptions: {
-        maxRetries: 2,        // Всего 2 повторные попытки (итого 3 запроса)
-        retryDelay: 1000,     // 1 секунда между попытками
-        backoff: true,        // Экспоненциальная задержка (1s, 2s, 4s...)
-        timeout: 10000,       // 10 секунд таймаут (меньше чем у прокси/ingress чтобы избежать 502)
-        retryOn: ['NETWORK_ERROR', 'TIMEOUT', 'SERVER_ERROR'], // Только на эти ошибки
+        maxRetries: 3,        // 3 повторные попытки (итого 4 запроса) для надежности при 502
+        retryDelay: 1500,     // 1.5 секунды между попытками (даем бэкенду время прогреться)
+        backoff: true,        // Экспоненциальная задержка (1.5s, 3s, 6s...)
+        timeout: 15000,       // 15 секунд таймаут (больше для cold start)
+        retryOn: ['NETWORK_ERROR', 'TIMEOUT', 'SERVER_ERROR'], // Включая 502/503/504
       },
     })
   }
@@ -794,8 +818,93 @@ export class ApiClient {
   }
 
   // Cash API (Cash Service)
+  
+  /**
+   * 🔧 FIX: Получить статистику кассы (агрегация на сервере)
+   * Решает проблему с limit=10000 и 502 ошибками
+   * Суммы считаются через SQL - быстро и точно
+   */
+  async getCashStats(filters?: {
+    city?: string
+    type?: 'приход' | 'расход'
+    startDate?: string
+    endDate?: string
+  }): Promise<CashStats> {
+    const params = new URLSearchParams()
+    if (filters?.city) params.append('city', filters.city)
+    if (filters?.type) params.append('type', filters.type)
+    if (filters?.startDate) params.append('startDate', filters.startDate)
+    if (filters?.endDate) params.append('endDate', filters.endDate)
+    
+    const queryString = params.toString()
+    const url = queryString 
+      ? `${this.baseURL}/cash/stats?${queryString}` 
+      : `${this.baseURL}/cash/stats`
+    
+    const response = await this.safeFetch(url, {
+      method: 'GET',
+    })
+
+    if (!response.ok) {
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения статистики кассы')
+      throw new Error(errorMessage)
+    }
+
+    const result = await safeParseJson(response, { 
+      data: { totalIncome: 0, totalExpense: 0, balance: 0, incomeCount: 0, expenseCount: 0 } 
+    })
+    return result.data || result
+  }
+
+  /**
+   * 🔧 FIX: Получить транзакции с серверной пагинацией
+   * Больше не загружаем 10000 записей - только нужную страницу
+   */
+  async getCashTransactionsPaginated(params?: {
+    page?: number
+    limit?: number
+    type?: 'приход' | 'расход'
+    city?: string
+    startDate?: string
+    endDate?: string
+  }): Promise<CashTransactionsResponse> {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.limit) queryParams.append('limit', params.limit.toString())
+    if (params?.type) queryParams.append('type', params.type)
+    if (params?.city) queryParams.append('city', params.city)
+    
+    const queryString = queryParams.toString()
+    const url = queryString 
+      ? `${this.baseURL}/cash?${queryString}` 
+      : `${this.baseURL}/cash`
+    
+    const response = await this.safeFetch(url, {
+      method: 'GET',
+    })
+
+    if (!response.ok) {
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения транзакций')
+      throw new Error(errorMessage)
+    }
+
+    const result = await safeParseJson(response, { 
+      data: [], 
+      pagination: { page: 1, limit: 50, total: 0, totalPages: 0 } 
+    })
+    
+    return {
+      data: result.data || [],
+      pagination: result.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 }
+    }
+  }
+
+  /**
+   * @deprecated Используйте getCashTransactionsPaginated + getCashStats
+   * Оставлено для обратной совместимости, но загружает только 100 записей
+   */
   async getCashTransactions(): Promise<CashTransaction[]> {
-    const response = await this.safeFetch(`${this.baseURL}/cash?limit=10000`, {
+    const response = await this.safeFetch(`${this.baseURL}/cash?limit=100`, {
       method: 'GET',
     })
 
@@ -815,8 +924,11 @@ export class ApiClient {
     return sortedData
   }
 
+  /**
+   * @deprecated Используйте getCashTransactionsPaginated с type='приход' + getCashStats
+   */
   async getCashIncome(): Promise<CashTransaction[]> {
-    const response = await this.safeFetch(`${this.baseURL}/cash?type=приход&limit=10000`, {
+    const response = await this.safeFetch(`${this.baseURL}/cash?type=приход&limit=100`, {
       method: 'GET',
     })
 
@@ -829,8 +941,11 @@ export class ApiClient {
     return result.data || result
   }
 
+  /**
+   * @deprecated Используйте getCashTransactionsPaginated с type='расход' + getCashStats
+   */
   async getCashExpense(): Promise<CashTransaction[]> {
-    const response = await this.safeFetch(`${this.baseURL}/cash?type=расход&limit=10000`, {
+    const response = await this.safeFetch(`${this.baseURL}/cash?type=расход&limit=100`, {
       method: 'GET',
     })
 

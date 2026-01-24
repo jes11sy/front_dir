@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { apiClient, CashTransaction } from '@/lib/api'
+import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 
@@ -16,6 +16,8 @@ function IncomeContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [incomeData, setIncomeData] = useState<CashTransaction[]>([])
+  const [totalPages, setTotalPages] = useState(1)
+  // 🔧 FIX: Сумма теперь приходит с сервера (агрегация через SQL)
   const [totalAmount, setTotalAmount] = useState(0)
   const itemsPerPage = 10
   const [openSelect, setOpenSelect] = useState<string | null>(null)
@@ -45,33 +47,38 @@ function IncomeContent() {
     { value: 'other', label: 'Иное' }
   ]
 
-  // Загрузка данных
-  const loadIncomeData = async () => {
+  // 🔧 FIX: Загрузка данных с серверной пагинацией и агрегацией
+  const loadIncomeData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiClient.getCashIncome()
       
-      // Дополнительная фильтрация на фронтенде - показываем только приходы
-      const incomeOnly = data.filter(item => 
-        item.name === 'приход'
-      )
+      // 🔧 FIX: Два легких параллельных запроса вместо одного тяжелого с limit=10000
+      const [transactionsResult, statsResult] = await Promise.all([
+        // Запрос транзакций с серверной пагинацией
+        apiClient.getCashTransactionsPaginated({
+          page: currentPage,
+          limit: itemsPerPage,
+          type: 'приход',
+        }),
+        // Запрос статистики (агрегация на сервере через SQL)
+        apiClient.getCashStats({ type: 'приход' }),
+      ])
       
-      setIncomeData(incomeOnly)
-      
-      // Вычисляем общую сумму
-      const total = incomeOnly.reduce((sum, item) => sum + Number(item.amount), 0)
-      setTotalAmount(total)
+      setIncomeData(transactionsResult.data)
+      setTotalPages(transactionsResult.pagination.totalPages)
+      // 🔧 FIX: Сумма считается на сервере - точно и быстро
+      setTotalAmount(statsResult.totalIncome)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки данных')
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage])
 
   useEffect(() => {
     loadIncomeData()
-  }, [])
+  }, [loadIncomeData])
 
   // Функции для работы с формой (мемоизированные)
   const handleInputChange = useCallback((field: string, value: string) => {
@@ -127,18 +134,8 @@ function IncomeContent() {
     }
   }
 
-  // Вычисляем данные для текущей страницы
-  const safeIncomeData = Array.isArray(incomeData) ? incomeData : []
-  
-  // Дополнительная фильтрация для пагинации - только приходы
-  const filteredIncomeData = safeIncomeData.filter(item => 
-    item.name === 'приход'
-  )
-  
-  const totalPages = Math.ceil(filteredIncomeData.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentData = filteredIncomeData.slice(startIndex, endIndex)
+  // 🔧 FIX: Данные уже пагинированы с сервера - не нужна клиентская пагинация
+  const currentData = incomeData
 
   // Форматирование даты
   const formatDate = (dateString: string) => {
@@ -285,12 +282,8 @@ function IncomeContent() {
                       </tr>
                     </thead>
                     <tbody>
-                      {currentData
-                        .filter(item => 
-                          // Дополнительная проверка - показываем только приходы
-                          item.name === 'приход'
-                        )
-                        .map((item) => {
+                      {/* 🔧 FIX: Данные уже отфильтрованы на сервере */}
+                      {currentData.map((item) => {
                         const getTypeColor = (type: string) => {
                           switch (type) {
                             case 'приход': return '#14b8a6'

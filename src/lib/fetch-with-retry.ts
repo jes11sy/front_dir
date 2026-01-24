@@ -105,6 +105,8 @@ const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
 /**
  * Выполнить fetch с автоматическими повторными попытками
  * БЕЗОПАСНО: Используется только для GET запросов по умолчанию
+ * 
+ * УЛУЧШЕНО: Автоматический retry для 502/503/504 ошибок (cold start / nginx upstream issues)
  */
 export async function fetchWithRetry(
   url: string,
@@ -115,6 +117,7 @@ export async function fetchWithRetry(
   delete (fetchOptions as any).retryOptions
 
   let lastError: NetworkError | null = null
+  let lastResponse: Response | null = null
   
   for (let attempt = 0; attempt <= retryOptions.maxRetries; attempt++) {
     try {
@@ -129,8 +132,33 @@ export async function fetchWithRetry(
       
       clearTimeout(timeoutId)
       
-      // Если ответ получен - возвращаем его (даже если это 4xx/5xx)
-      // Обработка HTTP ошибок должна быть в вызывающем коде
+      // 🔧 FIX: Автоматический retry для 502/503/504 (cold start / nginx upstream issues)
+      // Эти ошибки часто происходят когда бэкенд "просыпается" после простоя
+      if ((response.status === 502 || response.status === 503 || response.status === 504) && 
+          attempt < retryOptions.maxRetries &&
+          retryOptions.retryOn.includes('SERVER_ERROR')) {
+        
+        lastResponse = response
+        
+        // Вычисляем задержку (с экспоненциальным backoff)
+        const delay = retryOptions.backoff
+          ? retryOptions.retryDelay * Math.pow(2, attempt)
+          : retryOptions.retryDelay
+        
+        // Логируем попытку
+        if (process.env.NODE_ENV === 'development') {
+          console.log(
+            `🔄 502/503/504 retry ${attempt + 1}/${retryOptions.maxRetries} ` +
+            `for ${url} after ${delay}ms (status: ${response.status})`
+          )
+        }
+        
+        // Ждем перед следующей попыткой
+        await new Promise(resolve => setTimeout(resolve, delay))
+        continue
+      }
+      
+      // Если ответ получен и не 502/503/504 - возвращаем его
       return response
       
     } catch (error: any) {
@@ -163,6 +191,11 @@ export async function fetchWithRetry(
       // Ждем перед следующей попыткой
       await new Promise(resolve => setTimeout(resolve, delay))
     }
+  }
+  
+  // Если все попытки исчерпаны и был 502/503/504 ответ - возвращаем его
+  if (lastResponse) {
+    return lastResponse
   }
   
   // Этот код не должен выполниться, но TypeScript требует
