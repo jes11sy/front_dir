@@ -60,7 +60,7 @@ export default function SchedulePage() {
   const weekDates = getWeekDates(currentMonday)
 
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true)
         const data = await apiClient.getMasters()
@@ -87,15 +87,24 @@ export default function SchedulePage() {
         
         setEmployees(filteredEmployees)
         
-        // Генерируем демо-данные для графика
-        const demoSchedule = new Map<string, boolean>()
-        filteredEmployees.forEach(emp => {
-          weekDates.forEach(date => {
-            const key = `${emp.id}-${toDateString(date)}`
-            demoSchedule.set(key, Math.random() > 0.3)
-          })
-        })
-        setSchedule(demoSchedule)
+        // Загружаем график для каждого мастера
+        const startDate = toDateString(weekDates[0])
+        const endDate = toDateString(weekDates[6])
+        const scheduleMap = new Map<string, boolean>()
+        
+        await Promise.all(filteredEmployees.map(async (emp) => {
+          try {
+            const masterSchedule = await apiClient.getMasterSchedule(emp.id, startDate, endDate)
+            masterSchedule.forEach(day => {
+              const key = `${emp.id}-${day.date}`
+              scheduleMap.set(key, day.isWorkDay)
+            })
+          } catch {
+            // Если не удалось загрузить график для мастера, оставляем пустым
+          }
+        }))
+        
+        setSchedule(scheduleMap)
         
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ошибка загрузки сотрудников')
@@ -104,18 +113,29 @@ export default function SchedulePage() {
       }
     }
 
-    fetchEmployees()
+    fetchData()
   }, [currentMonday])
 
-  const toggleSchedule = (employeeId: number, date: Date) => {
-    const key = `${employeeId}-${toDateString(date)}`
+  const toggleSchedule = async (employeeId: number, date: Date) => {
+    const dateStr = toDateString(date)
+    const key = `${employeeId}-${dateStr}`
     const currentValue = schedule.get(key) ?? false
+    const newValue = !currentValue
     
+    // Оптимистичное обновление UI
     const newSchedule = new Map(schedule)
-    newSchedule.set(key, !currentValue)
+    newSchedule.set(key, newValue)
     setSchedule(newSchedule)
     
-    // TODO: Отправить изменение на сервер
+    // Отправляем изменение на сервер
+    try {
+      await apiClient.updateMasterSchedule(employeeId, [{ date: dateStr, isWorkDay: newValue }])
+    } catch {
+      // Откатываем изменение при ошибке
+      const revertSchedule = new Map(schedule)
+      revertSchedule.set(key, currentValue)
+      setSchedule(revertSchedule)
+    }
   }
 
   const goToPreviousWeek = () => {

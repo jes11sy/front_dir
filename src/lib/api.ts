@@ -757,6 +757,36 @@ export class ApiClient {
     }
   }
 
+  // Master Schedule API
+  async getMasterSchedule(masterId: number, startDate: string, endDate: string): Promise<{ date: string; isWorkDay: boolean }[]> {
+    const params = new URLSearchParams({ startDate, endDate })
+    const response = await this.safeFetch(`${this.baseURL}/masters/${masterId}/schedule?${params}`, {
+      method: 'GET',
+    })
+
+    if (!response.ok) {
+      return []
+    }
+
+    try {
+      const result = await response.json()
+      return result.data || result || []
+    } catch {
+      return []
+    }
+  }
+
+  async updateMasterSchedule(masterId: number, days: { date: string; isWorkDay: boolean }[]): Promise<void> {
+    const response = await this.safeFetch(`${this.baseURL}/masters/${masterId}/schedule`, {
+      method: 'POST',
+      body: JSON.stringify({ days }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Ошибка обновления графика')
+    }
+  }
+
   // Employees API
   async getEmployees(): Promise<Employee[]> {
     const response = await this.safeFetch(`${this.baseURL}/employees`, {
