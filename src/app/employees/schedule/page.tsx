@@ -1,7 +1,16 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { apiClient, Employee } from '@/lib/api'
+import { apiClient } from '@/lib/api'
+
+// Тип мастера из нового API
+interface MasterWithSchedule {
+  id: number
+  name: string
+  statusWork: string
+  cities: string[]
+  schedule: { date: string; isWorkDay: boolean }[]
+}
 
 // Получить понедельник текущей недели
 function getMonday(date: Date): Date {
@@ -54,7 +63,7 @@ function toDateString(date: Date): string {
 }
 
 export default function SchedulePage() {
-  const [employees, setEmployees] = useState<Employee[]>([])
+  const [masters, setMasters] = useState<MasterWithSchedule[]>([])
   const [schedule, setSchedule] = useState<Map<string, boolean>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -66,58 +75,37 @@ export default function SchedulePage() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const data = await apiClient.getMasters()
         
-        // Фильтруем мастеров по городам текущего директора
-        const currentUser = apiClient.getCurrentUser()
-        const directorCities = currentUser?.cities || []
+        // Вычисляем даты недели внутри useEffect
+        const dates = getWeekDates(currentMonday)
         
-        const safeData = Array.isArray(data) ? data : []
+        // Один запрос — получаем всех мастеров с графиком
+        // Бэкенд сам фильтрует по городам директора и исключает уволенных
+        const startDate = toDateString(dates[0])
+        const endDate = toDateString(dates[6])
         
-        // Фильтруем только активных мастеров (исключаем уволенных)
-        const filteredEmployees = safeData.filter(employee => {
-          const status = (employee.statusWork || '').toLowerCase()
-          
-          // Исключаем уволенных
-          if (status.includes('уволен') || status === 'fired' || status === 'inactive') {
-            return false
-          }
-          
-          // Проверяем что работает
-          const isActive = status.includes('работает') || status.includes('работающий') || status === 'active'
-          
-          if (!isActive) return false
-          
-          // Если у директора нет городов, показываем всех
-          if (directorCities.length === 0) return true
-          
-          // Проверяем, есть ли пересечение городов сотрудника и директора
-          return employee.cities && Array.isArray(employee.cities) && employee.cities.some(city => directorCities.includes(city))
-        })
+        const result = await apiClient.getAllMastersSchedules(startDate, endDate)
         
-        setEmployees(filteredEmployees)
+        if (!result) {
+          setError('Ошибка загрузки данных')
+          return
+        }
         
-        // Загружаем график для каждого мастера
-        const startDate = toDateString(weekDates[0])
-        const endDate = toDateString(weekDates[6])
+        setMasters(result.masters)
+        
+        // Собираем расписание в Map для быстрого доступа
         const scheduleMap = new Map<string, boolean>()
-        
-        await Promise.all(filteredEmployees.map(async (emp) => {
-          try {
-            const masterSchedule = await apiClient.getMasterSchedule(emp.id, startDate, endDate)
-            masterSchedule.forEach(day => {
-              const key = `${emp.id}-${day.date}`
-              scheduleMap.set(key, day.isWorkDay)
-            })
-          } catch {
-            // Если не удалось загрузить график для мастера, оставляем пустым
-          }
-        }))
+        result.masters.forEach(master => {
+          master.schedule.forEach(day => {
+            const key = `${master.id}-${day.date}`
+            scheduleMap.set(key, day.isWorkDay)
+          })
+        })
         
         setSchedule(scheduleMap)
         
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ошибка загрузки сотрудников')
+        setError(err instanceof Error ? err.message : 'Ошибка загрузки')
       } finally {
         setLoading(false)
       }
@@ -263,13 +251,13 @@ export default function SchedulePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {employees.map((employee) => (
-                    <tr key={employee.id} className="border-b hover:bg-gray-50 transition-colors" style={{borderColor: '#e5e7eb'}}>
+                  {masters.map((master) => (
+                    <tr key={master.id} className="border-b hover:bg-gray-50 transition-colors" style={{borderColor: '#e5e7eb'}}>
                       <td className="py-4 px-4 text-gray-800 font-medium">
-                        {employee.name}
+                        {master.name}
                       </td>
                       {weekDates.map((date, idx) => {
-                        const key = `${employee.id}-${toDateString(date)}`
+                        const key = `${master.id}-${toDateString(date)}`
                         const isWorking = schedule.get(key) ?? false
                         
                         return (
@@ -278,7 +266,7 @@ export default function SchedulePage() {
                             className={`text-center py-3 px-2 ${isToday(date) ? 'bg-teal-50' : ''}`}
                           >
                             <button
-                              onClick={() => toggleSchedule(employee.id, date)}
+                              onClick={() => toggleSchedule(master.id, date)}
                               className={`
                                 w-10 h-10 rounded-lg flex items-center justify-center mx-auto
                                 transition-all duration-200 cursor-pointer
@@ -308,7 +296,7 @@ export default function SchedulePage() {
               </table>
             </div>
 
-            {employees.length === 0 && (
+            {masters.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 Нет активных мастеров. Добавьте мастеров на странице "Мастера".
               </div>

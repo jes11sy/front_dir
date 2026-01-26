@@ -787,6 +787,34 @@ export class ApiClient {
     }
   }
 
+  // Get all masters schedules in one request (optimized)
+  async getAllMastersSchedules(startDate: string, endDate: string): Promise<{
+    masters: Array<{
+      id: number
+      name: string
+      statusWork: string
+      cities: string[]
+      schedule: { date: string; isWorkDay: boolean }[]
+    }>
+    period: { startDate: string; endDate: string }
+  } | null> {
+    const params = new URLSearchParams({ startDate, endDate })
+    const response = await this.safeFetch(`${this.baseURL}/masters/schedules?${params}`, {
+      method: 'GET',
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    try {
+      const result = await response.json()
+      return result.data || null
+    } catch {
+      return null
+    }
+  }
+
   // Employees API
   async getEmployees(): Promise<Employee[]> {
     const response = await this.safeFetch(`${this.baseURL}/employees`, {
