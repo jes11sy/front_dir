@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 const navigationItems = [
-  { name: 'ТЕСТ-123', href: '/orders' },
   { name: 'Заказы', href: '/orders' },
   { 
     name: 'Касса', 

@@ -23,7 +23,13 @@ const navigationItems = [
     ]
   },
   { name: 'Сдача мастеров', href: '/master-handover' },
-  { name: 'Сотрудники', href: '/employees' },
+  { 
+    name: 'Сотрудники', 
+    dropdown: [
+      { name: 'Мастера', href: '/employees' },
+      { name: 'График работы', href: '/employees/schedule' }
+    ]
+  },
   { 
     name: 'Профиль', 
     dropdown: [
