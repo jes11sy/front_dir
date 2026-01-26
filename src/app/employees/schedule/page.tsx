@@ -45,9 +45,12 @@ function getDayName(date: Date): string {
   return days[date.getDay()]
 }
 
-// Преобразовать дату в строку YYYY-MM-DD
+// Преобразовать дату в строку YYYY-MM-DD (локальная дата, без UTC сдвига)
 function toDateString(date: Date): string {
-  return date.toISOString().split('T')[0]
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 export default function SchedulePage() {
@@ -71,9 +74,16 @@ export default function SchedulePage() {
         
         const safeData = Array.isArray(data) ? data : []
         
-        // Фильтруем только активных мастеров
+        // Фильтруем только активных мастеров (исключаем уволенных)
         const filteredEmployees = safeData.filter(employee => {
           const status = (employee.statusWork || '').toLowerCase()
+          
+          // Исключаем уволенных
+          if (status.includes('уволен') || status === 'fired' || status === 'inactive') {
+            return false
+          }
+          
+          // Проверяем что работает
           const isActive = status.includes('работает') || status.includes('работающий') || status === 'active'
           
           if (!isActive) return false
