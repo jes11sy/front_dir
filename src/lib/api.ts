@@ -770,7 +770,7 @@ export class ApiClient {
 
     try {
       const result = await response.json()
-      return result.data || result || []
+      return result.data?.schedule || []
     } catch {
       return []
     }
