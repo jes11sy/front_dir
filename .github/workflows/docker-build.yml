@@ -18,6 +18,13 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # ✅ FIX #116: Hadolint для Dockerfile linting
+    - name: Lint Dockerfile
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: Dockerfile
+        failure-threshold: warning
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 

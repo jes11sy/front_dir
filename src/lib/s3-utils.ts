@@ -4,8 +4,9 @@
 
 import React from 'react';
 
+// ✅ FIX #173: URL берутся из env, fallback для разработки
 const S3_BASE_URL = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.test-shem.ru/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.lead-schem.ru/api/v1';
 
 /**
  * Получить прямую ссылку на файл в S3

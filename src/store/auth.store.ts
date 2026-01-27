@@ -57,16 +57,12 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // ✅ FIX: Убран двойной API запрос - теперь только один вызов getProfile
+      // isAuthenticated() внутри вызывает getProfile(), поэтому был дубль
       checkAuth: async (): Promise<boolean> => {
         set({ isLoading: true });
         try {
-          // Проверяем httpOnly cookies через API
-          const isAuth = await apiClient.isAuthenticated();
-          if (!isAuth) {
-            set({ isLoading: false, isAuthenticated: false, user: null });
-            return false;
-          }
-
+          // Один запрос вместо двух: getProfile проверяет сессию И возвращает данные пользователя
           const user = await apiClient.getProfile();
           set({
             user,

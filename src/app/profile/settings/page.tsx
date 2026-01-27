@@ -155,9 +155,11 @@ function SettingsContent() {
 
       
       // Обновляем данные пользователя в localStorage
+      // ✅ FIX #150: Санитизация данных перед сохранением
       const updatedUser = await apiClient.getCurrentUserProfile()
       if (updatedUser) {
-        localStorage.setItem('user', JSON.stringify(updatedUser))
+        const { sanitizeObject } = await import('@/lib/sanitize')
+        localStorage.setItem('user', JSON.stringify(sanitizeObject(updatedUser as Record<string, unknown>)))
         
         // Обновляем превью если файлы загружены (получаем подписанные URL)
         if (updatedUser.contractDoc) {

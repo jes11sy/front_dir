@@ -34,7 +34,7 @@ export const OrderInfoTab: React.FC<OrderInfoTabProps> = ({ order }) => {
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">РК</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.pk}
+            {order.rk}
           </div>
         </div>
 
@@ -48,63 +48,63 @@ export const OrderInfoTab: React.FC<OrderInfoTabProps> = ({ order }) => {
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Имя мастера</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.nameMaster}
+            {order.master?.name || '-'}
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Телефон</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.telephone}
+            {order.phone}
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Клиент</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.client}
+            {order.clientName}
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Адрес</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.adres}
+            {order.address}
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Дата встречи</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.dateMeet ? formatDate(order.dateMeet) : '-'}
+            {order.dateMeeting ? formatDate(order.dateMeeting) : '-'}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Направление</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Тип оборудования</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.napravlenie}
+            {order.typeEquipment}
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Проблема</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.problema}
+            {order.problem}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Марка</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Авито аккаунт</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.marka || '-'}
+            {order.avitoName || order.avito?.name || '-'}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Модель</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Статус</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.model || '-'}
+            {order.statusOrder || '-'}
           </div>
         </div>
 
@@ -118,38 +118,31 @@ export const OrderInfoTab: React.FC<OrderInfoTabProps> = ({ order }) => {
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Дата создания</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.dateCreate ? formatDate(order.dateCreate) : '-'}
+            {order.createDate ? formatDate(order.createDate) : '-'}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Обновлен</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Дата закрытия</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.updateDate ? formatDate(order.updateDate) : '-'}
+            {order.closingData ? formatDate(order.closingData) : '-'}
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">ID клиента</label>
-          <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.clientId || '-'}
-          </div>
-        </div>
-
-        {order.idAvito && (
+        {order.callId && (
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">ID Авито</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">ID звонка</label>
             <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-              {order.idAvito}
+              {order.callId}
             </div>
           </div>
         )}
 
-        {order.source && (
+        {order.avitoChatId && (
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Источник</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">ID чата Авито</label>
             <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-              {order.source}
+              {order.avitoChatId}
             </div>
           </div>
         )}

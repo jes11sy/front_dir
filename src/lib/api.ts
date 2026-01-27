@@ -439,6 +439,12 @@ export class ApiClient {
   /**
    * 🍪 Авторизация с httpOnly cookies
    * Токены автоматически устанавливаются сервером в cookies
+   * 
+   * @param login - Логин директора
+   * @param password - Пароль
+   *   ⚠️ SECURITY: НЕ логировать, НЕ сохранять в storage
+   *   Хэшируется на сервере через bcrypt (12 rounds)
+   * @param remember - Запомнить на устройстве
    */
   async login(login: string, password: string, remember: boolean = false): Promise<LoginResponse> {
     const response = await this.safeFetch(`${this.baseURL}/auth/login`, {
@@ -469,12 +475,15 @@ export class ApiClient {
     const result = await response.json()
     
     // Сохраняем данные пользователя
+    // ✅ FIX #150: Санитизация данных перед сохранением в localStorage
     if (result.success && result.data && result.data.user) {
       if (typeof window !== 'undefined') {
+        const { sanitizeObject } = await import('./sanitize')
+        const sanitizedUser = sanitizeObject(result.data.user as Record<string, unknown>)
         // Всегда сохраняем в sessionStorage для текущей сессии
-        sessionStorage.setItem('user', JSON.stringify(result.data.user))
+        sessionStorage.setItem('user', JSON.stringify(sanitizedUser))
         // И в localStorage для автологина при повторном открытии
-        localStorage.setItem('user', JSON.stringify(result.data.user))
+        localStorage.setItem('user', JSON.stringify(sanitizedUser))
       }
       
       // Если включен "Запомнить меня" - сохраняем учетные данные в IndexedDB
