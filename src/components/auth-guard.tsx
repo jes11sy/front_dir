@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
@@ -9,35 +9,84 @@ interface AuthGuardProps {
   children: React.ReactNode
 }
 
-const isDevelopment = process.env.NODE_ENV === 'development'
-
 export default function AuthGuard({ children }: AuthGuardProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
   const router = useRouter()
+  const hasCheckedAuth = useRef(false)
+
+  // Колбэк для обработки ошибок авторизации (используется в apiClient)
+  const handleAuthError = useCallback(() => {
+    logger.debug('Auth error callback triggered, redirecting to login')
+    router.push('/login')
+  }, [router])
+
+  // Устанавливаем колбэк в apiClient при монтировании
+  useEffect(() => {
+    apiClient.setAuthErrorCallback(handleAuthError)
+    
+    return () => {
+      // Очищаем колбэк при размонтировании
+      apiClient.setAuthErrorCallback(() => {})
+    }
+  }, [handleAuthError])
 
   useEffect(() => {
+    // Предотвращаем повторную проверку
+    if (hasCheckedAuth.current) return
+    hasCheckedAuth.current = true
+    
     let isMounted = true
     
     const checkAuth = async () => {
       try {
         // Проверяем валидность сессии через httpOnly cookies
-        await apiClient.getProfile()
+        // Таймаут 15 секунд для медленных соединений
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('AUTH_TIMEOUT')), 15000)
+        )
+        
+        await Promise.race([apiClient.getProfile(), timeoutPromise])
+        
         if (isMounted) {
           setIsAuthenticated(true)
+          setAuthError(null)
         }
       } catch (error) {
-        logger.authError('Auth check failed')
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        
+        // Проверяем тип ошибки
+        if (errorMessage === 'AUTH_TIMEOUT' || 
+            errorMessage.includes('сеть') || 
+            errorMessage.includes('network') ||
+            errorMessage.includes('Проблемы с сетью')) {
+          // Сетевая ошибка - НЕ делаем logout, показываем сообщение
+          logger.debug('Network error during auth check, not logging out')
+          if (isMounted) {
+            setAuthError('Проблемы с сетью. Проверьте подключение к интернету.')
+            setIsLoading(false)
+          }
+          return
+        }
+        
+        logger.authError('Auth check failed:', errorMessage)
         
         // Сессия недействительна, пробуем автовход через IndexedDB
         const autoLoginSuccess = await tryAutoLogin()
         
         if (!autoLoginSuccess) {
           // Автовход не удался, очищаем локальные данные и перенаправляем на логин
-          await apiClient.logout()
+          // Не вызываем logout повторно если это SESSION_EXPIRED
+          if (errorMessage !== 'SESSION_EXPIRED') {
+            await apiClient.logout()
+          }
           if (isMounted) router.push('/login')
         } else {
-          if (isMounted) setIsAuthenticated(true)
+          if (isMounted) {
+            setIsAuthenticated(true)
+            setAuthError(null)
+          }
         }
       } finally {
         if (isMounted) setIsLoading(false)
@@ -94,10 +143,40 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [router])
 
+  // Функция для повторной попытки подключения
+  const handleRetry = () => {
+    hasCheckedAuth.current = false
+    setAuthError(null)
+    setIsLoading(true)
+    // Триггерим перезагрузку через изменение состояния
+    window.location.reload()
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
-        <div className="text-white text-xl">Загрузка...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <div className="text-white text-xl">Загрузка...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // Показываем ошибку сети с возможностью повторить
+  if (authError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="text-yellow-400 text-6xl mb-4">⚠️</div>
+          <div className="text-white text-xl mb-4">{authError}</div>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-3 bg-white text-teal-700 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+          >
+            Попробовать снова
+          </button>
+        </div>
       </div>
     )
   }

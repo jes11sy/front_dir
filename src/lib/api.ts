@@ -261,18 +261,83 @@ export class ApiClient {
   private baseURL: string
   private isRefreshing: boolean = false
   private refreshSubscribers: (() => void)[] = []
+  private isLoggingOut: boolean = false // 🔒 Защита от множественных logout
+  private silentRefreshInterval: ReturnType<typeof setInterval> | null = null
+  private lastActivityTime: number = Date.now()
+
+  // Колбэк для редиректа (устанавливается из компонента с доступом к router)
+  private onAuthError: (() => void) | null = null
 
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL
     // 🍪 Токены теперь хранятся в httpOnly cookies на сервере
-    // Не нужно проверять истечение - сервер сам обработает
+    
+    // Запускаем Silent Refresh при создании клиента
+    if (typeof window !== 'undefined') {
+      this.startSilentRefresh()
+      this.trackActivity()
+    }
   }
 
-  // 🍪 Проверка токенов не нужна - они в httpOnly cookies на сервере
+  /**
+   * Установить колбэк для обработки ошибок авторизации
+   * Вызывается из AuthGuard для использования Next.js router
+   */
+  setAuthErrorCallback(callback: () => void) {
+    this.onAuthError = callback
+  }
 
-  // 🍪 Authorization через httpOnly cookies
+  /**
+   * 🔄 Silent Refresh - фоновое обновление токена
+   * Проверяет каждые 4 минуты и обновляет токен если пользователь активен
+   */
+  private startSilentRefresh() {
+    // Очищаем предыдущий интервал если был
+    if (this.silentRefreshInterval) {
+      clearInterval(this.silentRefreshInterval)
+    }
 
-  // 🍪 Токены в httpOnly cookies - не нужны get/set методы
+    // Проверяем каждые 4 минуты (токен живёт 15 минут, обновляем заранее)
+    this.silentRefreshInterval = setInterval(async () => {
+      // Обновляем только если пользователь был активен в последние 10 минут
+      const inactiveTime = Date.now() - this.lastActivityTime
+      const isActive = inactiveTime < 10 * 60 * 1000 // 10 минут
+
+      if (isActive) {
+        try {
+          await this.refreshAccessToken()
+          logger.debug('Silent refresh successful')
+        } catch (error) {
+          logger.debug('Silent refresh failed, user may need to re-login')
+        }
+      }
+    }, 4 * 60 * 1000) // Каждые 4 минуты
+  }
+
+  /**
+   * Остановить Silent Refresh (при logout)
+   */
+  private stopSilentRefresh() {
+    if (this.silentRefreshInterval) {
+      clearInterval(this.silentRefreshInterval)
+      this.silentRefreshInterval = null
+    }
+  }
+
+  /**
+   * Отслеживание активности пользователя
+   */
+  private trackActivity() {
+    const updateActivity = () => {
+      this.lastActivityTime = Date.now()
+    }
+
+    // Отслеживаем клики, нажатия клавиш и скролл
+    document.addEventListener('click', updateActivity, { passive: true })
+    document.addEventListener('keypress', updateActivity, { passive: true })
+    document.addEventListener('scroll', updateActivity, { passive: true })
+    document.addEventListener('touchstart', updateActivity, { passive: true })
+  }
 
   private onRefreshed() {
     this.refreshSubscribers.forEach(callback => callback())
@@ -317,24 +382,48 @@ export class ApiClient {
   /**
    * 🍪 Обновление токенов через httpOnly cookies
    * Сервер автоматически обновит cookies
+   * 🔧 УЛУЧШЕНО: Добавлен retry с экспоненциальной задержкой
    */
   private async refreshAccessToken(): Promise<boolean> {
-    try {
-      // Используем fetchWithRetry для refresh токена чтобы избежать 502
-      const response = await this.fetchWithRetry(`${this.baseURL}/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Use-Cookies': 'true',
-        },
-        credentials: 'include',
-        body: JSON.stringify({}),
-      })
+    const maxAttempts = 3
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const response = await fetch(`${this.baseURL}/auth/refresh`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Use-Cookies': 'true',
+          },
+          credentials: 'include',
+          body: JSON.stringify({}),
+        })
 
-      return response.ok
-    } catch (error) {
-      return false
+        if (response.ok) {
+          return true
+        }
+        
+        // Если 401/403 - токен невалиден, не повторяем
+        if (response.status === 401 || response.status === 403) {
+          logger.debug('Refresh token invalid or expired')
+          return false
+        }
+        
+        // Для других ошибок (500, 502, 503) - повторяем
+        if (attempt < maxAttempts) {
+          const delay = 1000 * Math.pow(2, attempt - 1) // 1s, 2s, 4s
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      } catch (error) {
+        // Сетевая ошибка - повторяем
+        if (attempt < maxAttempts) {
+          const delay = 1000 * Math.pow(2, attempt - 1)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      }
     }
+    
+    return false
   }
 
   /**
@@ -388,23 +477,24 @@ export class ApiClient {
             this.isRefreshing = false
             return retryResponse
           } else {
-            // Не удалось обновить токен - редирект на логин
+            // Не удалось обновить токен - вызываем безопасный logout
             this.isRefreshing = false
-            this.logout()
-            if (typeof window !== 'undefined') {
-              window.location.href = '/login'
-            }
-            // Выбрасываем специальную ошибку, чтобы прервать выполнение
+            await this.handleAuthError()
             throw new Error('SESSION_EXPIRED')
           }
         } catch (error) {
           this.isRefreshing = false
-          // Если ошибка при обновлении токена - тоже редирект на логин
+          // Если ошибка при обновлении токена
           if (error instanceof Error && error.message !== 'SESSION_EXPIRED') {
-            this.logout()
-            if (typeof window !== 'undefined') {
-              window.location.href = '/login'
+            // Проверяем, сетевая ли это ошибка
+            const networkError = classifyNetworkError(error)
+            if (networkError.type === 'NETWORK_ERROR' || networkError.type === 'TIMEOUT') {
+              // Сетевая ошибка - НЕ делаем logout, просто выбрасываем ошибку
+              logger.debug('Network error during refresh, not logging out')
+              throw new Error('Проблемы с сетью. Проверьте подключение к интернету.')
             }
+            // Ошибка авторизации - делаем logout
+            await this.handleAuthError()
           }
           throw error
         }
@@ -421,6 +511,11 @@ export class ApiClient {
       const networkError = classifyNetworkError(error)
       const userMessage = getUserFriendlyErrorMessage(networkError)
       
+      // 🔒 НЕ делаем logout при сетевых ошибках
+      if (networkError.type === 'NETWORK_ERROR' || networkError.type === 'TIMEOUT') {
+        logger.debug('Network error, not logging out:', networkError.type)
+      }
+      
       // Логируем детали только в development
       if (process.env.NODE_ENV === 'development') {
         console.error('Network Error:', {
@@ -433,6 +528,37 @@ export class ApiClient {
       
       // Выбрасываем ошибку с понятным сообщением
       throw new Error(userMessage)
+    }
+  }
+
+  /**
+   * 🔒 Безопасная обработка ошибки авторизации
+   * Защищает от множественных вызовов logout
+   */
+  private async handleAuthError(): Promise<void> {
+    // Защита от множественных вызовов
+    if (this.isLoggingOut) {
+      logger.debug('Already logging out, skipping')
+      return
+    }
+    
+    this.isLoggingOut = true
+    
+    try {
+      await this.logout()
+      
+      // Используем колбэк если установлен (Next.js router)
+      if (this.onAuthError) {
+        this.onAuthError()
+      } else if (typeof window !== 'undefined') {
+        // Fallback на window.location только если колбэк не установлен
+        window.location.href = '/login'
+      }
+    } finally {
+      // Сбрасываем флаг через небольшую задержку
+      setTimeout(() => {
+        this.isLoggingOut = false
+      }, 1000)
     }
   }
 
@@ -538,8 +664,12 @@ export class ApiClient {
 
   /**
    * 🍪 Выход с очисткой httpOnly cookies на сервере
+   * 🔒 УЛУЧШЕНО: Защита от множественных вызовов
    */
   async logout(): Promise<void> {
+    // Останавливаем Silent Refresh
+    this.stopSilentRefresh()
+    
     // Очищаем сохраненные учетные данные из IndexedDB
     try {
       const { clearSavedCredentials } = await import('./remember-me')
@@ -550,8 +680,14 @@ export class ApiClient {
 
     try {
       logger.debug('Sending logout request to server')
-      await this.safeFetch(`${this.baseURL}/auth/logout`, {
+      // Используем обычный fetch чтобы избежать рекурсии через safeFetch
+      await fetch(`${this.baseURL}/auth/logout`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Use-Cookies': 'true',
+        },
+        credentials: 'include',
         body: JSON.stringify({}),
       })
     } catch (error) {
@@ -565,13 +701,13 @@ export class ApiClient {
   /**
    * 🍪 Проверка аутентификации через API
    * Нельзя проверить httpOnly cookies на клиенте - нужен запрос к серверу
-   * Добавлен таймаут 5 секунд для PWA/мобильных устройств
+   * 🔧 УЛУЧШЕНО: Увеличен таймаут до 15 секунд для медленных соединений
    */
   async isAuthenticated(): Promise<boolean> {
     try {
-      // Таймаут 5 секунд для проверки авторизации
+      // Таймаут 15 секунд для проверки авторизации (мобильный интернет может быть медленным)
       const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+        setTimeout(() => reject(new Error('Auth check timeout')), 15000)
       )
       
       await Promise.race([this.getProfile(), timeoutPromise])
