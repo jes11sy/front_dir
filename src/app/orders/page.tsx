@@ -44,6 +44,7 @@ function OrdersContent() {
   const [orders, setOrders] = useState<Order[]>([])
   const [allStatuses, setAllStatuses] = useState<string[]>([])
   const [allMasters, setAllMasters] = useState<{id: number, name: string}[]>([])
+  const [allCities, setAllCities] = useState<string[]>([]) // Города пользователя (фиксированный список)
   const [allRks, setAllRks] = useState<string[]>([])
   const [allTypeEquipments, setAllTypeEquipments] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,7 +65,7 @@ function OrdersContent() {
   // Определяем тип навигации: back/forward vs reload/direct
   const isBackNavigation = useRef(false)
   
-  // При монтировании проверяем тип навигации
+  // При монтировании проверяем тип навигации и загружаем города пользователя
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Проверяем тип навигации
@@ -78,6 +79,12 @@ function OrdersContent() {
       } else if (navigationType === 'back_forward') {
         // Если это back/forward - разрешаем восстановление позиции
         isBackNavigation.current = true
+      }
+      
+      // Загружаем города пользователя из профиля (фиксированный список)
+      const user = apiClient.getCurrentUser()
+      if (user?.cities && Array.isArray(user.cities)) {
+        setAllCities(user.cities)
       }
     }
   }, [])
@@ -305,7 +312,6 @@ function OrdersContent() {
 
   // Получаем уникальные значения для фильтров из загруженных данных
   const safeOrders = Array.isArray(orders) ? orders : []
-  const uniqueCities = Array.from(new Set(safeOrders.map(order => order.city)))
 
   // Сброс фильтров
   const resetFilters = () => {
@@ -484,7 +490,7 @@ function OrdersContent() {
                           <SelectItem value="all" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
                             Все города
                           </SelectItem>
-                          {Array.isArray(uniqueCities) && uniqueCities.map(city => (
+                          {Array.isArray(allCities) && allCities.map(city => (
                             <SelectItem key={city} value={city} className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
                               {city}
                             </SelectItem>
