@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import { CustomNavigation } from '@/components/custom-navigation'
 import { ErrorBoundary } from '@/components/error-boundary'
 import AuthGuard from '@/components/auth-guard'
-import React, { useLayoutEffect, useMemo } from 'react'
+import React, { useLayoutEffect, useMemo, useRef } from 'react'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -12,14 +12,28 @@ interface ClientLayoutProps {
 
 const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
   const pathname = usePathname()
+  const prevPathname = useRef(pathname)
   
   const isPublicPage = useMemo(() => {
     return pathname === '/login' || pathname === '/logout'
   }, [pathname])
 
-  // Скроллим в начало при смене страницы (один раз, синхронно)
+  // Скроллим в начало при смене страницы, НО НЕ при возврате назад на страницу заказов
   useLayoutEffect(() => {
-    window.scrollTo(0, 0)
+    // Проверяем тип навигации
+    const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+    const navigationType = navEntries.length > 0 ? navEntries[0].type : 'navigate'
+    
+    // Не скроллим если это back/forward навигация на страницу заказов
+    // (чтобы сохранить позицию прокрутки)
+    const isBackForward = navigationType === 'back_forward'
+    const isOrdersPage = pathname === '/orders' || pathname.startsWith('/orders?')
+    
+    if (!isBackForward || !isOrdersPage) {
+      window.scrollTo(0, 0)
+    }
+    
+    prevPathname.current = pathname
   }, [pathname])
 
   // Публичные страницы (login, logout) - без AuthGuard

@@ -55,11 +55,14 @@ export function CustomNavigation() {
     <>
       {/* Мобильная навигация сверху */}
       <nav 
-        className="md:hidden fixed top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-lg border-b"
+        className="md:hidden fixed top-0 left-0 right-0 shadow-lg backdrop-blur-lg border-b"
         style={{
           backgroundColor: 'white',
           borderColor: '#14b8a6',
-          borderBottomWidth: '2px'
+          borderBottomWidth: '2px',
+          zIndex: 9999,
+          transform: 'translateZ(0)',
+          willChange: 'transform'
         }}
       >
         <div className="flex items-center justify-between px-4 py-4">
@@ -108,7 +111,7 @@ export function CustomNavigation() {
         {/* Мобильное меню */}
         {mobileMenuOpen && (
           <div 
-            className="border-t bg-white"
+            className="border-t bg-white max-h-[calc(100vh-64px)] overflow-y-auto"
             style={{
               borderColor: '#14b8a6',
               borderTopWidth: '2px'

@@ -10,6 +10,17 @@ html {
 html, body {
   scroll-behavior: auto;
   scroll-padding-top: 0;
+  /* Улучшение прокрутки на iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Фиксация навигации на мобильных устройствах */
+@supports (-webkit-touch-callout: none) {
+  /* iOS specific */
+  .fixed {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
 }
 
 @layer base {

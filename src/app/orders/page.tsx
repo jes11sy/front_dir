@@ -60,6 +60,27 @@ function OrdersContent() {
   const requestIdRef = useRef(0)
   const isInitialMount = useRef(true)
   const hasRestoredScroll = useRef(false)
+  
+  // Определяем тип навигации: back/forward vs reload/direct
+  const isBackNavigation = useRef(false)
+  
+  // При монтировании проверяем тип навигации
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Проверяем тип навигации
+      const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+      const navigationType = navEntries.length > 0 ? navEntries[0].type : 'navigate'
+      
+      // Если это reload или прямой переход - очищаем сохранённую позицию
+      if (navigationType === 'reload' || navigationType === 'navigate') {
+        sessionStorage.removeItem(SCROLL_POSITION_KEY)
+        isBackNavigation.current = false
+      } else if (navigationType === 'back_forward') {
+        // Если это back/forward - разрешаем восстановление позиции
+        isBackNavigation.current = true
+      }
+    }
+  }, [])
 
   // Обновление URL с текущими фильтрами (без перезагрузки страницы)
   const updateUrlWithFilters = useCallback(() => {
@@ -90,15 +111,17 @@ function OrdersContent() {
     }
   }, [])
 
-  // Восстановление позиции прокрутки при возврате
+  // Восстановление позиции прокрутки при возврате (только для back/forward навигации)
   const restoreScrollPosition = useCallback(() => {
-    if (typeof window !== 'undefined' && !hasRestoredScroll.current) {
+    if (typeof window !== 'undefined' && !hasRestoredScroll.current && isBackNavigation.current) {
       const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY)
       if (savedPosition) {
         // Небольшая задержка чтобы DOM успел отрендериться
         setTimeout(() => {
           window.scrollTo(0, parseInt(savedPosition, 10))
           hasRestoredScroll.current = true
+          // Очищаем после восстановления
+          sessionStorage.removeItem(SCROLL_POSITION_KEY)
         }, 100)
       }
     }
