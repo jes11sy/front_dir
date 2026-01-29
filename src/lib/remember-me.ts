@@ -1,6 +1,12 @@
 /**
  * Remember Me функционал с использованием IndexedDB и шифрования
  * Для устойчивости на iOS PWA режиме
+ * 
+ * 🔒 БЕЗОПАСНОСТЬ:
+ * - Данные шифруются AES-256-GCM
+ * - Ключ производится через PBKDF2 (100k итераций)
+ * - Привязка к домену (нельзя использовать на другом сайте)
+ * - Срок действия 90 дней
  */
 
 const DB_NAME = 'dir_auth_db'
@@ -22,36 +28,75 @@ interface Credentials {
 }
 
 /**
- * Открывает или создает IndexedDB
+ * Проверяет доступность необходимых API
+ */
+function isSupported(): boolean {
+  if (typeof window === 'undefined') return false
+  if (typeof indexedDB === 'undefined') return false
+  if (typeof crypto === 'undefined' || !crypto.subtle) return false
+  return true
+}
+
+/**
+ * Открывает или создает IndexedDB с таймаутом
  */
 async function openDB(): Promise<IDBDatabase> {
+  if (!isSupported()) {
+    throw new Error('IndexedDB or Crypto API not supported')
+  }
+
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION)
+    // Таймаут 5 секунд на открытие БД
+    const timeout = setTimeout(() => {
+      reject(new Error('IndexedDB open timeout'))
+    }, 5000)
 
-    request.onerror = () => reject(request.error)
-    request.onsuccess = () => resolve(request.result)
+    try {
+      const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME)
+      request.onerror = () => {
+        clearTimeout(timeout)
+        reject(request.error)
       }
+      
+      request.onsuccess = () => {
+        clearTimeout(timeout)
+        resolve(request.result)
+      }
+
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME)
+        }
+      }
+      
+      // iOS Safari Private Mode может блокировать IndexedDB
+      request.onblocked = () => {
+        clearTimeout(timeout)
+        reject(new Error('IndexedDB blocked'))
+      }
+    } catch (e) {
+      clearTimeout(timeout)
+      reject(e)
     }
   })
 }
 
 /**
- * Генерирует ключ шифрования из device fingerprint
- * Используем комбинацию userAgent, screen resolution, timezone
+ * Генерирует ключ шифрования из стабильного device fingerprint
+ * Используем только те характеристики, которые НЕ меняются:
+ * - НЕ userAgent (меняется при обновлении браузера)
+ * - НЕ screen size (меняется при повороте)
+ * Используем фиксированный ключ + домен для привязки к сайту
  */
 async function generateEncryptionKey(salt: Uint8Array): Promise<CryptoKey> {
-  // Создаем fingerprint устройства
+  // Стабильный fingerprint - не меняется при обновлениях или поворотах
   const fingerprint = [
-    navigator.userAgent,
-    screen.width.toString(),
-    screen.height.toString(),
-    new Date().getTimezoneOffset().toString(),
-    navigator.language,
+    'dir_auth_v1',                    // Версия схемы шифрования
+    window.location.origin,           // Привязка к домену
+    navigator.language || 'ru',       // Язык (редко меняется)
+    Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', // Таймзона
   ].join('|')
 
   // Импортируем fingerprint как базовый ключ

@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { apiClient, Order } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { LoadingScreen } from '@/components/ui/loading-screen'
 
 // Ключ для сохранения позиции прокрутки
 const SCROLL_POSITION_KEY = 'orders_scroll_position'
@@ -872,16 +873,7 @@ function OrdersContent() {
 
 export default function OrdersPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-2 sm:px-4 py-8">
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-            <p className="text-white font-medium">Загрузка...</p>
-          </div>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingScreen message="Загрузка заказов" />}>
       <OrdersContent />
     </Suspense>
   )

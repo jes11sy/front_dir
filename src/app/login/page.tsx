@@ -13,6 +13,7 @@ import { logger } from "@/lib/logger"
 import { getErrorMessage } from "@/lib/utils"
 import { toast } from "@/components/ui/toast"
 import { validators, validateField } from "@/lib/validation"
+import { LoadingScreen } from "@/components/ui/loading-screen"
 
 // Компонент формы логина (использует useSearchParams)
 function LoginForm() {
@@ -20,7 +21,14 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(false)
+  // По умолчанию включаем "Запомнить меня" на мобильных устройствах
+  // т.к. cookies на iOS Safari менее надёжны (ITP удаляет их через 7 дней)
+  const [rememberMe, setRememberMe] = useState(() => {
+    if (typeof window === 'undefined') return false
+    // Определяем мобильное устройство
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    return isMobile // Включено по умолчанию на мобильных
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ login?: string; password?: string }>({})
   const [isCheckingAutoLogin, setIsCheckingAutoLogin] = useState(true)
@@ -247,23 +255,9 @@ function LoginForm() {
     }
   }
 
-  // Показываем видео загрузки во время проверки автовхода (минимум 3 сек)
+  // Показываем экран загрузки во время проверки автовхода
   if (isCheckingAutoLogin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <video 
-            autoPlay 
-            muted 
-            loop 
-            playsInline
-            className="w-80 h-80 mx-auto object-contain"
-          >
-            <source src="/video/loading.mp4" type="video/mp4" />
-          </video>
-        </div>
-      </div>
-    )
+    return <LoadingScreen message="Входим в аккаунт" />
   }
 
   return (
@@ -398,21 +392,7 @@ function LoginForm() {
 // Главный компонент страницы с Suspense (требование Next.js 15 для useSearchParams)
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <video 
-            autoPlay 
-            muted 
-            loop 
-            playsInline
-            className="w-80 h-80 mx-auto object-contain"
-          >
-            <source src="/video/loading.mp4" type="video/mp4" />
-          </video>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingScreen message="Загрузка" />}>
       <LoginForm />
     </Suspense>
   )
