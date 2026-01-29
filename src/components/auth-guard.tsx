@@ -73,67 +73,27 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         
         logger.authError('Auth check failed:', errorMessage)
         
-        // Сессия недействительна, пробуем автовход через IndexedDB
-        const autoLoginSuccess = await tryAutoLogin()
+        // Сессия недействительна (cookies удалены iOS ITP или PWA)
+        // Пробуем восстановить через refresh token из IndexedDB
+        logger.debug('Cookies invalid, trying to restore from IndexedDB')
+        const restored = await apiClient.restoreSessionFromIndexedDB()
         
-        if (!autoLoginSuccess) {
-          // Автовход не удался, очищаем локальные данные и перенаправляем на логин
-          // Не вызываем logout повторно если это SESSION_EXPIRED
-          if (errorMessage !== 'SESSION_EXPIRED') {
-            await apiClient.logout()
-          }
-          if (isMounted) router.push('/login')
-        } else {
+        if (restored) {
+          logger.debug('Session restored from IndexedDB')
           if (isMounted) {
             setIsAuthenticated(true)
             setAuthError(null)
           }
+        } else {
+          // Не удалось восстановить — редирект на логин
+          logger.debug('Could not restore session, redirecting to login')
+          if (errorMessage !== 'SESSION_EXPIRED') {
+            await apiClient.logout()
+          }
+          if (isMounted) router.push('/login')
         }
       } finally {
         if (isMounted) setIsLoading(false)
-      }
-    }
-
-    const tryAutoLogin = async (): Promise<boolean> => {
-      logger.debug('Starting auto-login attempt')
-
-      try {
-        const { getSavedCredentials } = await import('@/lib/remember-me')
-        const credentials = await getSavedCredentials()
-
-        if (credentials) {
-          logger.debug('Found saved credentials', { login: credentials.login })
-
-          // Пытаемся авторизоваться с сохраненными данными
-          const loginResponse = await apiClient.login(
-            credentials.login,
-            credentials.password,
-            true
-          )
-
-          if (loginResponse && loginResponse.user) {
-            logger.debug('Auto-login successful')
-            return true
-          } else {
-            logger.debug('Auto-login failed: invalid response')
-          }
-        } else {
-          logger.debug('No saved credentials found')
-        }
-
-        return false
-      } catch (error) {
-        logger.error('Auto-login failed', error)
-        
-        // Очищаем невалидные данные
-        try {
-          const { clearSavedCredentials } = await import('@/lib/remember-me')
-          await clearSavedCredentials()
-        } catch (e) {
-          logger.error('Failed to clear credentials', e)
-        }
-        
-        return false
       }
     }
 

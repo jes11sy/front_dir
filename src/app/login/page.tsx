@@ -21,17 +21,9 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
-  // По умолчанию включаем "Запомнить меня" на мобильных устройствах
-  // т.к. cookies на iOS Safari менее надёжны (ITP удаляет их через 7 дней)
-  const [rememberMe, setRememberMe] = useState(() => {
-    if (typeof window === 'undefined') return false
-    // Определяем мобильное устройство
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    return isMobile // Включено по умолчанию на мобильных
-  })
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ login?: string; password?: string }>({})
-  const [isCheckingAutoLogin, setIsCheckingAutoLogin] = useState(true)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   
   // Rate Limiting: защита от брутфорс атак
   const [attemptCount, setAttemptCount] = useState(0)
@@ -79,67 +71,36 @@ function LoginForm() {
     return redirect
   }
   
-  // Проверяем автовход при загрузке страницы логина
+  // Проверяем авторизацию при загрузке страницы логина
   useEffect(() => {
-    const tryAutoLogin = async () => {
+    const checkAuth = async () => {
       try {
-        // 1. Быстрая проверка - есть ли сохраненный пользователь в storage
-        const savedUser = apiClient.getCurrentUser()
-        if (savedUser) {
-          // Есть сохраненный пользователь - проверяем сессию через API (с таймаутом)
-          try {
-            const isAlreadyAuthenticated = await apiClient.isAuthenticated()
-            if (isAlreadyAuthenticated) {
-              logger.debug('User already authenticated via cookies, redirecting')
-              router.replace(getSafeRedirectUrl())
-              return
-            } else {
-              logger.debug('Session invalid, clearing old data')
-              sessionStorage.removeItem('user')
-              localStorage.removeItem('user')
-            }
-          } catch (error) {
-            logger.debug('Auth check failed, clearing data and showing login form')
-            sessionStorage.removeItem('user')
-            localStorage.removeItem('user')
-          }
+        // 1. Проверяем активную сессию через cookies
+        const isAlreadyAuthenticated = await apiClient.isAuthenticated()
+        if (isAlreadyAuthenticated) {
+          logger.debug('User already authenticated via cookies, redirecting')
+          router.replace(getSafeRedirectUrl())
+          return
         }
         
-        // 2. Если нет активной сессии - пробуем автовход через remember-me
-        const { getSavedCredentials } = await import('@/lib/remember-me')
-        const credentials = await getSavedCredentials()
+        // 2. Cookies не работают — пробуем восстановить через IndexedDB
+        logger.debug('Cookies invalid, trying to restore from IndexedDB')
+        const restored = await apiClient.restoreSessionFromIndexedDB()
         
-        if (credentials) {
-          logger.debug('Found saved credentials, attempting auto-login')
-          
-          setIsLoading(true)
-          const loginResponse = await apiClient.login(
-            credentials.login,
-            credentials.password,
-            true
-          )
-          
-          if (loginResponse && loginResponse.user) {
-            logger.debug('Auto-login successful')
-            router.replace(getSafeRedirectUrl())
-            return
-          } else {
-            logger.debug('Auto-login failed: invalid response')
-            setIsLoading(false)
-          }
-        } else {
-          logger.debug('No saved credentials found')
+        if (restored) {
+          logger.debug('Session restored from IndexedDB, redirecting')
+          router.replace(getSafeRedirectUrl())
+          return
         }
       } catch (error) {
-        logger.error('Auto-login error', error)
-        setIsLoading(false)
+        logger.debug('Auth check failed, showing login form')
       }
       
       // Показываем форму логина
-      setIsCheckingAutoLogin(false)
+      setIsCheckingAuth(false)
     }
     
-    tryAutoLogin()
+    checkAuth()
   }, [router, searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -195,7 +156,7 @@ function LoginForm() {
         return
       }
       
-      const data = await apiClient.login(sanitizedLogin, sanitizedPassword, rememberMe)
+      const data = await apiClient.login(sanitizedLogin, sanitizedPassword)
       
       // ✅ УСПЕШНЫЙ ВХОД - сбрасываем счетчик попыток
       setAttemptCount(0)
@@ -235,9 +196,9 @@ function LoginForm() {
     }
   }
 
-  // Показываем экран загрузки во время проверки автовхода
-  if (isCheckingAutoLogin) {
-    return <LoadingScreen message="Входим в аккаунт" />
+  // Показываем экран загрузки во время проверки авторизации
+  if (isCheckingAuth) {
+    return <LoadingScreen message="Проверка авторизации" />
   }
 
   return (
@@ -308,21 +269,6 @@ function LoginForm() {
                     {sanitizeString(errors.password)}
                   </p>
                 )}
-              </div>
-              
-              <div className="flex items-center animate-fade-in-delayed">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-2 border-gray-300 focus:ring-2 transition-all duration-200"
-                  style={{accentColor: '#114643'}}
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200 cursor-pointer">
-                  Запомнить меня
-                </label>
               </div>
               
               <Button 

@@ -570,9 +570,8 @@ export class ApiClient {
    * @param password - Пароль
    *   ⚠️ SECURITY: НЕ логировать, НЕ сохранять в storage
    *   Хэшируется на сервере через bcrypt (12 rounds)
-   * @param remember - Запомнить на устройстве
    */
-  async login(login: string, password: string, remember: boolean = false): Promise<LoginResponse> {
+  async login(login: string, password: string): Promise<LoginResponse> {
     const response = await this.safeFetch(`${this.baseURL}/auth/login`, {
       method: 'POST',
       body: JSON.stringify({ 
@@ -612,20 +611,20 @@ export class ApiClient {
         localStorage.setItem('user', JSON.stringify(sanitizedUser))
       }
       
-      // Если включен "Запомнить меня" - сохраняем учетные данные в IndexedDB
-      if (remember) {
+      // Сохраняем refresh token в IndexedDB (backup для iOS PWA)
+      if (result.data.refreshToken) {
         try {
-          const { saveCredentials } = await import('./remember-me')
-          await saveCredentials(login, password)
+          const { saveRefreshToken } = await import('./remember-me')
+          await saveRefreshToken(result.data.refreshToken)
         } catch (error) {
-          console.error('[Login] Failed to save credentials:', error)
-          // Не прерываем процесс логина, если не удалось сохранить
+          console.error('[Login] Failed to save refresh token:', error)
+          // Не прерываем процесс логина
         }
       }
       
       return {
-        access_token: '', // Токены теперь в cookies
-        refresh_token: '',
+        access_token: '', // Токены в cookies
+        refresh_token: result.data.refreshToken || '',
         user: result.data.user
       }
     }
@@ -670,12 +669,12 @@ export class ApiClient {
     // Останавливаем Silent Refresh
     this.stopSilentRefresh()
     
-    // Очищаем сохраненные учетные данные из IndexedDB
+    // Очищаем сохраненный refresh token из IndexedDB
     try {
-      const { clearSavedCredentials } = await import('./remember-me')
-      await clearSavedCredentials()
+      const { clearRefreshToken } = await import('./remember-me')
+      await clearRefreshToken()
     } catch (error) {
-      logger.error('Failed to clear saved credentials', error)
+      logger.error('Failed to clear refresh token', error)
     }
 
     try {
@@ -713,6 +712,61 @@ export class ApiClient {
       await Promise.race([this.getProfile(), timeoutPromise])
       return true
     } catch {
+      return false
+    }
+  }
+
+  /**
+   * 🔄 Восстановление сессии через refresh token из IndexedDB
+   * Используется когда cookies удалены (iOS ITP, PWA)
+   * @returns true если сессия восстановлена
+   */
+  async restoreSessionFromIndexedDB(): Promise<boolean> {
+    try {
+      const { getRefreshToken } = await import('./remember-me')
+      const refreshToken = await getRefreshToken()
+      
+      if (!refreshToken) {
+        logger.debug('No refresh token in IndexedDB')
+        return false
+      }
+      
+      logger.debug('Found refresh token in IndexedDB, attempting to restore session')
+      
+      // Отправляем refresh token на сервер для получения новых cookies
+      const response = await fetch(`${this.baseURL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Use-Cookies': 'true',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ refreshToken }), // Передаём токен в body
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        
+        // Обновляем токен в IndexedDB если пришёл новый
+        if (result.data?.refreshToken) {
+          const { saveRefreshToken } = await import('./remember-me')
+          await saveRefreshToken(result.data.refreshToken)
+        }
+        
+        logger.debug('Session restored from IndexedDB token')
+        return true
+      }
+      
+      // Токен невалиден — очищаем IndexedDB
+      if (response.status === 401 || response.status === 403) {
+        logger.debug('Refresh token from IndexedDB is invalid, clearing')
+        const { clearRefreshToken } = await import('./remember-me')
+        await clearRefreshToken()
+      }
+      
+      return false
+    } catch (error) {
+      logger.error('Failed to restore session from IndexedDB', error)
       return false
     }
   }

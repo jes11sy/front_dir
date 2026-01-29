@@ -1,30 +1,26 @@
 /**
- * Remember Me функционал с использованием IndexedDB и шифрования
- * Для устойчивости на iOS PWA режиме
+ * Token Storage - хранение refresh token в IndexedDB
+ * Для устойчивости на iOS PWA режиме (backup когда cookies удаляются ITP)
  * 
  * 🔒 БЕЗОПАСНОСТЬ:
+ * - Хранится только refresh token (не пароль)
+ * - Токен можно отозвать на сервере
+ * - Срок действия 90 дней (как у токена)
  * - Данные шифруются AES-256-GCM
- * - Ключ производится через PBKDF2 (100k итераций)
- * - Привязка к домену (нельзя использовать на другом сайте)
- * - Срок действия 90 дней
+ * - Привязка к домену
  */
 
 const DB_NAME = 'dir_auth_db'
-const DB_VERSION = 1
-const STORE_NAME = 'credentials'
-const CREDENTIALS_KEY = 'saved_credentials'
-const EXPIRY_DAYS = 90 // Срок хранения учетных данных
+const DB_VERSION = 2 // Увеличиваем версию для миграции
+const STORE_NAME = 'tokens'
+const TOKEN_KEY = 'refresh_token'
+const EXPIRY_DAYS = 90
 
-interface SavedCredentials {
+interface SavedToken {
   encryptedData: string
   iv: string
   salt: string
   expiresAt: number
-}
-
-interface Credentials {
-  login: string
-  password: string
 }
 
 /**
@@ -46,7 +42,6 @@ async function openDB(): Promise<IDBDatabase> {
   }
 
   return new Promise((resolve, reject) => {
-    // Таймаут 5 секунд на открытие БД
     const timeout = setTimeout(() => {
       reject(new Error('IndexedDB open timeout'))
     }, 5000)
@@ -66,12 +61,18 @@ async function openDB(): Promise<IDBDatabase> {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result
+        
+        // Удаляем старый store с credentials если есть
+        if (db.objectStoreNames.contains('credentials')) {
+          db.deleteObjectStore('credentials')
+        }
+        
+        // Создаём новый store для токенов
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME)
         }
       }
       
-      // iOS Safari Private Mode может блокировать IndexedDB
       request.onblocked = () => {
         clearTimeout(timeout)
         reject(new Error('IndexedDB blocked'))
@@ -84,22 +85,16 @@ async function openDB(): Promise<IDBDatabase> {
 }
 
 /**
- * Генерирует ключ шифрования из стабильного device fingerprint
- * Используем только те характеристики, которые НЕ меняются:
- * - НЕ userAgent (меняется при обновлении браузера)
- * - НЕ screen size (меняется при повороте)
- * Используем фиксированный ключ + домен для привязки к сайту
+ * Генерирует ключ шифрования
  */
 async function generateEncryptionKey(salt: Uint8Array): Promise<CryptoKey> {
-  // Стабильный fingerprint - не меняется при обновлениях или поворотах
   const fingerprint = [
-    'dir_auth_v1',                    // Версия схемы шифрования
-    window.location.origin,           // Привязка к домену
-    navigator.language || 'ru',       // Язык (редко меняется)
-    Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', // Таймзона
+    'dir_token_v1',
+    window.location.origin,
+    navigator.language || 'ru',
+    Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
   ].join('|')
 
-  // Импортируем fingerprint как базовый ключ
   const baseKey = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(fingerprint),
@@ -108,7 +103,6 @@ async function generateEncryptionKey(salt: Uint8Array): Promise<CryptoKey> {
     ['deriveKey']
   )
 
-  // Создаем производный ключ с использованием соли
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
@@ -124,117 +118,100 @@ async function generateEncryptionKey(salt: Uint8Array): Promise<CryptoKey> {
 }
 
 /**
- * Шифрует учетные данные
+ * Шифрует токен
  */
-async function encryptCredentials(credentials: Credentials): Promise<SavedCredentials> {
-  // Генерируем случайную соль и IV
+async function encryptToken(token: string): Promise<SavedToken> {
   const salt = crypto.getRandomValues(new Uint8Array(16))
   const iv = crypto.getRandomValues(new Uint8Array(12))
-
-  // Получаем ключ шифрования
   const key = await generateEncryptionKey(salt)
 
-  // Шифруем данные
-  const encodedData = new TextEncoder().encode(JSON.stringify(credentials))
+  const encodedData = new TextEncoder().encode(token)
   const encryptedBuffer = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
     key,
     encodedData
   )
 
-  // Конвертируем в base64 для хранения
-  const encryptedData = btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer)))
-  const ivBase64 = btoa(String.fromCharCode(...iv))
-  const saltBase64 = btoa(String.fromCharCode(...salt))
-
   return {
-    encryptedData,
-    iv: ivBase64,
-    salt: saltBase64,
+    encryptedData: btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer))),
+    iv: btoa(String.fromCharCode(...iv)),
+    salt: btoa(String.fromCharCode(...salt)),
     expiresAt: Date.now() + EXPIRY_DAYS * 24 * 60 * 60 * 1000,
   }
 }
 
 /**
- * Расшифровывает учетные данные
+ * Расшифровывает токен
  */
-async function decryptCredentials(saved: SavedCredentials): Promise<Credentials | null> {
+async function decryptToken(saved: SavedToken): Promise<string | null> {
   try {
-    // Проверяем срок действия
     if (Date.now() > saved.expiresAt) {
       return null
     }
 
-    // Декодируем из base64
     const encryptedData = Uint8Array.from(atob(saved.encryptedData), c => c.charCodeAt(0))
     const iv = Uint8Array.from(atob(saved.iv), c => c.charCodeAt(0))
     const salt = Uint8Array.from(atob(saved.salt), c => c.charCodeAt(0))
 
-    // Получаем ключ шифрования
     const key = await generateEncryptionKey(salt)
 
-    // Расшифровываем
     const decryptedBuffer = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv },
       key,
       encryptedData
     )
 
-    const decryptedData = new TextDecoder().decode(decryptedBuffer)
-    return JSON.parse(decryptedData)
+    return new TextDecoder().decode(decryptedBuffer)
   } catch {
-    // Ошибка расшифровки - данные повреждены или ключ изменился
     return null
   }
 }
 
 /**
- * Сохраняет учетные данные в IndexedDB
+ * Сохраняет refresh token в IndexedDB
  */
-export async function saveCredentials(login: string, password: string): Promise<void> {
+export async function saveRefreshToken(token: string): Promise<void> {
   try {
-    const encrypted = await encryptCredentials({ login, password })
+    const encrypted = await encryptToken(token)
     const db = await openDB()
 
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite')
       const store = transaction.objectStore(STORE_NAME)
-      const request = store.put(encrypted, CREDENTIALS_KEY)
+      const request = store.put(encrypted, TOKEN_KEY)
 
       request.onsuccess = () => resolve()
       request.onerror = () => reject(request.error)
-
       transaction.oncomplete = () => db.close()
     })
   } catch {
-    // Не бросаем ошибку - пользователь просто не будет запомнен
+    // Не бросаем ошибку — токен просто не будет сохранён
   }
 }
 
 /**
- * Получает сохраненные учетные данные из IndexedDB
+ * Получает refresh token из IndexedDB
  */
-export async function getSavedCredentials(): Promise<Credentials | null> {
+export async function getRefreshToken(): Promise<string | null> {
   try {
     const db = await openDB()
 
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, 'readonly')
       const store = transaction.objectStore(STORE_NAME)
-      const request = store.get(CREDENTIALS_KEY)
+      const request = store.get(TOKEN_KEY)
 
       request.onsuccess = async () => {
-        const saved = request.result as SavedCredentials | undefined
+        const saved = request.result as SavedToken | undefined
         if (!saved) {
           resolve(null)
           return
         }
 
-        const credentials = await decryptCredentials(saved)
-        resolve(credentials)
+        const token = await decryptToken(saved)
+        resolve(token)
       }
       request.onerror = () => reject(request.error)
-
       transaction.oncomplete = () => db.close()
     })
   } catch {
@@ -243,31 +220,30 @@ export async function getSavedCredentials(): Promise<Credentials | null> {
 }
 
 /**
- * Удаляет сохраненные учетные данные
+ * Удаляет refresh token из IndexedDB
  */
-export async function clearSavedCredentials(): Promise<void> {
+export async function clearRefreshToken(): Promise<void> {
   try {
     const db = await openDB()
 
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite')
       const store = transaction.objectStore(STORE_NAME)
-      const request = store.delete(CREDENTIALS_KEY)
+      const request = store.delete(TOKEN_KEY)
 
       request.onsuccess = () => resolve()
       request.onerror = () => reject(request.error)
-
       transaction.oncomplete = () => db.close()
     })
   } catch {
-    // Не бросаем ошибку - просто игнорируем
+    // Игнорируем ошибки
   }
 }
 
 /**
- * Проверяет, есть ли сохраненные учетные данные
+ * Проверяет, есть ли сохранённый токен
  */
-export async function hasSavedCredentials(): Promise<boolean> {
-  const credentials = await getSavedCredentials()
-  return credentials !== null
+export async function hasRefreshToken(): Promise<boolean> {
+  const token = await getRefreshToken()
+  return token !== null
 }
