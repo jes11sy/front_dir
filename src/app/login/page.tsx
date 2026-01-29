@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
@@ -25,6 +25,9 @@ function LoginForm() {
   const [errors, setErrors] = useState<{ login?: string; password?: string }>({})
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   
+  // Ref для предотвращения повторной проверки авторизации
+  const hasCheckedAuth = useRef(false)
+  
   // Rate Limiting: защита от брутфорс атак
   const [attemptCount, setAttemptCount] = useState(0)
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null)
@@ -35,7 +38,7 @@ function LoginForm() {
    * Безопасная валидация redirect URL
    * Защита от Open Redirect атаки
    */
-  const getSafeRedirectUrl = (): string => {
+  const getSafeRedirectUrl = useCallback((): string => {
     const redirect = searchParams.get('redirect')
     
     // Если redirect не указан - дефолтная страница
@@ -69,10 +72,14 @@ function LoginForm() {
     
     // Валидация пройдена - можно редиректить
     return redirect
-  }
+  }, [searchParams])
   
-  // Проверяем авторизацию при загрузке страницы логина
+  // Проверяем авторизацию при загрузке страницы логина (ОДИН РАЗ)
   useEffect(() => {
+    // Предотвращаем повторную проверку
+    if (hasCheckedAuth.current) return
+    hasCheckedAuth.current = true
+    
     const checkAuth = async () => {
       try {
         // 1. Проверяем активную сессию через cookies
@@ -101,7 +108,7 @@ function LoginForm() {
     }
     
     checkAuth()
-  }, [router, searchParams])
+  }, [router, getSafeRedirectUrl])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
