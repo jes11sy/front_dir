@@ -50,7 +50,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const tabs = [
     { id: 'main', label: 'Информация по заказу' },
     { id: 'result', label: 'Мастер' },
-    { id: 'chat', label: 'Запись/Чат авито' }
+    { id: 'chat', label: 'Запись/История' }
   ]
 
   // Функция для проверки, заблокированы ли поля для редактирования
@@ -178,7 +178,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
     }
   }, [bsoUpload, expenditureUpload])
 
-  // Загружаем звонки при открытии таба "Запись/Чат авито"
+  // Загружаем звонки при открытии таба "Запись/История"
   useEffect(() => {
     if (activeTab === 'chat' && !callsLoading && !callsLoaded) {
       setCallsLoaded(true)

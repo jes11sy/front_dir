@@ -1428,6 +1428,44 @@ export class ApiClient {
     }
   }
 
+  // Orders History API - получить заказы по номеру телефона
+  async getOrdersByPhone(phone: string): Promise<{
+    success: boolean;
+    data: Array<{
+      id: number;
+      clientName: string;
+      city: string;
+      statusOrder: string;
+      dateMeeting: string;
+      typeEquipment: string;
+      typeOrder: string;
+      problem: string;
+      createdAt: string;
+      rk: string;
+      avitoName: string;
+      address: string;
+      result: number | null;
+      master: { id: number; name: string } | null;
+    }>;
+  }> {
+    // Нормализуем номер телефона
+    const normalizedPhone = phone.replace(/[\s\+\(\)\-]/g, '')
+    
+    const response = await this.safeFetch(`${this.baseURL}/orders/by-phone/${encodeURIComponent(normalizedPhone)}`, {
+      method: 'GET',
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { success: true, data: [] }
+      }
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения истории заказов')
+      throw new Error(errorMessage)
+    }
+
+    return safeParseJson(response, { success: true, data: [] })
+  }
+
   async getAvitoVoiceUrls(avitoAccountName: string, voiceIds: string[]): Promise<{ [key: string]: string }> {
     const response = await this.safeFetch(`${this.baseURL}/avito-messenger/voice-files?avitoAccountName=${avitoAccountName}`, {
       method: 'POST',
