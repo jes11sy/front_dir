@@ -82,12 +82,6 @@ function LoginForm() {
   // Проверяем автовход при загрузке страницы логина
   useEffect(() => {
     const tryAutoLogin = async () => {
-      // Минимальное время показа видео загрузки - 3 секунды
-      const minLoadingTime = new Promise(resolve => setTimeout(resolve, 3000))
-      const startTime = Date.now()
-      
-      let shouldShowForm = false
-      
       try {
         // 1. Быстрая проверка - есть ли сохраненный пользователь в storage
         const savedUser = apiClient.getCurrentUser()
@@ -97,20 +91,17 @@ function LoginForm() {
             const isAlreadyAuthenticated = await apiClient.isAuthenticated()
             if (isAlreadyAuthenticated) {
               logger.debug('User already authenticated via cookies, redirecting')
-              await minLoadingTime
               router.replace(getSafeRedirectUrl())
               return
             } else {
               logger.debug('Session invalid, clearing old data')
               sessionStorage.removeItem('user')
               localStorage.removeItem('user')
-              shouldShowForm = true
             }
           } catch (error) {
             logger.debug('Auth check failed, clearing data and showing login form')
             sessionStorage.removeItem('user')
             localStorage.removeItem('user')
-            shouldShowForm = true
           }
         }
         
@@ -130,33 +121,22 @@ function LoginForm() {
           
           if (loginResponse && loginResponse.user) {
             logger.debug('Auto-login successful')
-            await minLoadingTime
             router.replace(getSafeRedirectUrl())
             return
           } else {
             logger.debug('Auto-login failed: invalid response')
             setIsLoading(false)
-            shouldShowForm = true
           }
         } else {
           logger.debug('No saved credentials found')
-          shouldShowForm = true
         }
       } catch (error) {
         logger.error('Auto-login error', error)
         setIsLoading(false)
-        shouldShowForm = true
       }
       
-      // Если нужно показать форму - ждем минимальное время
-      if (shouldShowForm) {
-        const elapsed = Date.now() - startTime
-        const remaining = 3000 - elapsed
-        if (remaining > 0) {
-          await new Promise(resolve => setTimeout(resolve, remaining))
-        }
-        setIsCheckingAutoLogin(false)
-      }
+      // Показываем форму логина
+      setIsCheckingAutoLogin(false)
     }
     
     tryAutoLogin()
