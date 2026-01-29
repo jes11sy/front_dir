@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense, useRef, useCallback } from 'react'
+import { useState, useEffect, Suspense, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
@@ -24,8 +24,6 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ login?: string; password?: string }>({})
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  
-  // Ref для предотвращения повторной проверки авторизации
   const hasCheckedAuth = useRef(false)
   
   // Rate Limiting: защита от брутфорс атак
@@ -74,7 +72,7 @@ function LoginForm() {
     return redirect
   }, [searchParams])
   
-  // Проверяем авторизацию при загрузке страницы логина (ОДИН РАЗ)
+  // Проверяем авторизацию при загрузке страницы логина
   useEffect(() => {
     // Предотвращаем повторную проверку
     if (hasCheckedAuth.current) return

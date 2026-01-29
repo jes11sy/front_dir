@@ -172,6 +172,11 @@ async function decryptToken(saved: SavedToken): Promise<string | null> {
  */
 export async function saveRefreshToken(token: string): Promise<void> {
   try {
+    if (!token) {
+      console.warn('[IndexedDB] saveRefreshToken called with empty token')
+      return
+    }
+    
     const encrypted = await encryptToken(token)
     const db = await openDB()
 
@@ -180,11 +185,17 @@ export async function saveRefreshToken(token: string): Promise<void> {
       const store = transaction.objectStore(STORE_NAME)
       const request = store.put(encrypted, TOKEN_KEY)
 
-      request.onsuccess = () => resolve()
-      request.onerror = () => reject(request.error)
+      request.onsuccess = () => {
+        resolve()
+      }
+      request.onerror = () => {
+        console.warn('[IndexedDB] Failed to save token:', request.error)
+        reject(request.error)
+      }
       transaction.oncomplete = () => db.close()
     })
-  } catch {
+  } catch (error) {
+    console.error('[IndexedDB] saveRefreshToken error:', error)
     // Не бросаем ошибку — токен просто не будет сохранён
   }
 }

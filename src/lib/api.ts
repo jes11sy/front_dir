@@ -451,9 +451,12 @@ export class ApiClient {
         ? await this.fetchWithRetry(url, enhancedOptions)
         : await fetch(url, enhancedOptions)
       
+      // 🔧 FIX: Если мы на странице /login, НЕ пытаемся refresh/logout (избегаем бесконечного цикла)
+      const isOnLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login'
+      
       // Если 401/403 ошибка и это не логин/рефреш - пытаемся обновить токен
       // 403 может быть из-за истекшего токена, который прошел JWT validation но не прошел роли
-      if ((response.status === 401 || response.status === 403) && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
+      if ((response.status === 401 || response.status === 403) && !url.includes('/auth/login') && !url.includes('/auth/refresh') && !isOnLoginPage) {
         if (this.isRefreshing) {
           // Если токен уже обновляется, ждем завершения
           return new Promise((resolve, reject) => {
@@ -533,12 +536,18 @@ export class ApiClient {
 
   /**
    * 🔒 Безопасная обработка ошибки авторизации
-   * Защищает от множественных вызовов logout
+   * Защищает от множественных вызовов logout и бесконечного цикла на /login
    */
   private async handleAuthError(): Promise<void> {
     // Защита от множественных вызовов
     if (this.isLoggingOut) {
       logger.debug('Already logging out, skipping')
+      return
+    }
+    
+    // 🔧 FIX: Не делаем редирект если уже на странице /login (предотвращает бесконечный цикл)
+    if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+      logger.debug('Already on login page, skipping redirect')
       return
     }
     
@@ -602,6 +611,15 @@ export class ApiClient {
     // Сохраняем данные пользователя
     // ✅ FIX #150: Санитизация данных перед сохранением в localStorage
     if (result.success && result.data && result.data.user) {
+      // Логируем наличие refreshToken (без самого токена)
+      if (!result.data.refreshToken) {
+        logger.warn('Login response missing refreshToken', { 
+          hasSuccess: result.success,
+          hasData: !!result.data,
+          hasUser: !!result.data?.user,
+          dataKeys: result.data ? Object.keys(result.data) : []
+        })
+      }
       if (typeof window !== 'undefined') {
         const { sanitizeObject } = await import('./sanitize')
         const sanitizedUser = sanitizeObject(result.data.user as Record<string, unknown>)
@@ -617,7 +635,7 @@ export class ApiClient {
           const { saveRefreshToken } = await import('./remember-me')
           await saveRefreshToken(result.data.refreshToken)
         } catch (error) {
-          console.error('[Login] Failed to save refresh token:', error)
+          logger.error('Failed to save refresh token to IndexedDB:', error)
           // Не прерываем процесс логина
         }
       }
@@ -700,18 +718,40 @@ export class ApiClient {
   /**
    * 🍪 Проверка аутентификации через API
    * Нельзя проверить httpOnly cookies на клиенте - нужен запрос к серверу
-   * 🔧 УЛУЧШЕНО: Увеличен таймаут до 15 секунд для медленных соединений
+   * 
+   * 🔧 FIX: Используем простой fetch БЕЗ safeFetch чтобы избежать бесконечного цикла
+   * при 401 ошибке (safeFetch пытается refresh → logout → снова проверка → цикл)
    */
   async isAuthenticated(): Promise<boolean> {
     try {
-      // Таймаут 15 секунд для проверки авторизации (мобильный интернет может быть медленным)
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Auth check timeout')), 15000)
-      )
+      // Простой запрос БЕЗ retry и refresh логики
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 сек таймаут
       
-      await Promise.race([this.getProfile(), timeoutPromise])
-      return true
-    } catch {
+      const response = await fetch(`${this.baseURL}/auth/profile`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Use-Cookies': 'true',
+        },
+        credentials: 'include',
+        signal: controller.signal,
+      })
+      
+      clearTimeout(timeoutId)
+      
+      // 🔒 429 Too Many Requests - пробрасываем ошибку чтобы НЕ вызвать бесконечный цикл
+      if (response.status === 429) {
+        throw new Error('RATE_LIMIT_EXCEEDED')
+      }
+      
+      return response.ok
+    } catch (error) {
+      // Rate limit - пробрасываем наверх
+      if (error instanceof Error && error.message === 'RATE_LIMIT_EXCEEDED') {
+        throw error
+      }
+      // Любая другая ошибка (сеть, таймаут, 401) - просто не авторизован
       return false
     }
   }
