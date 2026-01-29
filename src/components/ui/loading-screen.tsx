@@ -35,50 +35,49 @@ export function LoadingScreen({
   }, [])
 
   const content = (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center px-4">
       {/* Логотип с пульсацией */}
       {showLogo && (
-        <div className="mb-8 relative">
+        <div className="mb-6 sm:mb-8 relative flex items-center justify-center">
           {/* Внешнее свечение - белое, чтобы контрастировало с зелёным лого */}
-          <div className="absolute inset-0 bg-white/15 blur-2xl rounded-full animate-pulse" 
-               style={{ transform: 'scale(1.5)' }} />
+          <div className="absolute w-20 h-20 sm:w-28 sm:h-28 bg-white/15 blur-2xl rounded-full animate-pulse" />
           
-          {/* Логотип */}
-          <div className="relative animate-bounce" style={{ animationDuration: '2s' }}>
+          {/* Логотип - адаптивный размер */}
+          <div className="relative animate-pulse" style={{ animationDuration: '2s' }}>
             <Image 
               src="/images/logo.png" 
               alt="Новые Схемы" 
-              width={120} 
-              height={120}
-              className="drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]"
+              width={100} 
+              height={100}
+              className="w-20 h-20 sm:w-[100px] sm:h-[100px] drop-shadow-[0_0_20px_rgba(255,255,255,0.25)]"
               priority
             />
           </div>
         </div>
       )}
 
-      {/* Спиннер */}
-      <div className="relative mb-6">
+      {/* Спиннер - адаптивный размер */}
+      <div className="relative mb-4 sm:mb-6 w-12 h-12 sm:w-14 sm:h-14">
         {/* Внешнее кольцо */}
-        <div className="w-16 h-16 rounded-full border-4 border-white/20" />
+        <div className="w-full h-full rounded-full border-[3px] sm:border-4 border-white/20" />
         
         {/* Вращающееся кольцо */}
-        <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent 
+        <div className="absolute inset-0 rounded-full border-[3px] sm:border-4 border-transparent 
                         border-t-white border-r-white/50 animate-spin" />
         
         {/* Внутреннее кольцо (вращается в другую сторону) */}
-        <div className="absolute top-2 left-2 w-12 h-12 rounded-full border-4 border-transparent 
-                        border-b-white/70 border-l-white/30 animate-spin"
+        <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 w-9 h-9 sm:w-10 sm:h-10 rounded-full 
+                        border-[3px] sm:border-4 border-transparent border-b-white/70 border-l-white/30 animate-spin"
              style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
       </div>
 
       {/* Текст загрузки */}
-      <div className="text-white text-lg font-medium min-w-[140px] text-center">
+      <div className="text-white text-base sm:text-lg font-medium text-center">
         {message.replace('...', '')}{dots}
       </div>
       
       {/* Прогресс-бар (декоративный) */}
-      <div className="mt-6 w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+      <div className="mt-4 sm:mt-6 w-40 sm:w-48 h-1 bg-white/10 rounded-full overflow-hidden">
         <div className="h-full bg-gradient-to-r from-white/50 to-white rounded-full animate-loading-bar" />
       </div>
     </div>
@@ -86,7 +85,7 @@ export function LoadingScreen({
 
   if (fullScreen) {
     return (
-      <div className="min-h-screen flex items-center justify-center" 
+      <div className="min-h-screen min-h-[100dvh] flex items-center justify-center" 
            style={{ backgroundColor: '#114643' }}>
         {content}
       </div>
