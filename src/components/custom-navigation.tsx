@@ -2,8 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { apiClient } from '@/lib/api'
+
+// Ключ для сохранения позиции прокрутки (должен совпадать с orders/page.tsx)
+const SCROLL_POSITION_KEY = 'orders_scroll_position'
 
 const navigationItems = [
   { name: 'Заказы', href: '/orders' },
@@ -51,6 +54,16 @@ export function CustomNavigation() {
     router.push('/login')
   }
 
+  // Переход на главную страницу заказов (сброс всех фильтров и позиции)
+  const handleLogoClick = useCallback(() => {
+    // Очищаем сохранённую позицию прокрутки
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(SCROLL_POSITION_KEY)
+    }
+    // Переходим на страницу заказов без параметров (чистый URL)
+    router.push('/orders')
+  }, [router])
+
   return (
     <>
       {/* Мобильная навигация сверху */}
@@ -66,9 +79,9 @@ export function CustomNavigation() {
         }}
       >
         <div className="flex items-center justify-between px-4 py-4">
-          <Link 
-            href="/orders" 
-            className="text-lg font-bold transition-colors duration-200"
+          <button 
+            onClick={handleLogoClick}
+            className="text-lg font-bold transition-colors duration-200 bg-transparent border-none cursor-pointer"
             style={{
               color: '#374151',
               textDecoration: 'none'
@@ -81,7 +94,7 @@ export function CustomNavigation() {
             }}
           >
             Новые Схемы
-          </Link>
+          </button>
           
           <button
             className="p-2 rounded-lg transition-all duration-200"
@@ -272,9 +285,9 @@ export function CustomNavigation() {
         <div className="flex flex-col h-full">
         {/* Логотип */}
         <div className="p-6 border-b" style={{borderColor: '#e5e7eb'}}>
-          <Link 
-            href="/orders" 
-            className="text-xl font-bold transition-colors duration-200 block"
+          <button 
+            onClick={handleLogoClick}
+            className="text-xl font-bold transition-colors duration-200 block bg-transparent border-none cursor-pointer text-left w-full"
             style={{
               color: '#374151',
               textDecoration: 'none'
@@ -287,7 +300,7 @@ export function CustomNavigation() {
             }}
           >
             Новые Схемы
-          </Link>
+          </button>
         </div>
 
         {/* Навигационные элементы */}
