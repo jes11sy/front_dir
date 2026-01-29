@@ -1,27 +1,44 @@
 "use client"
 
-import { useRouter } from 'next/navigation'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { apiClient, Order } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
+// Ключ для сохранения позиции прокрутки
+const SCROLL_POSITION_KEY = 'orders_scroll_position'
+
 function OrdersContent() {
   const router = useRouter()
-  const [currentPage, setCurrentPage] = useState(1)
+  const searchParams = useSearchParams()
+  
+  // Инициализация из URL query params (для сохранения состояния при возврате назад)
+  const [currentPage, setCurrentPage] = useState(() => {
+    const page = searchParams.get('page')
+    return page ? parseInt(page, 10) : 1
+  })
   const [itemsPerPage, setItemsPerPage] = useState(15)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [cityFilter, setCityFilter] = useState('')
-  const [masterFilter, setMasterFilter] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') || '')
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') || '')
+  const [cityFilter, setCityFilter] = useState(() => searchParams.get('city') || '')
+  const [masterFilter, setMasterFilter] = useState(() => searchParams.get('master') || '')
+  const [showFilters, setShowFilters] = useState(() => {
+    // Показываем фильтры если есть активные фильтры в URL
+    return !!(searchParams.get('status') || searchParams.get('city') || searchParams.get('master') || 
+              searchParams.get('rk') || searchParams.get('typeEquipment') || 
+              searchParams.get('dateFrom') || searchParams.get('dateTo'))
+  })
   
   // Новые фильтры
-  const [rkFilter, setRkFilter] = useState('')
-  const [typeEquipmentFilter, setTypeEquipmentFilter] = useState('')
-  const [dateType, setDateType] = useState<'create' | 'close' | 'meeting'>('create')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const [rkFilter, setRkFilter] = useState(() => searchParams.get('rk') || '')
+  const [typeEquipmentFilter, setTypeEquipmentFilter] = useState(() => searchParams.get('typeEquipment') || '')
+  const [dateType, setDateType] = useState<'create' | 'close' | 'meeting'>(() => {
+    const dt = searchParams.get('dateType')
+    return (dt === 'create' || dt === 'close' || dt === 'meeting') ? dt : 'create'
+  })
+  const [dateFrom, setDateFrom] = useState(() => searchParams.get('dateFrom') || '')
+  const [dateTo, setDateTo] = useState(() => searchParams.get('dateTo') || '')
 
   // Состояние для данных
   const [orders, setOrders] = useState<Order[]>([])
@@ -41,6 +58,51 @@ function OrdersContent() {
   // Ref для отмены запросов (Race Condition fix)
   const abortControllerRef = useRef<AbortController | null>(null)
   const requestIdRef = useRef(0)
+  const isInitialMount = useRef(true)
+  const hasRestoredScroll = useRef(false)
+
+  // Обновление URL с текущими фильтрами (без перезагрузки страницы)
+  const updateUrlWithFilters = useCallback(() => {
+    const params = new URLSearchParams()
+    
+    if (currentPage > 1) params.set('page', currentPage.toString())
+    if (searchTerm) params.set('search', searchTerm)
+    if (statusFilter) params.set('status', statusFilter)
+    if (cityFilter) params.set('city', cityFilter)
+    if (masterFilter) params.set('master', masterFilter)
+    if (rkFilter) params.set('rk', rkFilter)
+    if (typeEquipmentFilter) params.set('typeEquipment', typeEquipmentFilter)
+    if (dateType !== 'create') params.set('dateType', dateType)
+    if (dateFrom) params.set('dateFrom', dateFrom)
+    if (dateTo) params.set('dateTo', dateTo)
+    
+    const queryString = params.toString()
+    const newUrl = queryString ? `/orders?${queryString}` : '/orders'
+    
+    // Используем replaceState чтобы не засорять историю при каждом изменении фильтра
+    window.history.replaceState(null, '', newUrl)
+  }, [currentPage, searchTerm, statusFilter, cityFilter, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
+
+  // Сохранение позиции прокрутки перед переходом на страницу заказа
+  const saveScrollPosition = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(SCROLL_POSITION_KEY, window.scrollY.toString())
+    }
+  }, [])
+
+  // Восстановление позиции прокрутки при возврате
+  const restoreScrollPosition = useCallback(() => {
+    if (typeof window !== 'undefined' && !hasRestoredScroll.current) {
+      const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY)
+      if (savedPosition) {
+        // Небольшая задержка чтобы DOM успел отрендериться
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedPosition, 10))
+          hasRestoredScroll.current = true
+        }, 100)
+      }
+    }
+  }, [])
 
   // Загрузка данных с защитой от Race Condition
   const loadOrders = useCallback(async (searchValue?: string) => {
@@ -145,6 +207,22 @@ function OrdersContent() {
     }
   }, [currentPage, statusFilter, cityFilter, masterFilter, itemsPerPage, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
 
+  // Обновляем URL при изменении фильтров (кроме первой загрузки)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    updateUrlWithFilters()
+  }, [updateUrlWithFilters])
+
+  // Восстанавливаем позицию прокрутки после загрузки данных
+  useEffect(() => {
+    if (!loading && orders.length > 0) {
+      restoreScrollPosition()
+    }
+  }, [loading, orders.length, restoreScrollPosition])
+
   // Обработчики фильтров
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
@@ -218,9 +296,16 @@ function OrdersContent() {
     setDateFrom('')
     setDateTo('')
     setCurrentPage(1)
+    // Очищаем URL и сохраненную позицию
+    window.history.replaceState(null, '', '/orders')
+    sessionStorage.removeItem(SCROLL_POSITION_KEY)
   }
 
   const handleOrderClick = (orderId: number) => {
+    // Сохраняем позицию прокрутки перед переходом
+    saveScrollPosition()
+    // Обновляем URL с текущими фильтрами
+    updateUrlWithFilters()
     router.push(`/orders/${orderId}`)
   }
 
@@ -757,6 +842,19 @@ function OrdersContent() {
 }
 
 export default function OrdersPage() {
-  return <OrdersContent />
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
+        <div className="container mx-auto px-2 sm:px-4 py-8">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+            <p className="text-white font-medium">Загрузка...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <OrdersContent />
+    </Suspense>
+  )
 }
 
