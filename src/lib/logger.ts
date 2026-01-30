@@ -15,7 +15,8 @@ class Logger {
   private sensitiveKeys = ['password', 'token', 'access_token', 'refresh_token', 'secret', 'apiKey', 'authorization'];
 
   constructor() {
-    this.isDevelopment = process.env.NEXT_PUBLIC_ENV !== 'production';
+    // Проверяем NODE_ENV (стандартная переменная Next.js) или NEXT_PUBLIC_ENV
+    this.isDevelopment = process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_ENV !== 'production';
   }
 
   /**
