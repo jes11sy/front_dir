@@ -4,6 +4,73 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getSignedUrl } from '@/lib/s3-utils'
 import { apiClient, CashTransaction } from '@/lib/api'
+import { Download } from 'lucide-react'
+
+// Компонент для отображения одного чека
+function ReceiptItem({ url, docPath, index }: { url: string; docPath: string; index: number }) {
+  const fileName = docPath.toLowerCase()
+  const isImage = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.gif') || fileName.endsWith('.webp')
+  
+  const handleOpen = () => {
+    window.open(url, '_blank')
+  }
+  
+  if (isImage) {
+    return (
+      <div className="relative group">
+        <img 
+          src={url}
+          alt={`Чек ${index + 1}`}
+          className="w-full h-24 sm:h-32 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={handleOpen}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement
+            target.src = '' // Убираем битое изображение
+            target.className = 'w-full h-24 sm:h-32 bg-gray-200 rounded-lg flex items-center justify-center'
+          }}
+        />
+        <button
+          onClick={handleOpen}
+          className="absolute top-1 right-1 w-7 h-7 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+          title="Открыть"
+        >
+          <Download className="w-3 h-3" />
+        </button>
+        <div className="text-xs text-gray-500 text-center mt-1 truncate">
+          {docPath.split('/').pop()}
+        </div>
+      </div>
+    )
+  }
+  
+  // PDF или другой документ
+  return (
+    <div 
+      className="relative group cursor-pointer"
+      onClick={handleOpen}
+    >
+      <div className="w-full h-24 sm:h-32 bg-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-gray-300 transition-colors">
+        <svg className="w-8 h-8 text-gray-500 mb-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+        </svg>
+        <span className="text-xs text-gray-600">PDF</span>
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          handleOpen()
+        }}
+        className="absolute top-1 right-1 w-7 h-7 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+        title="Скачать"
+      >
+        <Download className="w-3 h-3" />
+      </button>
+      <div className="text-xs text-gray-500 text-center mt-1 truncate">
+        {docPath.split('/').pop()}
+      </div>
+    </div>
+  )
+}
 
 function ExpenseViewContent() {
   const params = useParams()
@@ -12,6 +79,7 @@ function ExpenseViewContent() {
   const [error, setError] = useState<string | null>(null)
   const [transaction, setTransaction] = useState<CashTransaction | null>(null)
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null)
+  const [receiptUrls, setReceiptUrls] = useState<string[]>([]) // Массив URL для receiptDocs
 
   const transactionId = params.id as string
 
@@ -28,10 +96,18 @@ function ExpenseViewContent() {
         if (foundTransaction) {
           setTransaction(foundTransaction)
           
-          // Загружаем подписанный URL для чека
+          // Загружаем подписанный URL для одиночного чека (receiptDoc)
           if (foundTransaction.receiptDoc) {
             const signedUrl = await getSignedUrl(foundTransaction.receiptDoc)
             setReceiptUrl(signedUrl)
+          }
+          
+          // Загружаем подписанные URL для массива чеков (receiptDocs)
+          if (foundTransaction.receiptDocs && foundTransaction.receiptDocs.length > 0) {
+            const urls = await Promise.all(
+              foundTransaction.receiptDocs.map(doc => getSignedUrl(doc))
+            )
+            setReceiptUrls(urls)
           }
         } else {
           setError('Транзакция не найдена')
@@ -152,91 +228,35 @@ function ExpenseViewContent() {
                 <span className="text-gray-800 text-sm sm:text-base text-right max-w-[50%]">{transaction.nameCreate || 'Не указан'}</span>
               </div>
 
-              {transaction.receiptDoc && (
-                <div>
+              {/* Отображение чеков - поддержка receiptDoc (одиночный) и receiptDocs (массив) */}
+              {(transaction.receiptDoc || (transaction.receiptDocs && transaction.receiptDocs.length > 0)) && (
+                <div className="mt-4">
+                  <div className="text-gray-600 text-sm sm:text-base mb-3 font-medium">
+                    Чеки ({(transaction.receiptDocs?.length || 0) + (transaction.receiptDoc ? 1 : 0)})
+                  </div>
                   
-                  {(() => {
-                    const fileName = transaction.receiptDoc.toLowerCase()
-                    const isImage = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.gif') || fileName.endsWith('.webp')
-                    
-                    if (isImage) {
-                      return (
-                        <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 mt-3">
-                          <div className="flex flex-col items-center">
-                            <img 
-                              src={receiptUrl || ''}
-                              alt="Чек"
-                              className="w-32 h-32 sm:w-48 sm:h-48 object-cover rounded border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
-                              onClick={async () => {
-                                if (transaction.receiptDoc) {
-                                  const signedUrl = await getSignedUrl(transaction.receiptDoc)
-                                  window.open(signedUrl, '_blank')
-                                }
-                              }}
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.style.display = 'none'
-                                const parent = target.parentElement
-                                if (parent) {
-                                  // Безопасное создание DOM элементов вместо innerHTML
-                                  const errorContainer = document.createElement('div')
-                                  errorContainer.className = 'text-center py-4 sm:py-8'
-                                  
-                                  const errorMessage = document.createElement('div')
-                                  errorMessage.className = 'text-gray-400 mb-2 text-sm sm:text-base'
-                                  errorMessage.textContent = 'Не удалось загрузить изображение'
-                                  
-                                  const openButton = document.createElement('button')
-                                  openButton.className = 'text-blue-400 hover:text-blue-300 underline text-sm sm:text-base'
-                                  openButton.textContent = 'Открыть файл'
-                                  openButton.addEventListener('click', async () => {
-                                    try {
-                                      if (!transaction.receiptDoc) return
-                                      const signedUrl = await getSignedUrl(transaction.receiptDoc)
-                                      window.open(signedUrl, '_blank')
-                                    } catch (error) {
-                                      console.error('Ошибка получения подписанного URL:', error)
-                                      // Fallback на прямой URL
-                                      const fallbackUrl = `${process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles'}/${transaction.receiptDoc}`
-                                      window.open(fallbackUrl, '_blank')
-                                    }
-                                  })
-                                  
-                                  errorContainer.appendChild(errorMessage)
-                                  errorContainer.appendChild(openButton)
-                                  parent.appendChild(errorContainer)
-                                }
-                              }}
-                            />
-                            <p className="text-xs text-gray-500 mt-2 text-center">Нажмите на изображение для открытия в новой вкладке</p>
-                          </div>
-                        </div>
-                      )
-                    } else {
-                      return (
-                        <div className="bg-gray-50 rounded-lg p-4 sm:p-6 text-center border border-gray-200 mt-3">
-                          <div className="text-gray-600 mb-4">
-                            <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                            </svg>
-                            <div className="text-base sm:text-lg font-medium text-gray-800">Документ</div>
-                            <div className="text-xs sm:text-sm text-gray-500">{transaction.receiptDoc.split('/').pop()}</div>
-                          </div>
-                          <button 
-                            className="px-3 py-2 sm:px-4 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm sm:text-base font-medium"
-                            onClick={async () => {
-                              if (transaction.receiptDoc) {
-                                const signedUrl = await getSignedUrl(transaction.receiptDoc)
-                                window.open(signedUrl, '_blank')
-                              }
-                            }}
-                          >
-                            Скачать документ
-                          </button>
-                        </div>
-                      )
-                    }
-                  })()}
+                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {/* Одиночный чек (receiptDoc) - для обратной совместимости */}
+                      {transaction.receiptDoc && receiptUrl && (
+                        <ReceiptItem 
+                          url={receiptUrl} 
+                          docPath={transaction.receiptDoc} 
+                          index={0}
+                        />
+                      )}
+                      
+                      {/* Массив чеков (receiptDocs) */}
+                      {transaction.receiptDocs && receiptUrls.map((url, index) => (
+                        <ReceiptItem 
+                          key={index}
+                          url={url} 
+                          docPath={transaction.receiptDocs![index]} 
+                          index={index + (transaction.receiptDoc ? 1 : 0)}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
