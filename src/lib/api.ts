@@ -188,6 +188,7 @@ export interface CashTransaction {
   city?: string
   note?: string
   receiptDoc?: string
+  receiptDocs?: string[] // Массив чеков для расходов
   paymentPurpose?: string
   dateCreate: string
   nameCreate: string
@@ -1267,6 +1268,7 @@ export class ApiClient {
         note: data.note,
         paymentPurpose: data.paymentPurpose,
         receiptDoc: data.receiptDoc,
+        receiptDocs: data.receiptDocs, // Массив чеков для расходов
       }),
     })
 

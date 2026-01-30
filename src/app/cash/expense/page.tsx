@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
+import { useMultipleFileUpload } from '@/hooks/useMultipleFileUpload'
+import { X, Download, UploadCloud } from 'lucide-react'
 
 function ExpenseContent() {
   const router = useRouter()
@@ -27,9 +29,23 @@ function ExpenseContent() {
     city: '',
     amount: '',
     purpose: '',
-    comment: '',
-    receipt: null as File | null
+    comment: ''
   })
+  
+  // Хук для множественной загрузки чеков
+  const {
+    files: receiptFiles,
+    dragOver,
+    setDragOver,
+    handleFiles: handleReceiptFiles,
+    removeFile: removeReceiptFile,
+    removeAllFiles: removeAllReceiptFiles,
+    canAddMore: canAddMoreReceipts,
+  } = useMultipleFileUpload(10) // Максимум 10 чеков
+  
+  // Состояние ошибки валидации чека
+  const [receiptError, setReceiptError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Получаем города директора
   const currentUser = apiClient.getCurrentUser()
@@ -89,37 +105,56 @@ function ExpenseContent() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }, [])
 
-  const handleFileChange = useCallback((file: File | null) => {
-    setFormData(prev => ({ ...prev, receipt: file }))
-  }, [])
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  // Обработка drag-over для чеков
+  const handleReceiptDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-  }, [])
+    setDragOver(true)
+  }, [setDragOver])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleReceiptDragLeave = useCallback(() => {
+    setDragOver(false)
+  }, [setDragOver])
+
+  const handleReceiptDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    setDragOver(false)
     
-    const files = e.dataTransfer.files
-    if (files && files[0]) {
-      handleFileChange(files[0])
+    if (e.dataTransfer.files && canAddMoreReceipts) {
+      handleReceiptFiles(e.dataTransfer.files)
+      setReceiptError(null)
     }
-  }, [handleFileChange])
+  }, [handleReceiptFiles, canAddMoreReceipts, setDragOver])
+
+  const handleReceiptInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && canAddMoreReceipts) {
+      handleReceiptFiles(e.target.files)
+      setReceiptError(null)
+    }
+  }, [handleReceiptFiles, canAddMoreReceipts])
 
   const handleSubmit = async () => {
+    // Валидация: чек обязателен для расхода
+    if (receiptFiles.length === 0) {
+      setReceiptError('Для проведения расхода необходимо прикрепить хотя бы один чек')
+      return
+    }
+    
+    setIsSubmitting(true)
+    setReceiptError(null)
+    
     try {
       const cityName = cities.find(c => c.value === formData.city)?.label || directorCities[0] || 'Москва'
       const purposeName = purposes.find(p => p.value === formData.purpose)?.label || 'Иное'
       
-      let receiptDoc = null
+      // Загружаем все чеки в S3 параллельно
+      const uploadPromises = receiptFiles
+        .filter(f => f.file) // Только новые файлы (не существующие)
+        .map(f => apiClient.uploadReceipt(f.file!, 'cash'))
       
-      // Загружаем файл в S3, если он есть
-      if (formData.receipt) {
-        const uploadResult = await apiClient.uploadReceipt(formData.receipt, 'cash')
-        receiptDoc = uploadResult.filePath
-      }
+      const uploadResults = await Promise.all(uploadPromises)
+      const receiptDocs = uploadResults.map(r => r.filePath)
       
       await apiClient.createCashTransaction({
         name: 'расход',
@@ -127,14 +162,17 @@ function ExpenseContent() {
         city: cityName,
         note: formData.comment,
         paymentPurpose: purposeName,
-        receiptDoc: receiptDoc || undefined
+        receiptDocs: receiptDocs // Массив чеков
       })
       
       setShowAddModal(false)
-      setFormData({ city: '', amount: '', purpose: '', comment: '', receipt: null })
+      setFormData({ city: '', amount: '', purpose: '', comment: '' })
+      removeAllReceiptFiles() // Очищаем загруженные файлы
       await loadExpenseData() // Перезагружаем данные
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка создания расхода')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -391,55 +429,93 @@ function ExpenseContent() {
                 />
               </div>
 
-              {/* Чек */}
+              {/* Чеки (обязательно, множественная загрузка) */}
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Чек</label>
-                <div className="relative">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Чек <span className="text-red-500">*</span>
+                  {receiptFiles.length > 0 && (
+                    <span className="text-gray-500 font-normal ml-2">({receiptFiles.length} файл(ов))</span>
+                  )}
+                </label>
+                
+                {receiptError && (
+                  <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                    {receiptError}
+                  </div>
+                )}
+                
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
+                    dragOver
+                      ? 'border-teal-400 bg-teal-50'
+                      : receiptFiles.length > 0
+                        ? 'border-green-400 bg-green-50'
+                        : receiptError
+                          ? 'border-red-400 bg-red-50'
+                          : 'border-gray-300 bg-gray-50'
+                  }`}
+                  onDragOver={handleReceiptDragOver}
+                  onDragLeave={handleReceiptDragLeave}
+                  onDrop={handleReceiptDrop}
+                >
                   <input
                     type="file"
-                    id="receipt-upload"
-                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     accept=".pdf,.jpg,.jpeg,.png"
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
+                    multiple
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={!canAddMoreReceipts}
+                    onChange={handleReceiptInputChange}
                   />
-                  <div
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors pointer-events-none"
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#2a6b68'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#4b5563'}
-                  >
-                    {formData.receipt ? (
-                      <div className="flex flex-col items-center">
-                        {formData.receipt.type.startsWith('image/') ? (
-                          <img
-                            src={URL.createObjectURL(formData.receipt)}
-                            alt="Предпросмотр"
-                            className="w-16 h-16 object-cover rounded border border-gray-600 mb-2"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 bg-gray-600 rounded border border-gray-500 flex items-center justify-center mb-2">
-                            <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                            </svg>
+
+                  {receiptFiles.length > 0 ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-2">
+                        {receiptFiles.map((fileWithPreview) => (
+                          <div key={fileWithPreview.id} className="relative group">
+                            {fileWithPreview.file?.type.startsWith('image/') ? (
+                              <img
+                                src={fileWithPreview.preview}
+                                alt={fileWithPreview.file?.name || 'Чек'}
+                                className="w-full h-16 object-cover rounded-lg shadow-sm"
+                              />
+                            ) : (
+                              <div className="w-full h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                removeReceiptFile(fileWithPreview.id)
+                              }}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all shadow-lg opacity-0 group-hover:opacity-100"
+                              title="Удалить"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                            <div className="text-xs text-gray-600 text-center mt-1 truncate px-1">
+                              {fileWithPreview.file?.name || 'Файл'}
+                            </div>
                           </div>
-                        )}
-                        <p className="text-xs text-green-400 font-medium">{formData.receipt.name}</p>
-                        <p className="text-xs text-gray-500">Нажмите для изменения</p>
+                        ))}
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center">
-                        <svg className="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        <p className="text-sm text-gray-400 text-center">
-                          <span className="font-medium" style={{color: '#2a6b68'}}>Перетащите файл сюда</span>
-                        </p>
-                        <p className="text-xs text-gray-500">или нажмите для выбора</p>
-                        <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG</p>
-                      </div>
-                    )}
-                  </div>
+                      {canAddMoreReceipts && (
+                        <p className="text-xs text-gray-500">Нажмите или перетащите для добавления ещё файлов</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center py-2">
+                      <UploadCloud className="w-8 h-8 mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-600">
+                        {dragOver ? 'Отпустите файлы' : 'Перетащите чеки сюда'}
+                      </p>
+                      <p className="text-xs text-gray-500">или нажмите для выбора (можно несколько)</p>
+                      <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG (макс. 10 файлов)</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -447,16 +523,28 @@ function ExpenseContent() {
             {/* Кнопки */}
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setShowAddModal(false)}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
+                onClick={() => {
+                  setShowAddModal(false)
+                  setReceiptError(null)
+                  removeAllReceiptFiles()
+                  setFormData({ city: '', amount: '', purpose: '', comment: '' })
+                }}
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium disabled:opacity-50"
               >
                 Отмена
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
+                disabled={isSubmitting || receiptFiles.length === 0}
+                className={`flex-1 px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium ${
+                  receiptFiles.length === 0
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'
+                } disabled:opacity-50`}
+                title={receiptFiles.length === 0 ? 'Прикрепите хотя бы один чек' : ''}
               >
-                Добавить
+                {isSubmitting ? 'Загрузка...' : 'Добавить'}
               </button>
             </div>
           </div>
