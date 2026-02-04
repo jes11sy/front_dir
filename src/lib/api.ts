@@ -265,6 +265,9 @@ export class ApiClient {
   private isLoggingOut: boolean = false // 🔒 Защита от множественных logout
   private silentRefreshInterval: ReturnType<typeof setInterval> | null = null
   private lastActivityTime: number = Date.now()
+  
+  // ✅ FIX: Mutex для предотвращения race condition при параллельных refresh запросах
+  private refreshPromise: Promise<boolean> | null = null
 
   // Колбэк для редиректа (устанавливается из компонента с доступом к router)
   private onAuthError: (() => void) | null = null
@@ -383,10 +386,36 @@ export class ApiClient {
   /**
    * 🍪 Обновление токенов через httpOnly cookies
    * Сервер автоматически обновит cookies
-   * 🔧 УЛУЧШЕНО: Добавлен retry с экспоненциальной задержкой
+   * ✅ FIX: Mutex для предотвращения race condition при параллельных refresh запросах
+   * Если несколько запросов одновременно получают 401, только один делает refresh,
+   * остальные ждут его результат — это предотвращает token reuse detection на backend
    */
   private async refreshAccessToken(): Promise<boolean> {
+    // Если refresh уже выполняется - ждём его результат
+    if (this.refreshPromise) {
+      logger.debug('[Auth] Refresh already in progress, waiting...')
+      return this.refreshPromise
+    }
+    
+    // Запускаем refresh и сохраняем Promise для других запросов
+    this.refreshPromise = this.doRefreshToken()
+    
+    try {
+      return await this.refreshPromise
+    } finally {
+      // Сбрасываем Promise после завершения (успех или ошибка)
+      this.refreshPromise = null
+    }
+  }
+
+  /**
+   * Реальная логика обновления токена (вызывается только один раз при параллельных запросах)
+   * 🔧 УЛУЧШЕНО: Добавлен retry с экспоненциальной задержкой
+   */
+  private async doRefreshToken(): Promise<boolean> {
     const maxAttempts = 3
+    
+    logger.debug('[Auth] Starting token refresh')
     
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -401,12 +430,13 @@ export class ApiClient {
         })
 
         if (response.ok) {
+          logger.debug('[Auth] Token refresh successful')
           return true
         }
         
         // Если 401/403 - токен невалиден, не повторяем
         if (response.status === 401 || response.status === 403) {
-          logger.debug('Refresh token invalid or expired')
+          logger.warn('[Auth] Refresh token invalid or expired', { status: response.status })
           return false
         }
         
@@ -416,6 +446,7 @@ export class ApiClient {
           await new Promise(resolve => setTimeout(resolve, delay))
         }
       } catch (error) {
+        logger.error('[Auth] Token refresh error', { error: String(error), attempt })
         // Сетевая ошибка - повторяем
         if (attempt < maxAttempts) {
           const delay = 1000 * Math.pow(2, attempt - 1)
