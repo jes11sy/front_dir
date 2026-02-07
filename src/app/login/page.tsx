@@ -218,7 +218,7 @@ function LoginForm() {
     >
       {/* Login Card */}
       <div className={`w-full max-w-md rounded-2xl p-8 shadow-xl relative transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-[#2a3441]' : 'bg-[#1a3a38]'
+        theme === 'dark' ? 'bg-[#2a3441]' : 'bg-white'
       }`}>
         
         {/* Переключатель темы справа вверху */}
@@ -227,7 +227,7 @@ function LoginForm() {
           className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
             theme === 'dark' 
               ? 'text-teal-400 hover:bg-gray-700/50' 
-              : 'text-teal-300 hover:bg-white/10'
+              : 'text-teal-500 hover:bg-gray-100'
           }`}
           title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
         >
@@ -243,25 +243,29 @@ function LoginForm() {
         </button>
 
         {/* Logo */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-8">
           <Image 
             src="/images/logo_light_v2.png"
             alt="Новые Схемы" 
-            width={180} 
-            height={50} 
-            className="h-12 w-auto object-contain" 
+            width={240} 
+            height={70} 
+            className="h-16 w-auto object-contain" 
             priority
           />
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-semibold text-center mb-8 text-gray-100">
+        <h1 className={`text-2xl font-semibold text-center mb-8 ${
+          theme === 'dark' ? 'text-gray-100' : 'text-gray-800'
+        }`}>
           Авторизация
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <Label className="text-sm font-medium mb-2 block text-gray-300">
+            <Label className={`text-sm font-medium mb-2 block ${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+            }`}>
               Логин
             </Label>
             <CustomInput
@@ -288,7 +292,9 @@ function LoginForm() {
           </div>
 
           <div>
-            <Label className="text-sm font-medium mb-2 block text-gray-300">
+            <Label className={`text-sm font-medium mb-2 block ${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+            }`}>
               Пароль
             </Label>
             <div className="relative">
