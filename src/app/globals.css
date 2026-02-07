@@ -109,12 +109,12 @@ html.dark body {
   background-color: #1e2530;
 }
 
-/* Фиксация навигации на мобильных устройствах */
+/* iOS Safari: GPU ускорение для фиксированных элементов (кроме тех что используют translate) */
 @supports (-webkit-touch-callout: none) {
-  /* iOS specific */
-  .fixed {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+  /* iOS specific - не применяем к элементам с transform анимацией */
+  .fixed:not([class*="translate-x"]):not([class*="-translate-x"]) {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 }
 

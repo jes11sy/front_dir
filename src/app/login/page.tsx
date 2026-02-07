@@ -175,11 +175,6 @@ function LoginForm() {
       
       logger.info('Пользователь успешно авторизован')
       
-      // Сбрасываем возможные застрявшие стили (мобильное меню)
-      if (typeof document !== 'undefined') {
-        document.body.style.overflow = ''
-      }
-      
       // Безопасный редирект (защита от Open Redirect атаки)
       const safeRedirectUrl = getSafeRedirectUrl()
       router.replace(safeRedirectUrl)
