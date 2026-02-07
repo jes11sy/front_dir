@@ -143,10 +143,15 @@ function ExpenseContent() {
       setLoading(true)
       setError(null)
       
+      // 🔧 FIX: Преобразуем value фильтра города обратно в label для отправки на сервер
+      const cityLabel = cityFilter ? cities.find(c => c.value === cityFilter)?.label : undefined
+      // 🔧 FIX: Преобразуем value фильтра назначения обратно в label
+      const purposeLabel = purposeFilter ? purposes.find(p => p.value === purposeFilter)?.label : undefined
+      
       // Параметры фильтрации
       const filterParams = {
-        city: cityFilter || undefined,
-        paymentPurpose: purposeFilter || undefined,
+        city: cityLabel || undefined,
+        paymentPurpose: purposeLabel || undefined,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
       }
@@ -173,7 +178,7 @@ function ExpenseContent() {
     } finally {
       setLoading(false)
     }
-  }, [currentPage, startDate, endDate, cityFilter, purposeFilter])
+  }, [currentPage, startDate, endDate, cityFilter, purposeFilter, cities, purposes])
 
   useEffect(() => {
     loadExpenseData()

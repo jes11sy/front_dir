@@ -1202,12 +1202,17 @@ export class ApiClient {
     city?: string
     startDate?: string
     endDate?: string
+    paymentPurpose?: string
   }): Promise<CashTransactionsResponse> {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
     if (params?.limit) queryParams.append('limit', params.limit.toString())
     if (params?.type) queryParams.append('type', params.type)
     if (params?.city) queryParams.append('city', params.city)
+    // 🔧 FIX: Добавляем параметры дат и назначения платежа
+    if (params?.startDate) queryParams.append('startDate', params.startDate)
+    if (params?.endDate) queryParams.append('endDate', params.endDate)
+    if (params?.paymentPurpose) queryParams.append('paymentPurpose', params.paymentPurpose)
     
     const queryString = queryParams.toString()
     const url = queryString 
