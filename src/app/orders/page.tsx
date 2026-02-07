@@ -506,9 +506,9 @@ function OrdersContent() {
               </div>
             )}
 
-            {/* Табы статусов */}
-            <div className="mb-4 animate-slide-in-left">
-              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+            {/* Табы статусов + иконка фильтров */}
+            <div className="mb-4 animate-slide-in-left flex items-center gap-2">
+              <div className="flex-1 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
                 <div className="flex gap-1 p-1 bg-gray-100 rounded-lg w-max md:w-auto">
                   {[
                     { id: 'all', label: 'Все' },
@@ -532,21 +532,19 @@ function OrdersContent() {
                   ))}
                 </div>
               </div>
-            </div>
 
-            {/* Кнопка открытия фильтров */}
-            <div className="mb-4">
+              {/* Иконка фильтров */}
               <button
                 onClick={openFiltersPanel}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:border-teal-500 hover:text-teal-600 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+                className="relative flex-shrink-0 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 hover:text-teal-600 transition-all duration-200"
+                title="Фильтры"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
-                Фильтры
                 {/* Индикатор активных фильтров */}
                 {(searchId || searchPhone || searchAddress || statusFilter || cityFilter || masterFilter || rkFilter || typeEquipmentFilter || dateFrom || dateTo) && (
-                  <span className="ml-1 w-2 h-2 bg-teal-500 rounded-full"></span>
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 border-white"></span>
                 )}
               </button>
             </div>
@@ -879,6 +877,10 @@ function OrdersContent() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Город:</span>
                       <span className="text-gray-800">{order.city}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Адрес:</span>
+                      <span className="text-gray-800 text-right max-w-[60%]">{order.address || '-'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Дата встречи:</span>

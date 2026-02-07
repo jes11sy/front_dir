@@ -11,15 +11,15 @@ import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 function HistoryContent() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [historyData, setHistoryData] = useState<CashTransaction[]>([])
   const [totalPages, setTotalPages] = useState(1)
-  const [typeFilter, setTypeFilter] = useState('all')
-  const [cityFilter, setCityFilter] = useState('all')
-  const [openSelect, setOpenSelect] = useState<string | null>(null)
+  const [typeFilter, setTypeFilter] = useState('')
+  const [cityFilter, setCityFilter] = useState('')
+  const [filterOpenSelect, setFilterOpenSelect] = useState<string | null>(null)
   const itemsPerPage = 10
 
   // 🔧 FIX: Статистика теперь загружается с сервера (агрегация через SQL)
@@ -37,18 +37,58 @@ function HistoryContent() {
 
   // Данные для выпадающих списков
   const typeOptions = [
-    { value: 'all', label: 'Все типы' },
+    { value: '', label: 'Все типы' },
     { value: 'приход', label: 'Приход' },
     { value: 'расход', label: 'Расход' }
   ]
 
   const cityOptions = [
-    { value: 'all', label: 'Все города' },
+    { value: '', label: 'Все города' },
     ...directorCities.map(city => ({
       value: city,
       label: city
     }))
   ]
+
+  // Быстрые периоды для фильтра
+  const quickPeriods = [
+    { label: 'Сегодня', getValue: () => {
+      const today = new Date().toISOString().split('T')[0]
+      return { start: today, end: today }
+    }},
+    { label: 'Вчера', getValue: () => {
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+      return { start: yesterday, end: yesterday }
+    }},
+    { label: 'Неделя', getValue: () => {
+      const end = new Date().toISOString().split('T')[0]
+      const start = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0]
+      return { start, end }
+    }},
+    { label: 'Месяц', getValue: () => {
+      const end = new Date().toISOString().split('T')[0]
+      const start = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
+      return { start, end }
+    }},
+  ]
+
+  // Подсчёт активных фильтров
+  const activeFiltersCount = [startDate, endDate, typeFilter, cityFilter].filter(Boolean).length
+
+  // Сброс всех фильтров
+  const resetFilters = () => {
+    setStartDate('')
+    setEndDate('')
+    setTypeFilter('')
+    setCityFilter('')
+  }
+
+  // Применить фильтры и закрыть drawer
+  const applyFilters = () => {
+    setCurrentPage(1)
+    setShowFilterDrawer(false)
+    loadHistoryData()
+  }
 
   // 🔧 FIX: Загрузка данных с серверной пагинацией и статистикой
   const loadHistoryData = useCallback(async () => {
@@ -58,8 +98,8 @@ function HistoryContent() {
       
       // Параметры для запросов
       const filterParams = {
-        city: cityFilter !== 'all' ? cityFilter : undefined,
-        type: typeFilter !== 'all' ? typeFilter as 'приход' | 'расход' : undefined,
+        city: cityFilter || undefined,
+        type: typeFilter ? typeFilter as 'приход' | 'расход' : undefined,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
       }
@@ -154,101 +194,207 @@ function HistoryContent() {
               </div>
             )}
 
-            {/* Фильтры */}
-            <div className="mb-6">
-              <div className="mb-3">
+            {/* Заголовок и кнопка фильтров */}
+            <div className="mb-6 animate-slide-in-left">
+              <div className="flex items-center gap-3 flex-wrap">
                 <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 text-left cursor-pointer group"
+                  onClick={() => setShowFilterDrawer(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow group"
                 >
-                  <h3 className="text-gray-700 font-semibold group-hover:text-teal-600 transition-colors duration-200">
-                    Фильтры
-                  </h3>
-                  <svg
-                    className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
-                      showFilters ? 'rotate-180' : ''
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
+                  <span className="font-medium">Фильтры</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-500 rounded-full">
+                      {activeFiltersCount}
+                    </span>
+                  )}
                 </button>
-              </div>
-              
-              {showFilters && (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in" style={{ position: 'relative', zIndex: 10 }}>
-                  <div className="flex flex-wrap gap-3 items-end">
-                    {/* Тип транзакции */}
-                    <div className="min-w-[140px] relative">
-                      <label className="block text-xs text-gray-600 mb-1">Тип</label>
-                      <CustomSelect
-                        value={typeFilter}
-                        onChange={setTypeFilter}
-                        options={typeOptions}
-                        placeholder="Выберите тип"
-                        compact={true}
-                        selectId="type"
-                        openSelect={openSelect}
-                        setOpenSelect={setOpenSelect}
-                      />
-                    </div>
 
-                    {/* Город */}
-                    <div className="min-w-[140px] relative">
-                      <label className="block text-xs text-gray-600 mb-1">Город</label>
-                      <CustomSelect
-                        value={cityFilter}
-                        onChange={setCityFilter}
-                        options={cityOptions}
-                        placeholder="Выберите город"
-                        compact={true}
-                        selectId="city"
-                        openSelect={openSelect}
-                        setOpenSelect={setOpenSelect}
-                      />
-                    </div>
-
-                    {/* От даты */}
-                    <div>
-                      <label className="block text-xs text-gray-700 mb-1">От даты</label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                      />
-                    </div>
-
-                    {/* До даты */}
-                    <div>
-                      <label className="block text-xs text-gray-700 mb-1">До даты</label>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 mt-3">
+                {/* Активные фильтры как теги */}
+                {activeFiltersCount > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {startDate && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
+                        От: {new Date(startDate).toLocaleDateString('ru-RU')}
+                        <button onClick={() => setStartDate('')} className="hover:text-blue-900 ml-1">×</button>
+                      </span>
+                    )}
+                    {endDate && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
+                        До: {new Date(endDate).toLocaleDateString('ru-RU')}
+                        <button onClick={() => setEndDate('')} className="hover:text-blue-900 ml-1">×</button>
+                      </span>
+                    )}
+                    {typeFilter && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
+                        {typeOptions.find(t => t.value === typeFilter)?.label || typeFilter}
+                        <button onClick={() => setTypeFilter('')} className="hover:text-blue-900 ml-1">×</button>
+                      </span>
+                    )}
+                    {cityFilter && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
+                        {cityFilter}
+                        <button onClick={() => setCityFilter('')} className="hover:text-blue-900 ml-1">×</button>
+                      </span>
+                    )}
                     <button
-                      onClick={() => {
-                        setStartDate('')
-                        setEndDate('')
-                        setTypeFilter('all')
-                        setCityFilter('all')
-                      }}
-                      className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition-colors font-medium"
+                      onClick={resetFilters}
+                      className="text-xs text-gray-500 hover:text-blue-500 transition-colors"
                     >
                       Сбросить все
                     </button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
+
+            {/* Sidebar Drawer для фильтров */}
+            {showFilterDrawer && (
+              <>
+                {/* Overlay */}
+                <div 
+                  className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300"
+                  onClick={() => setShowFilterDrawer(false)}
+                />
+                
+                {/* Drawer */}
+                <div className="fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-2xl z-50 animate-slide-in-right overflow-hidden flex flex-col">
+                  {/* Header */}
+                  <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gradient-to-r from-blue-500 to-indigo-600">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold text-white">Фильтры</h2>
+                        <p className="text-xs text-white/70">Настройте параметры поиска</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowFilterDrawer(false)}
+                      className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 overflow-y-auto p-5 space-y-6">
+                    {/* Быстрый выбор периода */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Быстрый выбор периода
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {quickPeriods.map((period) => (
+                          <button
+                            key={period.label}
+                            onClick={() => {
+                              const { start, end } = period.getValue()
+                              setStartDate(start)
+                              setEndDate(end)
+                            }}
+                            className="px-4 py-2.5 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl text-sm font-medium text-gray-700 hover:text-blue-700 transition-all duration-200"
+                          >
+                            {period.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Период */}
+                    <div className="space-y-3">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Свой диапазон дат
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1.5">От</label>
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1.5">До</label>
+                          <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Разделитель */}
+                    <div className="border-t border-gray-100" />
+
+                    {/* Тип транзакции */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Тип транзакции
+                      </label>
+                      <CustomSelect
+                        value={typeFilter}
+                        onChange={(value) => setTypeFilter(value)}
+                        options={typeOptions}
+                        placeholder="Выберите тип"
+                        selectId="filter-type"
+                        openSelect={filterOpenSelect}
+                        setOpenSelect={setFilterOpenSelect}
+                      />
+                    </div>
+
+                    {/* Город */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Город
+                      </label>
+                      <CustomSelect
+                        value={cityFilter}
+                        onChange={(value) => setCityFilter(value)}
+                        options={cityOptions}
+                        placeholder="Выберите город"
+                        selectId="filter-city"
+                        openSelect={filterOpenSelect}
+                        setOpenSelect={setFilterOpenSelect}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="p-5 border-t border-gray-100 bg-gray-50 space-y-3">
+                    <button
+                      onClick={applyFilters}
+                      className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Применить фильтры
+                    </button>
+                    <button
+                      onClick={resetFilters}
+                      className="w-full px-4 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Сбросить все
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Таблица */}
             {!loading && !error && (
@@ -333,7 +479,7 @@ function HistoryContent() {
         </div>
       )}
 
-      {/* Стили для кастомного скроллбара */}
+      {/* Стили для кастомного скроллбара и анимаций */}
       <style jsx global>{`
         /* Custom scroll for dropdown */
         .custom-dropdown::-webkit-scrollbar {
@@ -349,6 +495,37 @@ function HistoryContent() {
         }
         .custom-dropdown::-webkit-scrollbar-thumb:hover {
           background: #1a5a57;
+        }
+        
+        /* Slide-in animation for drawer */
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        .animate-slide-in-right {
+          animation: slideInRight 0.3s ease-out forwards;
+        }
+        
+        .animate-slide-in-left {
+          animation: slideInLeft 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideInLeft {
+          from {
+            transform: translateX(-20px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
         }
       `}</style>
     </div>
