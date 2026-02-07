@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { apiClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
+import { useDesignStore } from '@/store/design.store'
 
 function MasterHandoverContent() {
   const router = useRouter()
+  const { theme } = useDesignStore()
   const [mastersData, setMastersData] = useState<any[]>([])
   const [totalAmount, setTotalAmount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -36,93 +36,108 @@ function MasterHandoverContent() {
     router.push(`/master-handover/${masterId}`)
   }
 
+  // Фильтруем мастеров с суммой > 0
+  const filteredMasters = Array.isArray(mastersData) ? mastersData.filter(master => master.totalAmount > 0) : []
+
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-2 sm:px-4 py-8">
-        <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-8 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl animate-fade-in" style={{borderColor: '#114643'}}>
-            
-            {/* Заголовок */}
-            <div className="mb-6 animate-slide-down">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
-                Сдача мастеров
-              </h1>
-              <p className="text-xl text-gray-600">
-                Общая сумма: <span className="font-bold text-teal-600">{totalAmount.toLocaleString()} ₽</span>
-              </p>
-            </div>
-
-            {/* Состояние загрузки */}
-            {loading && (
-              <div className="text-center py-8 animate-fade-in">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-                <p className="text-gray-700 text-lg">Загрузка данных...</p>
-              </div>
-            )}
-
-            {/* Ошибка */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 animate-slide-in-left">
-                <p className="text-red-600">{error}</p>
-              </div>
-            )}
-
-            {/* Таблица мастеров */}
-            {!loading && !error && (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="border-b-2 border-gray-200">
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Имя мастера</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Города</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Общая сумма</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Заказы</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.isArray(mastersData) && mastersData.filter(master => master.totalAmount > 0).map((master, index) => (
-                      <tr 
-                        key={master.id} 
-                        className="border-b border-gray-200 hover:bg-gradient-to-r hover:from-teal-50 hover:to-emerald-50 transition-all duration-200 cursor-pointer"
-                        onClick={() => handleMasterClick(master.id)}
-                      >
-                        <td className="py-4 px-4 text-gray-800 font-semibold align-top">
-                          <div className="whitespace-nowrap">{master.name}</div>
-                        </td>
-                        <td className="py-4 px-4 text-gray-600 align-top">
-                          <div className="whitespace-nowrap">{master.cities?.join(', ') || 'Не указано'}</div>
-                        </td>
-                        <td className="py-4 px-4 text-gray-800 align-top">
-                          {master.totalAmount > 0 ? (
-                            <span className="font-bold text-teal-600 text-base">{master.totalAmount.toLocaleString()} ₽</span>
-                          ) : (
-                            <span className="text-gray-400">0 ₽</span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4 text-gray-800 align-top">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm ${
-                            master.ordersCount > 0 ? 'bg-gradient-to-r from-teal-600 to-emerald-600' : 'bg-gray-400'
-                          }`}>
-                            {master.ordersCount}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Нет данных */}
-            {!loading && !error && mastersData.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-lg">Нет данных для отображения</p>
-              </div>
-            )}
-
+    <div className={`min-h-screen transition-colors duration-300 ${
+      theme === 'dark' ? 'bg-[#1e2530]' : 'bg-gray-50'
+    }`}>
+      {/* Состояние загрузки */}
+      {loading && (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className={`animate-spin rounded-full h-10 w-10 border-2 mx-auto mb-3 ${
+              theme === 'dark' ? 'border-teal-400 border-t-transparent' : 'border-teal-600 border-t-transparent'
+            }`}></div>
+            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Загрузка...</p>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Ошибка */}
+      {error && (
+        <div className="p-4">
+          <div className={`rounded-lg p-4 ${
+            theme === 'dark' ? 'bg-red-900/30 border border-red-800' : 'bg-red-50 border border-red-200'
+          }`}>
+            <p className={theme === 'dark' ? 'text-red-400' : 'text-red-600'}>{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Таблица на весь экран */}
+      {!loading && !error && (
+        <div className="w-full overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead className={`sticky top-0 z-10 ${
+              theme === 'dark' ? 'bg-[#2a3441]' : 'bg-white'
+            }`}>
+              <tr className={theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}>
+                <th className={`text-left py-3 px-4 font-semibold ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>Имя мастера</th>
+                <th className={`text-left py-3 px-4 font-semibold ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>Города</th>
+                <th className={`text-left py-3 px-4 font-semibold ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>Общая сумма</th>
+                <th className={`text-left py-3 px-4 font-semibold ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>Заказы</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredMasters.map((master) => (
+                <tr 
+                  key={master.id} 
+                  className={`cursor-pointer transition-colors duration-150 ${
+                    theme === 'dark' 
+                      ? 'border-b border-gray-700/50 hover:bg-[#2a3441]' 
+                      : 'border-b border-gray-100 hover:bg-gray-50'
+                  }`}
+                  onClick={() => handleMasterClick(master.id)}
+                >
+                  <td className={`py-3 px-4 font-medium ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>
+                    {master.name}
+                  </td>
+                  <td className={`py-3 px-4 ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
+                    {master.cities?.join(', ') || '—'}
+                  </td>
+                  <td className={`py-3 px-4 font-semibold ${
+                    theme === 'dark' ? 'text-teal-400' : 'text-teal-600'
+                  }`}>
+                    {master.totalAmount.toLocaleString()} ₽
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={`inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-full text-xs font-medium ${
+                      master.ordersCount > 0 
+                        ? 'bg-teal-500 text-white' 
+                        : theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-300 text-gray-600'
+                    }`}>
+                      {master.ordersCount}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Нет данных */}
+          {filteredMasters.length === 0 && (
+            <div className="text-center py-16">
+              <p className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
+                Нет данных для отображения
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
