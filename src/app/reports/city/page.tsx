@@ -3,25 +3,122 @@
 import { useState, useEffect } from 'react'
 import { apiClient, CityReport } from '@/lib/api'
 import ExcelJS from 'exceljs'
-
+import CustomSelect from '@/components/optimized/CustomSelect'
 
 function CityReportContent() {
+  // Основные фильтры (применённые)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [cityFilter, setCityFilter] = useState('')
+  
+  // Черновые фильтры (в drawer)
+  const [draftStartDate, setDraftStartDate] = useState('')
+  const [draftEndDate, setDraftEndDate] = useState('')
+  const [draftCityFilter, setDraftCityFilter] = useState('')
+  
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false)
+  const [filterOpenSelect, setFilterOpenSelect] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cityReports, setCityReports] = useState<CityReport[]>([])
   const [filteredReports, setFilteredReports] = useState<CityReport[]>([])
 
+  // Получаем города директора
+  const currentUser = apiClient.getCurrentUser()
+  const userCities = currentUser?.cities || []
+  
+  // Опции для фильтра по городу
+  const cityOptions = userCities.map(city => ({
+    value: city,
+    label: city
+  }))
+
+  // Быстрые периоды для фильтра
+  const quickPeriods = [
+    { label: 'Сегодня', getValue: () => {
+      const today = new Date().toISOString().split('T')[0]
+      return { start: today, end: today }
+    }},
+    { label: 'Вчера', getValue: () => {
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+      return { start: yesterday, end: yesterday }
+    }},
+    { label: 'Неделя', getValue: () => {
+      const end = new Date().toISOString().split('T')[0]
+      const start = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0]
+      return { start, end }
+    }},
+    { label: 'Месяц', getValue: () => {
+      const end = new Date().toISOString().split('T')[0]
+      const start = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
+      return { start, end }
+    }},
+  ]
+
+  // Подсчёт активных фильтров
+  const activeFiltersCount = [startDate, endDate, cityFilter].filter(Boolean).length
+
+  // Открытие drawer - копируем текущие фильтры в черновик
+  const openFilterDrawer = () => {
+    setDraftStartDate(startDate)
+    setDraftEndDate(endDate)
+    setDraftCityFilter(cityFilter)
+    setShowFilterDrawer(true)
+  }
+
+  // Сброс черновых фильтров
+  const resetFilters = () => {
+    setDraftStartDate('')
+    setDraftEndDate('')
+    setDraftCityFilter('')
+  }
+
+  // Применить фильтры из черновика
+  const applyFilters = () => {
+    setStartDate(draftStartDate)
+    setEndDate(draftEndDate)
+    setCityFilter(draftCityFilter)
+    setShowFilterDrawer(false)
+    
+    // Загружаем данные с новыми фильтрами
+    const filters: { startDate?: string; endDate?: string } = {}
+    if (draftStartDate) filters.startDate = draftStartDate
+    if (draftEndDate) filters.endDate = draftEndDate
+    
+    if (!draftStartDate && !draftEndDate) {
+      const now = new Date()
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+      filters.startDate = firstDay.toISOString().split('T')[0]
+    }
+    
+    loadCityReport(filters, draftCityFilter)
+  }
+
+  // Сброс основных фильтров (при клике на теги)
+  const clearAllFilters = () => {
+    setStartDate('')
+    setEndDate('')
+    setCityFilter('')
+    
+    const now = new Date()
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+    loadCityReport({ startDate: firstDay.toISOString().split('T')[0] }, '')
+  }
+
   // Загрузка данных
-  const loadCityReport = async (filters?: { startDate?: string; endDate?: string }) => {
+  const loadCityReport = async (filters?: { startDate?: string; endDate?: string }, city?: string) => {
     try {
       setLoading(true)
       setError(null)
       const data = await apiClient.getCityReport(filters)
       setCityReports(data)
-      setFilteredReports(data)
+      
+      // Применяем фильтр по городу если указан
+      if (city) {
+        setFilteredReports(data.filter(r => r.city === city))
+      } else {
+        setFilteredReports(data)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки отчета')
     } finally {
@@ -29,28 +126,14 @@ function CityReportContent() {
     }
   }
 
-  // Фильтрация данных
-  const applyFilters = () => {
-    const filters: { startDate?: string; endDate?: string } = {};
-    
-    // Фильтр по датам - если не указаны, используем текущий месяц
-    if (startDate || endDate) {
-      if (startDate) {
-        filters.startDate = startDate;
-      }
-      if (endDate) {
-        filters.endDate = endDate;
-      }
+  // Применяем фильтр по городу при изменении
+  useEffect(() => {
+    if (cityFilter) {
+      setFilteredReports(cityReports.filter(r => r.city === cityFilter))
     } else {
-      // По умолчанию - текущий месяц с 1 числа
-      const now = new Date()
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-      filters.startDate = firstDay.toISOString().split('T')[0]
+      setFilteredReports(cityReports)
     }
-    
-    // Загружаем данные с фильтрами
-    loadCityReport(filters);
-  }
+  }, [cityFilter, cityReports])
 
   useEffect(() => {
     // При загрузке устанавливаем фильтр по текущему месяцу
@@ -73,15 +156,6 @@ function CityReportContent() {
   }
 
   // Расчёт общих итогов по всем городам для сводной таблицы
-  // Данные приходят с бэкенда из reports-service/reports.service.ts (метод getCityReport)
-  // 
-  // Логика подсчета метрик:
-  // - totalOrders = Готово + Отказ + Незаказ (все заказы)
-  // - notOrders = статус "Незаказ"
-  // - zeroOrders = Ноль = количество отказов (статус "Отказ")
-  // - completedOrders = Выполненных в деньги = Готово где result > 0
-  // - turnover = сумма чистыми по статусу "Готово"
-  // - profit = сумма сдача мастера по статусу "Готово"
   const totals = {
     turnover: filteredReports.reduce((sum, r) => sum + (r.stats?.turnover || 0), 0),
     profit: filteredReports.reduce((sum, r) => sum + (r.stats?.profit || 0), 0),
@@ -89,7 +163,6 @@ function CityReportContent() {
     notOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.notOrders || 0), 0),
     zeroOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     completedOrders: filteredReports.reduce((sum, r) => sum + (r.stats?.completedOrders || 0), 0),
-    // Отказы = Ноль (статус "Отказ")
     refusals: filteredReports.reduce((sum, r) => sum + (r.stats?.zeroOrders || 0), 0),
     microCheckCount: filteredReports.reduce((sum, r) => sum + (r.stats?.microCheckCount || 0), 0),
     over10kCount: filteredReports.reduce((sum, r) => sum + (r.stats?.over10kCount || 0), 0),
@@ -97,24 +170,17 @@ function CityReportContent() {
     maxCheck: Math.max(...filteredReports.map(r => r.stats?.maxCheck || 0), 0),
   }
   
-  // Рассчитываем проценты для сводной
-  // Вып в деньги % берём из API (там считается как Готово с clean>0 / (Готово+Отказ))
   const completedPercent = filteredReports.reduce((sum, r) => sum + (r.stats?.completedPercent || 0), 0) / (filteredReports.length || 1)
   const avgCheck = totals.completedOrders > 0 ? totals.turnover / totals.completedOrders : 0
 
   // Экспорт в Excel
   const exportToExcel = async () => {
-    // Создаем новую книгу Excel
     const workbook = new ExcelJS.Workbook();
 
-    // Подготавливаем данные для листа
     const worksheetData = [
-      // Заголовок отчета
       ['Отчет по городам'],
-      [], // Пустая строка
-      // Заголовки колонок
+      [],
       ['Город', 'Закрытых заказов', 'Средний чек (₽)', 'Оборот (₽)', 'Доход компании (₽)', 'Касса (₽)'],
-      // Данные
       ...(Array.isArray(filteredReports) ? filteredReports : []).map(report => {
         const turnover = report?.orders?.totalClean || 0;
         const companyIncome = report?.orders?.totalMasterChange || 0;
@@ -130,29 +196,24 @@ function CityReportContent() {
       })
     ];
 
-    // Создаем лист
     const worksheet = workbook.addWorksheet('Отчет по городам');
     worksheet.addRows(worksheetData);
 
-    // Настройка ширины колонок
     worksheet.columns = [
-      { width: 20 }, // Город
-      { width: 18 }, // Закрытых заказов
-      { width: 18 }, // Средний чек
-      { width: 18 }, // Оборот
-      { width: 20 }, // Доход компании
-      { width: 15 }  // Касса
+      { width: 20 },
+      { width: 18 },
+      { width: 18 },
+      { width: 18 },
+      { width: 20 },
+      { width: 15 }
     ];
 
-    // Стилизация заголовков (упрощенная для exceljs)
     const headerRow = worksheet.getRow(1);
     headerRow.font = { bold: true, size: 18 };
     headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
     
-    // Объединяем ячейки для заголовка
     worksheet.mergeCells('A1:F1');
 
-    // Скачиваем файл
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = window.URL.createObjectURL(blob);
@@ -167,284 +228,404 @@ function CityReportContent() {
   const completedPercentColor = completedPercent >= 70 ? 'text-green-600' : completedPercent >= 50 ? 'text-amber-600' : 'text-red-500'
   const completedPercentBg = completedPercent >= 70 ? 'bg-green-100' : completedPercent >= 50 ? 'bg-amber-100' : 'bg-red-100'
 
+  // Функция для получения стиля топ-3 городов по обороту
+  const getTopStyle = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-400'
+      case 2:
+        return 'bg-gradient-to-r from-gray-50 to-slate-100 border-l-4 border-gray-400'
+      case 3:
+        return 'bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-orange-300'
+      default:
+        return ''
+    }
+  }
+
+  // Функция для получения бейджа топ-3
+  const getTopBadge = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return (
+          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400 text-white text-xs font-bold shadow-sm mr-2">
+            1
+          </span>
+        )
+      case 2:
+        return (
+          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-400 text-white text-xs font-bold shadow-sm mr-2">
+            2
+          </span>
+        )
+      case 3:
+        return (
+          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-400 text-white text-xs font-bold shadow-sm mr-2">
+            3
+          </span>
+        )
+      default:
+        return null
+    }
+  }
+
+  // Сортируем города по обороту для рейтинга
+  const sortedReports = [...filteredReports].sort((a, b) => 
+    (b.orders?.totalClean || 0) - (a.orders?.totalClean || 0)
+  )
+
   return (
     <div>
       {/* Состояние загрузки */}
-            {loading && (
-              <div className="text-center py-8 animate-fade-in">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-                <div className="text-gray-700 text-xl mt-4">Загрузка отчета...</div>
-              </div>
-            )}
+      {loading && (
+        <div className="text-center py-8 animate-fade-in">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+          <div className="text-gray-700 text-xl mt-4">Загрузка отчета...</div>
+        </div>
+      )}
 
-            {/* Состояние ошибки */}
-            {error && (
-              <div className="text-center py-8 animate-slide-in-left">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                  <div className="text-red-600 text-xl mb-4">Ошибка: {error}</div>
-                  <button 
-                    onClick={() => loadCityReport()}
-                    className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md"
-                  >
-                    Попробовать снова
-                  </button>
-                </div>
-              </div>
-            )}
+      {/* Состояние ошибки */}
+      {error && (
+        <div className="text-center py-8 animate-slide-in-left">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="text-red-600 text-xl mb-4">Ошибка: {error}</div>
+            <button 
+              onClick={() => loadCityReport()}
+              className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md"
+            >
+              Попробовать снова
+            </button>
+          </div>
+        </div>
+      )}
 
-            {/* Основной контент */}
-            {!loading && !error && (
-              <>
-            {/* Панель управления: иконка фильтров + экспорт */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3 animate-slide-in-left">
-                <div className="flex items-center gap-2">
-                  {/* Иконка фильтров */}
+      {/* Основной контент */}
+      {!loading && !error && (
+        <>
+          {/* Панель управления */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between animate-slide-in-left">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Иконка фильтров */}
+                <button
+                  onClick={openFilterDrawer}
+                  className="relative p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 hover:text-teal-600 transition-all duration-200"
+                  title="Фильтры"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  {/* Индикатор активных фильтров */}
+                  {activeFiltersCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 border-white"></span>
+                  )}
+                </button>
+
+                {/* Активные фильтры как теги */}
+                {activeFiltersCount > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {startDate && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-medium border border-teal-200">
+                        От: {new Date(startDate).toLocaleDateString('ru-RU')}
+                        <button onClick={() => { setStartDate(''); loadCityReport({ endDate: endDate || undefined }) }} className="hover:text-teal-900 ml-1">×</button>
+                      </span>
+                    )}
+                    {endDate && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-medium border border-teal-200">
+                        До: {new Date(endDate).toLocaleDateString('ru-RU')}
+                        <button onClick={() => { setEndDate(''); loadCityReport({ startDate: startDate || undefined }) }} className="hover:text-teal-900 ml-1">×</button>
+                      </span>
+                    )}
+                    {cityFilter && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-medium border border-teal-200">
+                        {cityFilter}
+                        <button onClick={() => setCityFilter('')} className="hover:text-teal-900 ml-1">×</button>
+                      </span>
+                    )}
+                    <button
+                      onClick={clearAllFilters}
+                      className="text-xs text-gray-500 hover:text-red-500 transition-colors"
+                    >
+                      Сбросить
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              {/* Кнопка экспорта */}
+              <button 
+                onClick={exportToExcel}
+                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="hidden sm:inline">Excel</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Sidebar Drawer для фильтров */}
+          {showFilterDrawer && (
+            <>
+              {/* Overlay */}
+              <div 
+                className="fixed inset-0 bg-black/30 z-40 transition-opacity duration-300"
+                onClick={() => setShowFilterDrawer(false)}
+              />
+              
+              {/* Drawer */}
+              <div className="fixed top-16 md:top-0 right-0 h-[calc(100%-4rem)] md:h-full w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
+                {/* Header - только на десктопе */}
+                <div className="hidden md:flex sticky top-0 bg-white border-b border-gray-200 px-4 py-3 items-center justify-between z-10">
+                  <h2 className="text-lg font-semibold text-gray-800">Фильтры</h2>
                   <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`relative p-2 rounded-lg transition-all duration-200 ${
-                      showFilters 
-                        ? 'bg-teal-100 text-teal-600' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-teal-600'
-                    }`}
-                    title="Фильтры"
+                    onClick={() => setShowFilterDrawer(false)}
+                    className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    title="Закрыть"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    {/* Индикатор активных фильтров */}
-                    {(startDate || endDate) && (
-                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 border-white"></span>
-                    )}
                   </button>
                 </div>
-                
-                {/* Кнопка экспорта */}
-                <button 
-                  onClick={exportToExcel}
-                  className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="hidden sm:inline">Excel</span>
-                </button>
-              </div>
-              
-              {showFilters && (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in">
-                  <div className="flex flex-wrap gap-3 items-end">
+
+                {/* Кнопка скрыть - только на мобильных */}
+                <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 px-4 py-3 z-10">
+                  <button
+                    onClick={() => setShowFilterDrawer(false)}
+                    className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                    Скрыть фильтры
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="p-4 space-y-4">
+                  {/* Секция: Период */}
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Период</h3>
                     
-                    {/* От даты */}
-                    <div>
-                      <label className="block text-xs text-gray-700 mb-1">От даты</label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                      />
-                    </div>
-                    {/* До даты */}
-                    <div>
-                      <label className="block text-xs text-gray-700 mb-1">До даты</label>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="px-2 py-1.5 bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                      />
+                    <div className="grid grid-cols-2 gap-2">
+                      {quickPeriods.map((period) => (
+                        <button
+                          key={period.label}
+                          onClick={() => {
+                            const { start, end } = period.getValue()
+                            setDraftStartDate(start)
+                            setDraftEndDate(end)
+                          }}
+                          className="px-3 py-2 bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 rounded-lg text-sm font-medium text-gray-700 hover:text-teal-700 transition-all duration-200"
+                        >
+                          {period.label}
+                        </button>
+                      ))}
                     </div>
                     
-                    {/* Кнопки */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setStartDate('')
-                          setEndDate('')
-                          // Сбрасываем к текущему месяцу
-                          const now = new Date()
-                          const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-                          loadCityReport({ startDate: firstDay.toISOString().split('T')[0] })
-                        }}
-                        className="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition-colors font-medium"
-                      >
-                        Сбросить
-                      </button>
-                      <button 
-                        onClick={applyFilters}
-                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md font-medium"
-                      >
-                        Применить фильтры
-                      </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">С</label>
+                        <input
+                          type="date"
+                          value={draftStartDate}
+                          onChange={(e) => setDraftStartDate(e.target.value)}
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">По</label>
+                        <input
+                          type="date"
+                          value={draftEndDate}
+                          onChange={(e) => setDraftEndDate(e.target.value)}
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
 
-            {/* СВОДКА ПО БЛОКАМ */}
-            <div className="space-y-4 mb-8">
-              
-              {/* Блок: ДЕНЬГИ */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <h3 className="text-gray-700 font-medium text-sm">Деньги</h3>
+                  <hr className="border-gray-200" />
+
+                  {/* Секция: Город */}
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Город</h3>
+                    
+                    <CustomSelect
+                      value={draftCityFilter}
+                      onChange={(value) => setDraftCityFilter(value)}
+                      options={[{ value: '', label: 'Все города' }, ...cityOptions]}
+                      placeholder="Выберите город"
+                      selectId="filter-city"
+                      openSelect={filterOpenSelect}
+                      setOpenSelect={setFilterOpenSelect}
+                    />
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100">
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Оборот</div>
-                    <div className="text-lg font-bold text-teal-600">{formatNumber(totals.turnover)} ₽</div>
-                  </div>
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Прибыль</div>
-                    <div className="text-lg font-bold text-emerald-600">{formatNumber(totals.profit)} ₽</div>
-                  </div>
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Ср. чек</div>
-                    <div className="text-lg font-bold text-gray-800">{formatNumber(Math.round(avgCheck))} ₽</div>
-                  </div>
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Макс. чек</div>
-                    <div className="text-lg font-bold text-purple-600">{formatNumber(totals.maxCheck)} ₽</div>
-                  </div>
+
+                {/* Footer */}
+                <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-2">
+                  <button
+                    onClick={resetFilters}
+                    className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Сбросить
+                  </button>
+                  <button
+                    onClick={applyFilters}
+                    className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Применить
+                  </button>
                 </div>
               </div>
+            </>
+          )}
 
-              {/* Блок: ЗАКАЗЫ */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <h3 className="text-gray-700 font-medium text-sm">Заказы</h3>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-gray-100">
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Всего</div>
-                    <div className="text-lg font-bold text-gray-800">{totals.totalOrders}</div>
-                  </div>
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Выполнено</div>
-                    <div className="text-lg font-bold text-green-600">{totals.completedOrders}</div>
-                  </div>
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Вып. %</div>
-                    <div className={`text-lg font-bold ${completedPercentColor}`}>
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-sm ${completedPercentBg}`}>
-                        {formatPercent(completedPercent)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Незаказ</div>
-                    <div className="text-lg font-bold text-orange-500">{totals.notOrders}</div>
-                  </div>
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Ноль</div>
-                    <div className="text-lg font-bold text-red-500">{totals.zeroOrders}</div>
-                  </div>
-                </div>
+          {/* СВОДКА ПО БЛОКАМ */}
+          <div className="space-y-4 mb-8">
+            
+            {/* Блок: ДЕНЬГИ */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-4 py-2 border-b border-gray-100">
+                <h3 className="text-gray-700 font-medium text-sm">Деньги</h3>
               </div>
-
-              {/* Блок: ЧЕКИ И СД */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <h3 className="text-gray-700 font-medium text-sm">Чеки и СД</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100">
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Оборот</div>
+                  <div className="text-lg font-bold text-teal-600">{formatNumber(totals.turnover)} ₽</div>
                 </div>
-                <div className="grid grid-cols-3 divide-x divide-gray-100">
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">Микрочек (&lt;10К)</div>
-                    <div className="text-lg font-bold text-gray-600">{totals.microCheckCount}</div>
-                  </div>
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">От 10К</div>
-                    <div className="text-lg font-bold text-purple-600">{totals.over10kCount}</div>
-                  </div>
-                  <div className="p-4 text-center">
-                    <div className="text-xs text-gray-500 mb-1">СД</div>
-                    <div className="text-lg font-bold text-teal-600">{totals.masterHandover}</div>
-                  </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Прибыль</div>
+                  <div className="text-lg font-bold text-emerald-600">{formatNumber(totals.profit)} ₽</div>
                 </div>
-              </div>
-
-            </div>
-
-            {/* Таблица по городам */}
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Детализация по городам</h2>
-            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
-              <div className="min-w-[600px]">
-                <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg">
-                  <thead>
-                    <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Город</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Закрытых заказов</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Средний чек</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Оборот</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Доход компании</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Касса</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.isArray(filteredReports) && filteredReports.map((cityReport) => {
-                      // Оборот = сумма чистыми
-                      const turnover = cityReport?.orders?.totalClean || 0
-                      
-                      // Доход компании = сумма сдача мастера
-                      const companyIncome = cityReport?.orders?.totalMasterChange || 0
-                      
-                      return (
-                        <tr key={cityReport.city} className="border-b hover:bg-teal-50 transition-colors" style={{borderColor: '#e5e7eb'}}>
-                          <td className="py-3 px-4 text-gray-800 font-semibold">{cityReport.city}</td>
-                          <td className="py-3 px-4 text-gray-800">{formatNumber(cityReport?.orders?.closedOrders || 0)}</td>
-                          <td className="py-3 px-4 text-gray-800">{formatNumber(cityReport?.orders?.avgCheck || 0)} ₽</td>
-                          <td className="py-3 px-4 text-gray-800 font-semibold text-teal-600">
-                            {formatNumber(turnover)} ₽
-                          </td>
-                          <td className="py-3 px-4 text-gray-800 font-semibold text-teal-600">
-                            {formatNumber(companyIncome)} ₽
-                          </td>
-                          <td className="py-3 px-4 text-gray-800 font-semibold text-teal-600">
-                            {formatNumber(cityReport?.cash?.totalAmount || 0)} ₽
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Ср. чек</div>
+                  <div className="text-lg font-bold text-gray-800">{formatNumber(Math.round(avgCheck))} ₽</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Макс. чек</div>
+                  <div className="text-lg font-bold text-purple-600">{formatNumber(totals.maxCheck)} ₽</div>
+                </div>
               </div>
             </div>
 
-              </>
-            )}
-      
-      <style jsx global>{`
-        /* Кастомные скроллбары */
-        ::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: #1e293b;
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: #2a6b68;
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: #1a5a57;
-        }
-        
-        /* Стили для выпадающих списков */
-        .custom-select-option:hover {
-          background-color: #2a6b68 !important;
-        }
-        
-        .custom-select-option:focus {
-          background-color: #2a6b68 !important;
-        }
-      `}</style>
+            {/* Блок: ЗАКАЗЫ */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-4 py-2 border-b border-gray-100">
+                <h3 className="text-gray-700 font-medium text-sm">Заказы</h3>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-gray-100">
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Всего</div>
+                  <div className="text-lg font-bold text-gray-800">{totals.totalOrders}</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Выполнено</div>
+                  <div className="text-lg font-bold text-green-600">{totals.completedOrders}</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Вып. %</div>
+                  <div className={`text-lg font-bold ${completedPercentColor}`}>
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-sm ${completedPercentBg}`}>
+                      {formatPercent(completedPercent)}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Незаказ</div>
+                  <div className="text-lg font-bold text-orange-500">{totals.notOrders}</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Ноль</div>
+                  <div className="text-lg font-bold text-red-500">{totals.zeroOrders}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Блок: ЧЕКИ И СД */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-4 py-2 border-b border-gray-100">
+                <h3 className="text-gray-700 font-medium text-sm">Чеки и СД</h3>
+              </div>
+              <div className="grid grid-cols-3 divide-x divide-gray-100">
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Микрочек (&lt;10К)</div>
+                  <div className="text-lg font-bold text-gray-600">{totals.microCheckCount}</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">От 10К</div>
+                  <div className="text-lg font-bold text-purple-600">{totals.over10kCount}</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">СД</div>
+                  <div className="text-lg font-bold text-teal-600">{totals.masterHandover}</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Таблица по городам */}
+          <h2 className="text-lg font-bold text-gray-800 mb-4">
+            Детализация по городам
+            <span className="text-sm font-normal text-gray-500 ml-2">
+              ({sortedReports.length} {sortedReports.length === 1 ? 'город' : sortedReports.length < 5 ? 'города' : 'городов'})
+            </span>
+          </h2>
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
+            <div className="min-w-[600px]">
+              <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg overflow-hidden">
+                <thead>
+                  <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Город</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Закрытых заказов</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Средний чек</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Оборот</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Доход компании</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Касса</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedReports.map((cityReport, index) => {
+                    const rank = index + 1
+                    const isTop3 = rank <= 3
+                    const turnover = cityReport?.orders?.totalClean || 0
+                    const companyIncome = cityReport?.orders?.totalMasterChange || 0
+                    
+                    return (
+                      <tr 
+                        key={cityReport.city} 
+                        className={`border-b hover:bg-teal-50 transition-colors ${getTopStyle(rank)}`}
+                        style={{borderColor: '#e5e7eb'}}
+                      >
+                        <td className={`py-3 px-4 text-gray-800 ${isTop3 ? 'font-bold' : 'font-semibold'}`}>
+                          <div className="flex items-center">
+                            {getTopBadge(rank)}
+                            {cityReport.city}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-800">{formatNumber(cityReport?.orders?.closedOrders || 0)}</td>
+                        <td className="py-3 px-4 text-gray-800">{formatNumber(cityReport?.orders?.avgCheck || 0)} ₽</td>
+                        <td className={`py-3 px-4 font-semibold ${isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                          {formatNumber(turnover)} ₽
+                        </td>
+                        <td className={`py-3 px-4 font-semibold ${isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                          {formatNumber(companyIncome)} ₽
+                        </td>
+                        <td className={`py-3 px-4 font-semibold ${isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                          {formatNumber(cityReport?.cash?.totalAmount || 0)} ₽
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
