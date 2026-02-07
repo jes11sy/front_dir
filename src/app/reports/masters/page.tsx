@@ -230,49 +230,6 @@ function MastersReportContent() {
     ? directorCities.filter(city => city === cityFilter)
     : directorCities
 
-  // Функция для получения стиля топ-3
-  const getTopStyle = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return 'bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-400'
-      case 2:
-        return 'bg-gradient-to-r from-gray-50 to-slate-100 border-l-4 border-gray-400'
-      case 3:
-        return 'bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-orange-300'
-      default:
-        return ''
-    }
-  }
-
-  // Функция для получения бейджа топ-3
-  const getTopBadge = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return (
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400 text-white text-xs font-bold shadow-sm">
-            1
-          </span>
-        )
-      case 2:
-        return (
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-400 text-white text-xs font-bold shadow-sm">
-            2
-          </span>
-        )
-      case 3:
-        return (
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-400 text-white text-xs font-bold shadow-sm">
-            3
-          </span>
-        )
-      default:
-        return (
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-xs font-medium">
-            {rank}
-          </span>
-        )
-    }
-  }
 
   return (
     <div>
@@ -514,28 +471,27 @@ function MastersReportContent() {
                       <tbody>
                         {sortedCityData.map((report, index) => {
                           const rank = index + 1
-                          const isTop3 = rank <= 3
                           
                           return (
                             <tr 
                               key={`${report.masterId}-${report.city}`} 
-                              className={`border-b hover:bg-teal-50 transition-colors ${getTopStyle(rank)}`}
+                              className="border-b hover:bg-teal-50 transition-colors"
                               style={{borderColor: '#e5e7eb'}}
                             >
-                              <td className="py-3 px-3 text-center">
-                                {getTopBadge(rank)}
+                              <td className="py-3 px-3 text-center text-gray-500 font-medium">
+                                {rank}
                               </td>
-                              <td className={`py-3 px-4 text-gray-700 ${isTop3 ? 'font-bold' : 'font-semibold'}`}>
+                              <td className="py-3 px-4 text-gray-700 font-medium">
                                 {report.masterName}
                               </td>
                               <td className="py-3 px-4 text-gray-700">{report.totalOrders}</td>
-                              <td className={`py-3 px-4 font-semibold ${isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                              <td className="py-3 px-4 font-semibold text-teal-600">
                                 {formatNumber(report.turnover)} ₽
                               </td>
                               <td className="py-3 px-4 text-gray-700">
                                 {formatNumber(Math.round(report.avgCheck))} ₽
                               </td>
-                              <td className={`py-3 px-4 font-semibold ${isTop3 ? 'text-yellow-700' : 'text-yellow-600'}`}>
+                              <td className="py-3 px-4 font-semibold text-amber-600">
                                 {formatNumber(report.salary)} ₽
                               </td>
                             </tr>
