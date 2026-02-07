@@ -22,13 +22,16 @@ const navigationItems = [
 export function CustomNavigation() {
   const pathname = usePathname()
   const router = useRouter()
+  // Начинаем с закрытого меню и флагом что компонент ещё не смонтирован
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
   const { user } = useAuthStore()
 
-  // Принудительно закрываем меню при монтировании (после логина)
+  // Помечаем что компонент смонтирован и гарантированно закрываем меню
   useEffect(() => {
     setMobileMenuOpen(false)
+    setIsMounted(true)
     // Очищаем overflow на body на случай если он застрял
     document.body.style.overflow = ''
   }, [])
@@ -303,11 +306,12 @@ export function CustomNavigation() {
       </header>
 
       {/* Mobile Full-screen Menu with slide animation */}
+      {/* Скрываем полностью пока не смонтирован или меню закрыто */}
       <aside 
         className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] z-[9998] flex flex-col transition-all duration-300 ease-out ${
           isDark ? 'bg-[#1e2530]' : 'bg-white'
         } ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          isMounted && mobileMenuOpen ? 'translate-x-0 visible' : '-translate-x-full invisible'
         }`}
       >
         <div className="pt-6 flex flex-col h-full overflow-y-auto">
@@ -320,7 +324,7 @@ export function CustomNavigation() {
         className={`md:hidden fixed inset-0 top-16 z-[9997] transition-opacity duration-300 ${
           isDark ? 'bg-black/40' : 'bg-black/20'
         } ${
-          mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          isMounted && mobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
         }`}
         onClick={() => setMobileMenuOpen(false)}
       />
