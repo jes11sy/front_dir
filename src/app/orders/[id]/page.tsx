@@ -11,7 +11,6 @@ import { useMultipleFileUpload } from '@/hooks/useMultipleFileUpload'
 import { OrderMasterTab } from '@/components/orders/OrderMasterTab'
 import { OrderMultipleFileUpload } from '@/components/orders/OrderMultipleFileUpload'
 import { OrderInfoTabContent } from '@/components/orders/OrderInfoTabContent'
-import { OrderPageStyles } from '@/components/orders/OrderPageStyles'
 import { OrderCallsTab } from '@/components/orders/OrderCallsTab'
 
 function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
@@ -39,18 +38,14 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const [prepayment, setPrepayment] = useState<string>('')
   const [dateClosmod, setDateClosmod] = useState<string>('')
   
-  // Состояние для партнера
-  const [isPartner, setIsPartner] = useState<boolean>(false)
-  const [partnerPercent, setPartnerPercent] = useState<string>('')
-  
   // Файлы документов через хуки (множественная загрузка до 10 файлов)
   const bsoUpload = useMultipleFileUpload(10)
   const expenditureUpload = useMultipleFileUpload(10)
 
   const tabs = [
-    { id: 'main', label: 'Информация по заказу' },
+    { id: 'main', label: 'Информация' },
     { id: 'result', label: 'Мастер' },
-    { id: 'chat', label: 'Запись/История' }
+    { id: 'chat', label: 'История' }
   ]
 
   // Функция для проверки, заблокированы ли поля для редактирования
@@ -81,24 +76,16 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
       if (resultAmount > 0) {
         const cleanAmount = resultAmount - expenditureAmount // Чистыми = Итог - Расход
         
-        // Расчет сдачи мастера с учетом партнерства
-        let masterChangeAmount
-        if (isPartner && partnerPercent && partnerPercent.trim() !== '') {
-          // Если партнер, то: Сдача мастера = Чистыми * (100% - % партнера)
-          const partnerPercentValue = Number(partnerPercent)
-          masterChangeAmount = cleanAmount * (100 - partnerPercentValue) / 100
-        } else {
-          // Иначе: Сдача мастера зависит от суммы
-          // До 5000 - 60%, выше 5000 - 50%
-          const masterPercent = resultAmount <= 5000 ? 0.6 : 0.5
-          masterChangeAmount = cleanAmount * masterPercent
-        }
+        // Сдача мастера зависит от суммы
+        // До 5000 - 60%, выше 5000 - 50%
+        const masterPercent = resultAmount <= 5000 ? 0.6 : 0.5
+        const masterChangeAmount = cleanAmount * masterPercent
         
         setClean(cleanAmount.toString())
         setMasterChange(masterChangeAmount.toString())
       }
     }
-  }, [result, expenditure, orderStatus, isPartner, partnerPercent])
+  }, [result, expenditure, orderStatus])
 
 
   // Функция для получения доступных статусов в зависимости от текущего статуса
@@ -136,8 +123,6 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         } catch {
           setDateClosmod('')
         }
-        setIsPartner(order.partner || false)
-        setPartnerPercent(order.partnerPercent?.toString() || '')
         
         // Строим прямые URL для существующих файлов в S3 (публичный доступ)
         // Фильтруем null, undefined и пустые строки для избежания ошибки "The string did not match the expected pattern"
@@ -255,8 +240,6 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
       const updateData: Partial<Order> = {
         statusOrder: orderStatus,
         masterId: selectedMaster ? Number(selectedMaster) : undefined,
-        partner: isPartner,
-        partnerPercent: partnerPercent && partnerPercent.trim() !== '' ? Number(partnerPercent) : undefined,
         result: result && result.trim() !== '' ? Number(result) : undefined,
         expenditure: expenditure && expenditure.trim() !== '' ? Number(expenditure) : undefined,
         clean: clean && clean.trim() !== '' ? Number(clean) : undefined,
@@ -327,14 +310,26 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
     }
   }
 
+  // Получить цвет статуса
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Готово': return 'bg-emerald-100 text-emerald-700'
+      case 'Отказ': return 'bg-red-100 text-red-700'
+      case 'Незаказ': return 'bg-orange-100 text-orange-700'
+      case 'В работе': return 'bg-blue-100 text-blue-700'
+      case 'Модерн': return 'bg-purple-100 text-purple-700'
+      case 'В пути': return 'bg-cyan-100 text-cyan-700'
+      case 'Принял': return 'bg-teal-100 text-teal-700'
+      default: return 'bg-gray-100 text-gray-700'
+    }
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-2 sm:px-4 py-8">
-          <div className="text-center py-8 animate-fade-in">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-            <p className="text-gray-700 text-lg">Загрузка данных заказа...</p>
-          </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-500">Загрузка заказа...</span>
         </div>
       </div>
     )
@@ -342,170 +337,238 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-        <div className="container mx-auto px-2 sm:px-4 py-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 animate-slide-in-left">
-            <p className="text-red-600">{error instanceof Error ? error.message : error || 'Заказ не найден'}</p>
-          </div>
-        </div>
+      <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+        <p className="text-red-600 text-sm">{error instanceof Error ? error.message : error || 'Заказ не найден'}</p>
       </div>
     )
   }
 
   return (
-    <>
-      <OrderPageStyles />
-      <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-2 sm:px-4 py-8">
-        <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
-            
-            {/* Заголовок */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-2xl font-bold text-gray-800 animate-slide-down">Заказ №{resolvedParams.id}</h1>
-                  <StatusSelect
-                    value={orderStatus}
-                    onChange={setOrderStatus}
-                    options={getAvailableStatuses().map(status => ({ value: status, label: status }))}
-                    disabled={isFieldsDisabled()}
-                    selectId="orderStatus"
-                    openSelect={openSelect}
-                    setOpenSelect={setOpenSelect}
-                  />
-                </div>
-                <button 
-                  onClick={handleSave}
-                  disabled={updating || isFieldsDisabled()}
-                  className="hidden md:block px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {updating ? 'Сохранение...' : isFieldsDisabled() ? 'Заказ завершен' : 'Сохранить'}
-                </button>
-              </div>
-            </div>
-
-            {/* Вкладки */}
-            <div className="border-b border-gray-200 mb-6 animate-fade-in">
-              <nav className="flex space-x-8">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-                      activeTab === tab.id
-                        ? 'text-teal-600 border-teal-600'
-                        : 'border-transparent text-gray-600 hover:text-teal-600 hover:border-teal-300'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </nav>
-            </div>
-
-            {/* Состояние загрузки - встроено выше в главной логике */}
-
-            {/* Ошибка */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 animate-slide-in-left">
-                <p className="text-red-600">{(error as Error).message || String(error)}</p>
-              </div>
-            )}
-
-
-            {/* Содержимое вкладок */}
-            {!loading && !error && order && (
-            <div className="min-h-[400px]">
-              {activeTab === 'main' && <OrderInfoTabContent order={order} />}
-
-              {activeTab === 'result' && (
-                <>
-                  <OrderMasterTab
-                    orderStatus={orderStatus}
-                    selectedMaster={selectedMaster}
-                    setSelectedMaster={setSelectedMaster}
-                    masters={masters}
-                    isPartner={isPartner}
-                    setIsPartner={setIsPartner}
-                    partnerPercent={partnerPercent}
-                    setPartnerPercent={setPartnerPercent}
-                    result={result}
-                    setResult={setResult}
-                    expenditure={expenditure}
-                    setExpenditure={setExpenditure}
-                    clean={clean}
-                    setClean={setClean}
-                    masterChange={masterChange}
-                    setMasterChange={setMasterChange}
-                    comment={comment}
-                    setComment={setComment}
-                    prepayment={prepayment}
-                    setPrepayment={setPrepayment}
-                    dateClosmod={dateClosmod}
-                    setDateClosmod={setDateClosmod}
-                    isFieldsDisabled={isFieldsDisabled}
-                    shouldHideFinancialFields={shouldHideFinancialFields}
-                    openSelect={openSelect}
-                    setOpenSelect={setOpenSelect}
-                  />
-                  
-                  {/* Поля "Документ" и "Чек" - множественная загрузка */}
-                  {!shouldHideFinancialFields() && orderStatus !== 'Модерн' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <OrderMultipleFileUpload
-                        label="Документ БСО"
-                        filesWithPreviews={bsoUpload.files}
-                        dragOver={bsoUpload.dragOver}
-                        setDragOver={bsoUpload.setDragOver}
-                        handleFiles={bsoUpload.handleFiles}
-                        removeFile={bsoUpload.removeFile}
-                        isFieldsDisabled={isFieldsDisabled}
-                        canAddMore={bsoUpload.canAddMore}
-                      />
-                      <OrderMultipleFileUpload
-                        label="Чеки расходов"
-                        filesWithPreviews={expenditureUpload.files}
-                        dragOver={expenditureUpload.dragOver}
-                        setDragOver={expenditureUpload.setDragOver}
-                        handleFiles={expenditureUpload.handleFiles}
-                        removeFile={expenditureUpload.removeFile}
-                        isFieldsDisabled={isFieldsDisabled}
-                        canAddMore={expenditureUpload.canAddMore}
-                      />
-                    </div>
-                      )}
-                    </>
-              )}
-
-              {activeTab === 'chat' && (
-                <OrderCallsTab
-                  order={order}
-                  calls={calls}
-                  callsLoading={callsLoading}
-                  callsError={callsError ? (callsError instanceof Error ? callsError.message : String(callsError)) : null}
-                />
-              )}
-            </div>
-            )}
+    <div className="space-y-4">
+      {/* Шапка заказа */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => router.back()}
+              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h1 className="text-lg font-semibold text-gray-800">Заказ #{resolvedParams.id}</h1>
+            <StatusSelect
+              value={orderStatus}
+              onChange={setOrderStatus}
+              options={getAvailableStatuses().map(status => ({ value: status, label: status }))}
+              disabled={isFieldsDisabled()}
+              selectId="orderStatus"
+              openSelect={openSelect}
+              setOpenSelect={setOpenSelect}
+            />
           </div>
-        </div>
-      </div>
-      
-      {/* Кнопка Сохранить для мобильных */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 z-50">
-        <div className="flex justify-center">
           <button 
             onClick={handleSave}
             disabled={updating || isFieldsDisabled()}
-            className="px-8 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="hidden md:flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {updating ? 'Сохранение...' : isFieldsDisabled() ? 'Заказ завершен' : 'Сохранить'}
+            {updating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Сохранение...</span>
+              </>
+            ) : isFieldsDisabled() ? 'Завершен' : 'Сохранить'}
           </button>
         </div>
+
+        {/* Компактные табы */}
+        <div className="flex border-b border-gray-100 bg-gray-50/50">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+                activeTab === tab.id
+                  ? 'text-teal-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+              {activeTab === tab.id && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600"></div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Ошибка */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+          <p className="text-red-600 text-sm">{(error as Error).message || String(error)}</p>
+        </div>
+      )}
+
+      {/* Содержимое вкладок */}
+      {!loading && !error && order && (
+        <>
+          {activeTab === 'main' && (
+            <div className="space-y-4">
+              {/* Блок: Клиент */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2">
+                  <h3 className="text-white font-semibold text-sm">Клиент</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Имя</div>
+                    <div className="text-sm font-medium text-gray-800">{order.clientName || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Телефон</div>
+                    <div className="text-sm font-medium text-gray-800">{order.phone || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Адрес</div>
+                    <div className="text-sm font-medium text-gray-800 truncate" title={order.address}>{order.address || '-'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Блок: Заказ */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2">
+                  <h3 className="text-white font-semibold text-sm">Заказ</h3>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Тип</div>
+                    <div className="text-sm font-medium text-gray-800">{order.typeOrder || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Направление</div>
+                    <div className="text-sm font-medium text-gray-800">{order.typeEquipment || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Город</div>
+                    <div className="text-sm font-medium text-gray-800">{order.city || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Дата встречи</div>
+                    <div className="text-sm font-medium text-gray-800">
+                      {order.dateMeeting ? new Date(order.dateMeeting).toLocaleDateString('ru-RU', {
+                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC'
+                      }) : '-'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Блок: Детали */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2">
+                  <h3 className="text-white font-semibold text-sm">Детали</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">РК</div>
+                    <div className="text-sm font-medium text-gray-800">{order.rk || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Имя мастера (Авито)</div>
+                    <div className="text-sm font-medium text-gray-800">{order.avitoName || '-'}</div>
+                  </div>
+                </div>
+                <div className="border-t border-gray-100 p-4">
+                  <div className="text-xs text-gray-500 mb-1">Проблема</div>
+                  <div className="text-sm text-gray-800">{order.problem || '-'}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'result' && (
+            <div className="space-y-4">
+              <OrderMasterTab
+                orderStatus={orderStatus}
+                selectedMaster={selectedMaster}
+                setSelectedMaster={setSelectedMaster}
+                masters={masters}
+                isPartner={false}
+                setIsPartner={() => {}}
+                partnerPercent=""
+                setPartnerPercent={() => {}}
+                result={result}
+                setResult={setResult}
+                expenditure={expenditure}
+                setExpenditure={setExpenditure}
+                clean={clean}
+                setClean={setClean}
+                masterChange={masterChange}
+                setMasterChange={setMasterChange}
+                comment={comment}
+                setComment={setComment}
+                prepayment={prepayment}
+                setPrepayment={setPrepayment}
+                dateClosmod={dateClosmod}
+                setDateClosmod={setDateClosmod}
+                isFieldsDisabled={isFieldsDisabled}
+                shouldHideFinancialFields={shouldHideFinancialFields}
+                openSelect={openSelect}
+                setOpenSelect={setOpenSelect}
+              />
+              
+              {/* Поля "Документ" и "Чек" - множественная загрузка */}
+              {!shouldHideFinancialFields() && orderStatus !== 'Модерн' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <OrderMultipleFileUpload
+                    label="Документ БСО"
+                    filesWithPreviews={bsoUpload.files}
+                    dragOver={bsoUpload.dragOver}
+                    setDragOver={bsoUpload.setDragOver}
+                    handleFiles={bsoUpload.handleFiles}
+                    removeFile={bsoUpload.removeFile}
+                    isFieldsDisabled={isFieldsDisabled}
+                    canAddMore={bsoUpload.canAddMore}
+                  />
+                  <OrderMultipleFileUpload
+                    label="Чеки расходов"
+                    filesWithPreviews={expenditureUpload.files}
+                    dragOver={expenditureUpload.dragOver}
+                    setDragOver={expenditureUpload.setDragOver}
+                    handleFiles={expenditureUpload.handleFiles}
+                    removeFile={expenditureUpload.removeFile}
+                    isFieldsDisabled={isFieldsDisabled}
+                    canAddMore={expenditureUpload.canAddMore}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'chat' && (
+            <OrderCallsTab
+              order={order}
+              calls={calls}
+              callsLoading={callsLoading}
+              callsError={callsError ? (callsError instanceof Error ? callsError.message : String(callsError)) : null}
+            />
+          )}
+        </>
+      )}
+      
+      {/* Кнопка Сохранить для мобильных */}
+      <div className="md:hidden fixed bottom-4 left-4 right-4 z-50">
+        <button 
+          onClick={handleSave}
+          disabled={updating || isFieldsDisabled()}
+          className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-medium transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {updating ? 'Сохранение...' : isFieldsDisabled() ? 'Заказ завершен' : 'Сохранить'}
+        </button>
       </div>
     </div>
-    </>
   )
 }
 

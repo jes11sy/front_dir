@@ -40,10 +40,6 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
   selectedMaster,
   setSelectedMaster,
   masters,
-  isPartner,
-  setIsPartner,
-  partnerPercent,
-  setPartnerPercent,
   result,
   setResult,
   expenditure,
@@ -64,198 +60,163 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
   setOpenSelect,
 }) => {
   return (
-    <div className="space-y-6">
-      {/* Назначить мастера */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Назначить мастера</label>
-        <CustomSelect
-          value={selectedMaster}
-          onChange={setSelectedMaster}
-          options={[
-            { value: '', label: 'Выберите мастера' },
-            ...masters.map(master => ({ value: master.id.toString(), label: master.name }))
-          ]}
-          placeholder="Выберите мастера"
-          disabled={isFieldsDisabled()}
-          selectId="master"
-          openSelect={openSelect}
-          setOpenSelect={setOpenSelect}
-        />
-      </div>
-
-      {/* Чекбокс партнер с полем процента */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center h-10">
-          <input
-            type="checkbox"
-            id="isPartner"
-            checked={isPartner}
-            onChange={(e) => setIsPartner(e.target.checked)}
-            disabled={isFieldsDisabled()}
-            className={`w-4 h-4 text-teal-600 bg-white border-gray-300 rounded focus:ring-teal-500 focus:ring-2 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-          />
-          <label 
-            htmlFor="isPartner" 
-            className={`ml-2 text-sm font-medium text-gray-700 ${isFieldsDisabled() ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-          >
-            Партнер
-          </label>
+    <div className="space-y-4">
+      {/* Блок: Мастер */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2">
+          <h3 className="text-white font-semibold text-sm">Мастер</h3>
         </div>
-        
-        {isPartner && (
-          <div className="w-40">
-            <div className="relative">
-              <input
-                type="number"
-                value={partnerPercent}
-                onChange={(e) => setPartnerPercent(e.target.value)}
-                disabled={isFieldsDisabled()}
-                min="0"
-                max="100"
-                className={`w-full h-10 px-3 pr-9 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-                placeholder="Введите % партнера..."
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">%</span>
-            </div>
-          </div>
-        )}
+        <div className="p-4">
+          <CustomSelect
+            value={selectedMaster}
+            onChange={setSelectedMaster}
+            options={[
+              { value: '', label: 'Выберите мастера' },
+              ...masters.map(master => ({ value: master.id.toString(), label: master.name }))
+            ]}
+            placeholder="Выберите мастера"
+            disabled={isFieldsDisabled()}
+            selectId="master"
+            openSelect={openSelect}
+            setOpenSelect={setOpenSelect}
+          />
+        </div>
       </div>
 
       {orderStatus === 'Модерн' ? (
         // Поля для статуса "Модерн"
-        <>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Сумма предоплаты</label>
-            <input 
-              type="number" 
-              value={prepayment}
-              onChange={(e) => setPrepayment(e.target.value)}
-              disabled={isFieldsDisabled()}
-              className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              placeholder="Введите сумму предоплаты"
-            />
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2">
+            <h3 className="text-white font-semibold text-sm">Модерн</h3>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Дата закрытия</label>
-            <input 
-              type="date" 
-              value={dateClosmod}
-              onChange={(e) => setDateClosmod(e.target.value)}
-              disabled={isFieldsDisabled()}
-              className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
-            <textarea 
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              disabled={isFieldsDisabled()}
-              className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              rows={3}
-              placeholder="Введите комментарий"
-            />
-          </div>
-        </>
-      ) : (
-        // Поля для остальных статусов
-        <>
-          {/* Итог и Расход */}
-          {!shouldHideFinancialFields() && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Итог</label>
+                <label className="block text-xs text-gray-500 mb-1">Сумма предоплаты</label>
                 <input 
                   type="number" 
-                  value={result}
-                  onChange={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? undefined : (e) => setResult(e.target.value)}
-                  disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
-                    orderStatus === 'Отказ' || orderStatus === 'Незаказ'
-                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300' 
-                      : isFieldsDisabled() 
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300' 
-                        : 'bg-white text-gray-800 border-gray-300'
-                  }`}
-                  placeholder={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? "Автоматически 0" : "Введите итоговую сумму"}
+                  value={prepayment}
+                  onChange={(e) => setPrepayment(e.target.value)}
+                  disabled={isFieldsDisabled()}
+                  className={`w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  placeholder="Введите сумму"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Расход</label>
+                <label className="block text-xs text-gray-500 mb-1">Дата закрытия</label>
                 <input 
-                  type="number" 
-                  value={expenditure}
-                  onChange={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? undefined : (e) => setExpenditure(e.target.value)}
-                  disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
-                    orderStatus === 'Отказ' || orderStatus === 'Незаказ'
-                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300' 
-                      : isFieldsDisabled() 
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300' 
-                        : 'bg-white text-gray-800 border-gray-300'
-                  }`}
-                  placeholder={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? "Автоматически 0" : "Введите сумму расхода"}
+                  type="date" 
+                  value={dateClosmod}
+                  onChange={(e) => setDateClosmod(e.target.value)}
+                  disabled={isFieldsDisabled()}
+                  className={`w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
             </div>
-          )}
-
-          {/* Дополнительные поля для "Готово" */}
-          {orderStatus === 'Готово' && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Чистыми</label>
-                  <input 
-                    type="number" 
-                    value={clean || ''}
-                    readOnly
-                    className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-500 cursor-not-allowed"
-                    placeholder={clean ? '' : 'Автоматически рассчитывается'}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Сдача мастера</label>
-                  <input 
-                    type="number" 
-                    value={masterChange || ''}
-                    readOnly
-                    className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-500 cursor-not-allowed"
-                    placeholder={masterChange ? '' : 'Автоматически рассчитывается'}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
-                <textarea 
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  disabled={isFieldsDisabled()}
-                  className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  rows={3}
-                  placeholder="Введите комментарий"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Комментарий для "В работе" */}
-          {orderStatus === 'В работе' && (
+            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
+              <label className="block text-xs text-gray-500 mb-1">Комментарий</label>
               <textarea 
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 disabled={isFieldsDisabled()}
-                className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-                rows={3}
+                className={`w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                rows={2}
                 placeholder="Введите комментарий"
               />
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Поля для остальных статусов
+        <>
+          {/* Блок: Финансы */}
+          {!shouldHideFinancialFields() && (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2">
+                <h3 className="text-white font-semibold text-sm">Финансы</h3>
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Итог</label>
+                    <input 
+                      type="number" 
+                      value={result}
+                      onChange={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? undefined : (e) => setResult(e.target.value)}
+                      disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
+                      className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                        orderStatus === 'Отказ' || orderStatus === 'Незаказ' || isFieldsDisabled()
+                          ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' 
+                          : 'bg-white text-gray-800 border-gray-200'
+                      }`}
+                      placeholder="0"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Расход</label>
+                    <input 
+                      type="number" 
+                      value={expenditure}
+                      onChange={orderStatus === 'Отказ' || orderStatus === 'Незаказ' ? undefined : (e) => setExpenditure(e.target.value)}
+                      disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
+                      className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                        orderStatus === 'Отказ' || orderStatus === 'Незаказ' || isFieldsDisabled()
+                          ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' 
+                          : 'bg-white text-gray-800 border-gray-200'
+                      }`}
+                      placeholder="0"
+                    />
+                  </div>
+
+                  {orderStatus === 'Готово' && (
+                    <>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Чистыми</label>
+                        <input 
+                          type="number" 
+                          value={clean || ''}
+                          readOnly
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500 cursor-not-allowed"
+                          placeholder="Авто"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Сдача мастера</label>
+                        <input 
+                          type="number" 
+                          value={masterChange || ''}
+                          readOnly
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500 cursor-not-allowed"
+                          placeholder="Авто"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Блок: Комментарий */}
+          {(orderStatus === 'Готово' || orderStatus === 'В работе') && (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-gray-600 to-gray-700 px-4 py-2">
+                <h3 className="text-white font-semibold text-sm">Комментарий</h3>
+              </div>
+              <div className="p-4">
+                <textarea 
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  disabled={isFieldsDisabled()}
+                  className={`w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  rows={2}
+                  placeholder="Введите комментарий..."
+                />
+              </div>
             </div>
           )}
         </>
