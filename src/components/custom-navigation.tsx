@@ -317,11 +317,17 @@ export function CustomNavigation() {
       />
 
       {/* Desktop Sidebar */}
-      <aside className={`hidden md:flex w-56 h-screen flex-col fixed left-0 top-0 transition-colors duration-300 ${
-        isDark 
-          ? 'bg-[#1e2530] border-r border-[#0d5c4b]/30' 
-          : 'bg-white border-r border-gray-200'
-      }`}>
+      <aside 
+        className={`hidden md:flex w-56 h-screen flex-col fixed left-0 top-0 transition-colors duration-300 ${
+          isDark 
+            ? 'bg-[#1e2530]' 
+            : 'bg-white border-r border-gray-200'
+        }`}
+        style={isDark ? {
+          borderRight: '1px solid rgba(255, 255, 255, 0.15)',
+          boxShadow: '4px 0 20px rgba(255, 255, 255, 0.05), 2px 0 8px rgba(255, 255, 255, 0.03)'
+        } : undefined}
+      >
         {/* Logo */}
         <div className="p-6 pb-16">
           <button 

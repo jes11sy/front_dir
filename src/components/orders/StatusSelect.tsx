@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react'
+import { useDesignStore } from '@/store/design.store'
 
 interface StatusSelectProps {
   value: string
@@ -23,6 +24,8 @@ export const StatusSelect: React.FC<StatusSelectProps> = ({
   openSelect,
   setOpenSelect
 }) => {
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
   const isOpen = openSelect === selectId
   const selectedOption = options.find(option => option.value === value)
 
@@ -55,20 +58,24 @@ export const StatusSelect: React.FC<StatusSelectProps> = ({
         onClick={handleToggle}
         disabled={disabled}
         className={`
-          flex items-center gap-2 px-4 py-2 rounded-lg text-gray-800 text-sm font-medium
-          bg-white border border-gray-300 hover:border-teal-500 hover:bg-gray-50
-          transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500
+          flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+          border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500
           disabled:opacity-60 disabled:cursor-not-allowed
+          ${isDark 
+            ? 'bg-[#3a4451] border-gray-600 text-gray-200 hover:border-teal-500 hover:bg-[#4a5461]' 
+            : 'bg-white border-gray-300 text-gray-800 hover:border-teal-500 hover:bg-gray-50'
+          }
         `}
       >
         <span>{selectedOption ? selectedOption.label : 'Выберите статус'}</span>
-        <span className="ml-1 text-xs">{isOpen ? '▲' : '▼'}</span>
+        <span className={`ml-1 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{isOpen ? '▲' : '▼'}</span>
       </button>
 
       {isOpen && (
         <div
-          className="absolute z-50 w-full min-w-[200px] mt-2 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto
-                     border border-gray-200"
+          className={`absolute z-50 w-full min-w-[200px] mt-2 rounded-lg shadow-lg max-h-60 overflow-y-auto border ${
+            isDark ? 'bg-[#2a3441] border-gray-600' : 'bg-white border-gray-200'
+          }`}
         >
           {options.map((option) => (
             <button
@@ -78,15 +85,19 @@ export const StatusSelect: React.FC<StatusSelectProps> = ({
               className={`
                 flex items-center justify-between w-full px-4 py-2 text-left text-sm
                 ${option.value === value
-                  ? 'bg-teal-50 text-teal-700 font-semibold'
-                  : 'text-gray-800 hover:bg-gray-50'
+                  ? isDark 
+                    ? 'bg-teal-900/40 text-teal-400 font-semibold'
+                    : 'bg-teal-50 text-teal-700 font-semibold'
+                  : isDark
+                    ? 'text-gray-200 hover:bg-[#3a4451]'
+                    : 'text-gray-800 hover:bg-gray-50'
                 }
                 transition-colors duration-150
               `}
             >
               <span>{option.label}</span>
               {option.value === value && (
-                <span className="text-teal-500">✓</span>
+                <span className={isDark ? 'text-teal-400' : 'text-teal-500'}>✓</span>
               )}
             </button>
           ))}

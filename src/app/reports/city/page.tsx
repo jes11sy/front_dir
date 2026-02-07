@@ -231,8 +231,9 @@ function CityReportContent() {
   const completedPercentColor = completedPercent >= 70 ? 'text-green-600' : completedPercent >= 50 ? 'text-amber-600' : 'text-red-500'
   const completedPercentBg = completedPercent >= 70 ? 'bg-green-100' : completedPercent >= 50 ? 'bg-amber-100' : 'bg-red-100'
 
-  // Функция для получения стиля топ-3 городов по обороту
+  // Функция для получения стиля топ-3 городов по обороту (только для светлой темы)
   const getTopStyle = (rank: number) => {
+    if (isDark) return '' // Без выделения в темной теме
     switch (rank) {
       case 1:
         return 'bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-400'
@@ -245,8 +246,9 @@ function CityReportContent() {
     }
   }
 
-  // Функция для получения бейджа топ-3
+  // Функция для получения бейджа топ-3 (только для светлой темы)
   const getTopBadge = (rank: number) => {
+    if (isDark) return null // Без бейджей в темной теме
     switch (rank) {
       case 1:
         return (

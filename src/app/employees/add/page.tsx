@@ -3,15 +3,19 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CustomInput } from '@/components/ui/custom-input'
 import { apiClient, CreateEmployeeDto } from '@/lib/api'
 import { logger } from '@/lib/logger'
+import { useDesignStore } from '@/store/design.store'
+import { Eye, EyeOff, ChevronDown, X, Upload, Check, ArrowLeft } from 'lucide-react'
 
 
 function AddEmployeeContent() {
   const router = useRouter()
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
+  
   const [activeTab, setActiveTab] = useState('personal')
   const [selectedCities, setSelectedCities] = useState<string[]>([])
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false)
@@ -25,66 +29,44 @@ function AddEmployeeContent() {
     notes: '',
     telegramId: '',
     chatId: '',
-    // Документы
     passportFile: null as File | null,
     contractFile: null as File | null
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Получаем города текущего директора
   const currentUser = apiClient.getCurrentUser()
   const availableCities = currentUser?.cities || []
 
-  // Закрытие выпадающего списка при клике вне его
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
         setIsCityDropdownOpen(false)
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Функции для работы с городами
   const handleCityToggle = (city: string) => {
-    setSelectedCities(prev => {
-      const newCities = prev.includes(city) 
-        ? prev.filter(c => c !== city)
-        : [...prev, city]
-      
-      return newCities
-    })
+    setSelectedCities(prev => 
+      prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city]
+    )
   }
 
   const removeCity = (cityToRemove: string) => {
-    setSelectedCities(prev => {
-      const newCities = prev.filter(city => city !== cityToRemove)
-      return newCities
-    })
+    setSelectedCities(prev => prev.filter(city => city !== cityToRemove))
   }
 
-  // Функции для обработки файлов
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'passportFile' | 'contractFile') => {
     const file = e.target.files?.[0] || null
-    setFormData(prev => ({
-      ...prev,
-      [fileType]: file
-    }))
+    setFormData(prev => ({ ...prev, [fileType]: file }))
   }
 
   const removeFile = (fileType: 'passportFile' | 'contractFile') => {
-    setFormData(prev => ({
-      ...prev,
-      [fileType]: null
-    }))
+    setFormData(prev => ({ ...prev, [fileType]: null }))
   }
 
-  // Функции генерации
   const transliterate = (text: string): string => {
     const translitMap: { [key: string]: string } = {
       'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
@@ -93,10 +75,7 @@ function AddEmployeeContent() {
       'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
       'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
     }
-    
-    return text.toLowerCase().split('').map(char => {
-      return translitMap[char] || char
-    }).join('')
+    return text.toLowerCase().split('').map(char => translitMap[char] || char).join('')
   }
 
   const generateLogin = () => {
@@ -105,11 +84,7 @@ function AddEmployeeContent() {
       const surname = transliterate(nameParts[0])
       const firstName = transliterate(nameParts[1])
       const randomNum = Math.floor(Math.random() * 100)
-      const login = `${surname}.${firstName}.${randomNum}`
-      setFormData(prev => ({
-        ...prev,
-        login: login
-      }))
+      setFormData(prev => ({ ...prev, login: `${surname}.${firstName}.${randomNum}` }))
     }
   }
 
@@ -119,19 +94,12 @@ function AddEmployeeContent() {
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length))
     }
-    setFormData(prev => ({
-      ...prev,
-      password: password
-    }))
+    setFormData(prev => ({ ...prev, password }))
   }
 
-  // Функции для обработки формы
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,23 +108,19 @@ function AddEmployeeContent() {
     setError(null)
     
     try {
-      // Валидация
       if (!formData.name.trim()) {
         setError('Имя сотрудника обязательно для заполнения')
         return
       }
-      
       if (availableCities.length === 0) {
         setError('У вас нет доступных городов для назначения сотруднику')
         return
       }
-      
       if (selectedCities.length === 0) {
         setError('Необходимо выбрать хотя бы один город')
         return
       }
       
-      // Подготавливаем данные для отправки
       const employeeData: CreateEmployeeDto = {
         name: formData.name,
         login: formData.login || undefined,
@@ -165,14 +129,11 @@ function AddEmployeeContent() {
         note: formData.notes || undefined,
         tgId: formData.telegramId || undefined,
         chatId: formData.chatId || undefined,
-        // TODO: Добавить обработку файлов
         passportDoc: undefined,
         contractDoc: undefined,
       }
       
       await apiClient.createEmployee(employeeData)
-      
-      // После успешного добавления перенаправляем на страницу сотрудников
       router.push('/employees')
     } catch (error) {
       logger.error('Ошибка при добавлении сотрудника', error)
@@ -187,434 +148,407 @@ function AddEmployeeContent() {
   }
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-2 sm:px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-16 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
-            
-            {/* Вкладки */}
-            <div className="mb-8 animate-fade-in">
-              <div className="flex space-x-1 p-1 rounded-lg bg-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('personal')}
-                  className="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: activeTab === 'personal' ? '#14b8a6' : 'transparent',
-                    color: activeTab === 'personal' ? 'white' : '#6b7280'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (activeTab !== 'personal') {
-                      (e.target as HTMLElement).style.backgroundColor = '#14b8a6';
-                      (e.target as HTMLElement).style.color = 'white';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (activeTab !== 'personal') {
-                      (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                      (e.target as HTMLElement).style.color = '#6b7280';
-                    }
-                  }}
-                >
-                  Личная информация
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('documents')}
-                  className="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: activeTab === 'documents' ? '#14b8a6' : 'transparent',
-                    color: activeTab === 'documents' ? 'white' : '#6b7280'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (activeTab !== 'documents') {
-                      (e.target as HTMLElement).style.backgroundColor = '#14b8a6';
-                      (e.target as HTMLElement).style.color = 'white';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (activeTab !== 'documents') {
-                      (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                      (e.target as HTMLElement).style.color = '#6b7280';
-                    }
-                  }}
-                >
-                  Документы
-                </button>
-              </div>
-            </div>
+    <div className={`min-h-screen p-4 md:p-6 transition-colors duration-300 ${isDark ? 'bg-[#1e2530]' : 'bg-[#f5f5f0]'}`}>
+      <div className="max-w-2xl mx-auto">
+        {/* Заголовок */}
+        <div className="mb-6">
+          <button
+            onClick={handleCancel}
+            className={`flex items-center gap-2 mb-4 text-sm transition-colors ${
+              isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Назад к списку
+          </button>
+          <h1 className={`text-2xl font-semibold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
+            Добавить сотрудника
+          </h1>
+        </div>
 
-            {/* Отображение ошибок */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-900/20 border border-red-500 rounded-lg">
-                <p className="text-red-400 text-sm">{error}</p>
+        {/* Карточка формы */}
+        <div className={`rounded-2xl p-6 md:p-8 shadow-lg transition-colors duration-300 ${
+          isDark ? 'bg-[#2a3441]' : 'bg-white'
+        }`}>
+          
+          {/* Вкладки */}
+          <div className="mb-6">
+            <div className={`flex p-1 rounded-lg ${isDark ? 'bg-[#1e2530]' : 'bg-gray-100'}`}>
+              <button
+                type="button"
+                onClick={() => setActiveTab('personal')}
+                className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'personal'
+                    ? 'bg-[#0d5c4b] text-white'
+                    : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Личная информация
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('documents')}
+                className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'documents'
+                    ? 'bg-[#0d5c4b] text-white'
+                    : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Документы
+              </button>
+            </div>
+          </div>
+
+          {/* Ошибка */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
+              <p className="text-red-500 text-sm">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Вкладка "Личная информация" */}
+            {activeTab === 'personal' && (
+              <div className="space-y-5">
+                {/* ФИО */}
+                <div>
+                  <Label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    ФИО *
+                  </Label>
+                  <CustomInput
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Введите ФИО сотрудника"
+                    required
+                    className="h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                  />
+                </div>
+
+                {/* Города */}
+                <div>
+                  <Label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Город *
+                  </Label>
+                  {availableCities.length === 0 ? (
+                    <div className="p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg">
+                      <p className="text-yellow-600 dark:text-yellow-400 text-sm">
+                        У вас нет доступных городов. Обратитесь к администратору.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative" ref={cityDropdownRef}>
+                      <button
+                        type="button"
+                        onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
+                        className="w-full h-12 bg-[#f5f5f0] text-gray-800 rounded-lg px-4 text-left flex items-center justify-between focus:ring-2 focus:ring-[#0d5c4b] focus:outline-none"
+                      >
+                        <span className={selectedCities.length === 0 ? 'text-gray-400' : 'text-gray-800'}>
+                          {selectedCities.length === 0 ? 'Выберите города' : selectedCities.join(', ')}
+                        </span>
+                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {isCityDropdownOpen && (
+                        <div className={`absolute z-50 w-full mt-2 rounded-lg shadow-lg max-h-60 overflow-y-auto ${
+                          isDark ? 'bg-[#2a3441] border border-[#3d4a5c]' : 'bg-white border border-gray-200'
+                        }`}>
+                          {availableCities.map((city) => (
+                            <div
+                              key={city}
+                              className={`px-4 py-3 cursor-pointer flex items-center gap-3 transition-colors ${
+                                isDark ? 'hover:bg-[#3d4a5c]' : 'hover:bg-gray-50'
+                              }`}
+                              onClick={() => handleCityToggle(city)}
+                            >
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                                selectedCities.includes(city)
+                                  ? 'bg-[#0d5c4b] border-[#0d5c4b]'
+                                  : isDark ? 'border-gray-500' : 'border-gray-300'
+                              }`}>
+                                {selectedCities.includes(city) && <Check className="w-3 h-3 text-white" />}
+                              </div>
+                              <span className={isDark ? 'text-gray-200' : 'text-gray-700'}>{city}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {selectedCities.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {selectedCities.map((city) => (
+                        <span
+                          key={city}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm bg-[#0d5c4b] text-white"
+                        >
+                          {city}
+                          <button type="button" onClick={() => removeCity(city)} className="hover:text-red-300">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Заметка */}
+                <div>
+                  <Label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Заметка
+                  </Label>
+                  <CustomInput
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    placeholder="Введите заметку о сотруднике"
+                    className="h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                  />
+                </div>
+
+                {/* Telegram */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Telegram ID
+                    </Label>
+                    <CustomInput
+                      name="telegramId"
+                      value={formData.telegramId}
+                      onChange={handleInputChange}
+                      placeholder="Введите Telegram ID"
+                      className="h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                    />
+                  </div>
+                  <div>
+                    <Label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Chat ID
+                    </Label>
+                    <CustomInput
+                      name="chatId"
+                      value={formData.chatId}
+                      onChange={handleInputChange}
+                      placeholder="Введите Chat ID"
+                      className="h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                    />
+                  </div>
+                </div>
+
+                {/* Логин */}
+                <div>
+                  <Label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Логин *
+                  </Label>
+                  <div className="flex gap-3">
+                    <CustomInput
+                      name="login"
+                      value={formData.login}
+                      onChange={handleInputChange}
+                      placeholder="Введите логин"
+                      required
+                      className="flex-1 h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                    />
+                    <Button
+                      type="button"
+                      onClick={generateLogin}
+                      className="h-12 px-4 bg-[#0d5c4b] hover:bg-[#0a4a3c] text-white text-sm font-medium rounded-lg"
+                    >
+                      Сгенерировать
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Пароль */}
+                <div>
+                  <Label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Пароль *
+                  </Label>
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <CustomInput
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        placeholder="Введите пароль"
+                        required
+                        className="h-12 pr-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={generatePassword}
+                      className="h-12 px-4 bg-[#0d5c4b] hover:bg-[#0a4a3c] text-white text-sm font-medium rounded-lg"
+                    >
+                      Сгенерировать
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Форма */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Вкладка "Личная информация" */}
-              {activeTab === 'personal' && (
-                <div className="space-y-6">
-                  {/* Основная информация */}
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-700 text-sm font-medium">
-                      ФИО *
-                    </Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Введите ФИО сотрудника"
-                      required
-                      className="bg-white border-2 border-gray-200 text-gray-800 placeholder-gray-400 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
-                      onFocus={(e) => (e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68'}
-                      onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-gray-700 text-sm font-medium">
-                      Город *
-                    </Label>
-                    {availableCities.length === 0 ? (
-                      <div className="p-4 bg-yellow-900/20 border border-yellow-500 rounded-lg">
-                        <p className="text-yellow-400 text-sm">
-                          У вас нет доступных городов. Обратитесь к администратору.
+            {/* Вкладка "Документы" */}
+            {activeTab === 'documents' && (
+              <div className="space-y-5">
+                {/* Паспорт */}
+                <div>
+                  <Label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Паспорт
+                  </Label>
+                  <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
+                    isDark ? 'border-[#3d4a5c] hover:border-[#0d5c4b]' : 'border-gray-300 hover:border-[#0d5c4b]'
+                  }`}>
+                    {formData.passportFile ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <Check className="w-6 h-6 text-green-500" />
+                          <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                            {formData.passportFile.name}
+                          </span>
+                        </div>
+                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Размер: {(formData.passportFile.size / 1024 / 1024).toFixed(2)} MB
                         </p>
+                        <Button
+                          type="button"
+                          onClick={() => removeFile('passportFile')}
+                          className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-0"
+                        >
+                          Удалить файл
+                        </Button>
                       </div>
                     ) : (
-                      <div className="relative" ref={cityDropdownRef}>
-                        <button
-                          type="button"
-                          onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
-                          className="w-full bg-white border-2 border-gray-200 text-gray-800 rounded-lg px-3 py-2 text-left flex items-center justify-between focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
-                          onFocus={(e) => (e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68'}
-                          onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
-                        >
-                          <span className={selectedCities.length === 0 ? 'text-gray-400' : 'text-gray-700'}>
-                            {selectedCities.length === 0 ? 'Выберите города' : selectedCities.join(', ')}
-                          </span>
-                          <svg className={`w-4 h-4 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                        
-                        {isCityDropdownOpen && (
-                          <div className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {availableCities.map((city) => (
-                              <div
-                                key={city}
-                                className="px-3 py-2 text-gray-700 hover:bg-teal-50 cursor-pointer flex items-center transition-colors duration-200"
-                                onClick={() => handleCityToggle(city)}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={selectedCities.includes(city)}
-                                  onChange={() => {}}
-                                  className="mr-2"
-                                  style={{accentColor: '#2a6b68'}}
-                                />
-                                <span className="text-gray-700">{city}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Выбранные города */}
-                    {selectedCities.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {selectedCities.map((city) => (
-                          <span
-                            key={city}
-                            className="inline-flex items-center px-2 py-1 rounded-full text-xs text-gray-700"
-                            style={{backgroundColor: '#2a6b68'}}
-                          >
-                            {city}
-                            <button
-                              type="button"
-                              onClick={() => removeCity(city)}
-                              className="ml-1 hover:text-red-300"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="notes" className="text-gray-700 text-sm font-medium">
-                      Заметка
-                    </Label>
-                    <Input
-                      id="notes"
-                      name="notes"
-                      value={formData.notes}
-                      onChange={handleInputChange}
-                      placeholder="Введите заметку о сотруднике"
-                      className="bg-white border-2 border-gray-200 text-gray-800 placeholder-gray-400 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
-                      onFocus={(e) => (e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68'}
-                      onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
-                    />
-                  </div>
-                  
-                  {/* Telegram информация */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="telegramId" className="text-gray-700 text-sm font-medium">
-                        Telegram ID
-                      </Label>
-                      <Input
-                        id="telegramId"
-                        name="telegramId"
-                        value={formData.telegramId}
-                        onChange={handleInputChange}
-                        placeholder="Введите Telegram ID"
-                        className="bg-white border-2 border-gray-200 text-gray-800 placeholder-gray-400 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
-                        onFocus={(e) => (e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68'}
-                        onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="chatId" className="text-gray-700 text-sm font-medium">
-                        Chat ID
-                      </Label>
-                      <Input
-                        id="chatId"
-                        name="chatId"
-                        value={formData.chatId}
-                        onChange={handleInputChange}
-                        placeholder="Введите Chat ID"
-                        className="bg-white border-2 border-gray-200 text-gray-800 placeholder-gray-400 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
-                        onFocus={(e) => (e.target as HTMLElement).style.boxShadow = '0 0 0 2px #2a6b68'}
-                        onBlur={(e) => (e.target as HTMLElement).style.boxShadow = 'none'}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Учетные данные */}
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="login" className="text-gray-700 text-sm font-medium">
-                        Логин *
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="login"
-                          name="login"
-                          value={formData.login}
-                          onChange={handleInputChange}
-                          placeholder="Введите логин"
-                          required
-                          className="flex-1 bg-white border-2 border-gray-200 text-gray-800 placeholder-gray-500 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
+                      <div className="space-y-3">
+                        <Upload className={`w-10 h-10 mx-auto ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                        <div>
+                          <p className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                            Загрузить паспорт
+                          </p>
+                          <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                            PDF, JPG, PNG до 10MB
+                          </p>
+                        </div>
+                        <input
+                          type="file"
+                          id="passportFile"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={(e) => handleFileChange(e, 'passportFile')}
+                          className="hidden"
                         />
                         <Button
                           type="button"
-                          onClick={generateLogin}
-                          className="px-3 py-2 text-xs"
-                          style={{backgroundColor: '#2a6b68', color: 'white'}}
-                          onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                          onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                          onClick={() => document.getElementById('passportFile')?.click()}
+                          className={`${isDark ? 'bg-[#3d4a5c] hover:bg-[#4d5a6c] text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
                         >
-                          Сгенерировать
+                          Выбрать файл
                         </Button>
                       </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="text-gray-700 text-sm font-medium">
-                        Пароль *
-                      </Label>
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <Input
-                            id="password"
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            placeholder="Введите пароль"
-                            required
-                            className="w-full pr-10 bg-white border-2 border-gray-200 text-gray-800 placeholder-gray-500 focus:border-teal-500 focus:outline-none shadow-sm hover:shadow-md transition-all duration-200"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
-                          >
-                            {showPassword ? (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            )}
-                          </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Договор */}
+                <div>
+                  <Label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Договор
+                  </Label>
+                  <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
+                    isDark ? 'border-[#3d4a5c] hover:border-[#0d5c4b]' : 'border-gray-300 hover:border-[#0d5c4b]'
+                  }`}>
+                    {formData.contractFile ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <Check className="w-6 h-6 text-green-500" />
+                          <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                            {formData.contractFile.name}
+                          </span>
                         </div>
+                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Размер: {(formData.contractFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
                         <Button
                           type="button"
-                          onClick={generatePassword}
-                          className="px-3 py-2 text-xs"
-                          style={{backgroundColor: '#2a6b68', color: 'white'}}
-                          onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                          onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
+                          onClick={() => removeFile('contractFile')}
+                          className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-0"
                         >
-                          Сгенерировать
+                          Удалить файл
                         </Button>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <Upload className={`w-10 h-10 mx-auto ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                        <div>
+                          <p className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                            Загрузить договор
+                          </p>
+                          <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                            PDF, JPG, PNG до 10MB
+                          </p>
+                        </div>
+                        <input
+                          type="file"
+                          id="contractFile"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={(e) => handleFileChange(e, 'contractFile')}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => document.getElementById('contractFile')?.click()}
+                          className={`${isDark ? 'bg-[#3d4a5c] hover:bg-[#4d5a6c] text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                        >
+                          Выбрать файл
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-
-              {/* Вкладка "Документы" */}
-              {activeTab === 'documents' && (
-                <div className="space-y-6">
-                  {/* Паспорт */}
-                  <div className="space-y-2">
-                    <Label className="text-gray-700 text-sm font-medium">
-                      Паспорт
-                    </Label>
-                    <div className="border-2 border-dashed rounded-lg p-6 text-center transition-colors" style={{borderColor: '#114643'}} onMouseEnter={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'} onMouseLeave={(e) => (e.target as HTMLElement).style.borderColor = '#114643'}>
-                      {formData.passportFile ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-center space-x-2">
-                            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="text-gray-700 font-medium">{formData.passportFile.name}</span>
-                          </div>
-                          <p className="text-gray-400 text-sm">
-                            Размер: {(formData.passportFile.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeFile('passportFile')}
-                            className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200"
-                          >
-                            Удалить файл
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <svg className="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                          <div>
-                            <p className="text-gray-700 font-medium">Загрузить паспорт</p>
-                            <p className="text-gray-400 text-sm">PDF, JPG, PNG до 10MB</p>
-                          </div>
-                          <input
-                            type="file"
-                            id="passportFile"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange(e, 'passportFile')}
-                            className="hidden"
-                          />
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => document.getElementById('passportFile')?.click()}
-                            className="border bg-white text-gray-800 hover:bg-gray-50 border-gray-300 hover:border-teal-500 transition-all duration-200"
-                          >
-                            Выбрать файл
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Договор */}
-                  <div className="space-y-2">
-                    <Label className="text-gray-700 text-sm font-medium">
-                      Договор
-                    </Label>
-                    <div className="border-2 border-dashed rounded-lg p-6 text-center transition-colors" style={{borderColor: '#114643'}} onMouseEnter={(e) => (e.target as HTMLElement).style.borderColor = '#2a6b68'} onMouseLeave={(e) => (e.target as HTMLElement).style.borderColor = '#114643'}>
-                      {formData.contractFile ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-center space-x-2">
-                            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="text-gray-700 font-medium">{formData.contractFile.name}</span>
-                          </div>
-                          <p className="text-gray-400 text-sm">
-                            Размер: {(formData.contractFile.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeFile('contractFile')}
-                            className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200"
-                          >
-                            Удалить файл
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <svg className="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                          <div>
-                            <p className="text-gray-700 font-medium">Загрузить договор</p>
-                            <p className="text-gray-400 text-sm">PDF, JPG, PNG до 10MB</p>
-                          </div>
-                          <input
-                            type="file"
-                            id="contractFile"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange(e, 'contractFile')}
-                            className="hidden"
-                          />
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => document.getElementById('contractFile')?.click()}
-                            className="border bg-white text-gray-800 hover:bg-gray-50 border-gray-300 hover:border-teal-500 transition-all duration-200"
-                          >
-                            Выбрать файл
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Кнопки */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                <Button
-                  type="button"
-                  onClick={handleCancel}
-                  disabled={isSubmitting}
-                  className="flex-1 h-12 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-md"
-                >
-                  Отмена
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting || availableCities.length === 0}
-                  className="flex-1 h-12 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-md"
-                >
-                  {isSubmitting ? 'Добавление...' : availableCities.length === 0 ? 'Нет доступных городов' : 'Добавить сотрудника'}
-                </Button>
               </div>
-            </form>
+            )}
 
-
-          </div>
+            {/* Кнопки */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button
+                type="button"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+                className={`flex-1 h-12 font-medium rounded-lg transition-colors ${
+                  isDark 
+                    ? 'bg-[#3d4a5c] hover:bg-[#4d5a6c] text-gray-200' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                }`}
+              >
+                Отмена
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting || availableCities.length === 0}
+                className="flex-1 h-12 bg-[#0d5c4b] hover:bg-[#0a4a3c] text-white font-medium rounded-lg disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Добавление...
+                  </span>
+                ) : availableCities.length === 0 ? (
+                  'Нет доступных городов'
+                ) : (
+                  'Добавить сотрудника'
+                )}
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

@@ -461,6 +461,19 @@ function OrdersContent() {
 
   // Функция для получения стилей статуса (пастельные бейджи)
   const getStatusStyle = (status: string) => {
+    if (isDark) {
+      switch (status) {
+        case 'Готово': return 'bg-green-900/40 text-green-400'
+        case 'В работе': return 'bg-blue-900/40 text-blue-400'
+        case 'Ожидает': return 'bg-amber-900/40 text-amber-400'
+        case 'Отказ': return 'bg-red-900/40 text-red-400'
+        case 'Принял': return 'bg-emerald-900/40 text-emerald-400'
+        case 'В пути': return 'bg-violet-900/40 text-violet-400'
+        case 'Модерн': return 'bg-orange-900/40 text-orange-400'
+        case 'Незаказ': return 'bg-gray-700/40 text-gray-400'
+        default: return 'bg-gray-700/40 text-gray-400'
+      }
+    }
     switch (status) {
       case 'Готово': return 'bg-green-100 text-green-700'
       case 'В работе': return 'bg-blue-100 text-blue-700'
@@ -476,6 +489,14 @@ function OrdersContent() {
 
   // Функция для получения стилей типа заказа (пастельные бейджи)
   const getTypeStyle = (type: string) => {
+    if (isDark) {
+      switch (type) {
+        case 'Впервые': return 'bg-emerald-900/40 text-emerald-400'
+        case 'Повтор': return 'bg-amber-900/40 text-amber-400'
+        case 'Гарантия': return 'bg-red-900/40 text-red-400'
+        default: return 'bg-gray-700/40 text-gray-400'
+      }
+    }
     switch (type) {
       case 'Впервые': return 'bg-emerald-100 text-emerald-700'
       case 'Повтор': return 'bg-amber-100 text-amber-700'

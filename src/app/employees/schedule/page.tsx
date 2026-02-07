@@ -280,13 +280,13 @@ export default function SchedulePage() {
                     ? 'bg-[#0d5c4b] text-white' 
                     : isSunday(date) 
                       ? isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600' 
-                      : ''
+                      : isDark ? 'text-gray-300' : ''
                 }`}
               >
-                <div className={`text-[10px] font-medium uppercase ${isToday(date) ? 'text-[#0d5c4b]/60' : ''}`}>
+                <div className={`text-[10px] font-medium uppercase ${isToday(date) ? 'text-white/60' : isDark ? 'text-gray-400' : ''}`}>
                   {getDayName(date)}
                 </div>
-                <div className="text-sm font-bold">
+                <div className={`text-sm font-bold ${isToday(date) ? '' : isDark ? 'text-gray-200' : ''}`}>
                   {getDayNumber(date)}
                 </div>
               </th>
