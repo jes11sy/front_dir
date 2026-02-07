@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
@@ -53,14 +53,17 @@ function ExpenseContent() {
   // Получаем города директора
   const currentUser = apiClient.getCurrentUser()
   const directorCities = currentUser?.cities || []
+  // Стабильная строка для зависимости useMemo
+  const directorCitiesKey = directorCities.join(',')
   
-  // Данные для выпадающих списков
-  const cities = directorCities.map(city => ({
+  // 🔧 FIX: Мемоизируем массивы чтобы избежать бесконечного цикла в useCallback
+  const cities = useMemo(() => directorCities.map(city => ({
     value: city.toLowerCase().replace(/\s+/g, '_'),
     label: city
-  }))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })), [directorCitiesKey])
 
-  const purposes = [
+  const purposes = useMemo(() => [
     { value: 'avito', label: 'Авито' },
     { value: 'office', label: 'Офис' },
     { value: 'promoters', label: 'Промоутеры' },
@@ -68,7 +71,7 @@ function ExpenseContent() {
     { value: 'collection', label: 'Инкасс' },
     { value: 'director_salary', label: 'Зарплата директора' },
     { value: 'other', label: 'Иное' }
-  ]
+  ], [])
 
   // Быстрые периоды для фильтра
   const quickPeriods = [
