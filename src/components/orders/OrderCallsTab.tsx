@@ -7,9 +7,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Order, Call, apiClient } from '@/lib/api';
+import { Order, Call, apiClient, OrderHistoryItem } from '@/lib/api';
 import { logger } from '@/lib/logger';
 import { useDesignStore } from '@/store/design.store';
+import { RefreshCw } from 'lucide-react';
 
 interface OrderHistory {
   id: number;
@@ -81,6 +82,11 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   
+  // История изменений заказа (из API)
+  const [changeHistory, setChangeHistory] = useState<OrderHistoryItem[]>([]);
+  const [changeHistoryLoading, setChangeHistoryLoading] = useState(false);
+  const [changeHistoryError, setChangeHistoryError] = useState<string | null>(null);
+  
   // Тема из store
   const { theme } = useDesignStore()
   const isDark = theme === 'dark';
@@ -131,6 +137,119 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
 
     loadOrderHistory();
   }, [order?.phone, order?.id]);
+
+  // Загружаем историю изменений заказа
+  const loadChangeHistory = async () => {
+    if (!order?.id) return;
+    
+    setChangeHistoryLoading(true);
+    setChangeHistoryError(null);
+    
+    try {
+      const result = await apiClient.getOrderHistory(order.id);
+      setChangeHistory(result);
+    } catch (error) {
+      logger.error('Error loading change history:', error);
+      setChangeHistoryError(error instanceof Error ? error.message : 'Ошибка загрузки истории изменений');
+    } finally {
+      setChangeHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadChangeHistory();
+  }, [order?.id]);
+
+  // Форматирование событий
+  const getEventLabel = (eventType: string) => {
+    const labels: Record<string, string> = {
+      'order.create': 'Создание заказа',
+      'order.update': 'Изменение заказа',
+      'order.close': 'Закрытие заказа',
+      'order.status.change': 'Смена статуса',
+    };
+    return labels[eventType] || eventType;
+  };
+
+  // Форматирование изменений
+  const formatChanges = (metadata: OrderHistoryItem['metadata']) => {
+    if (!metadata) return null;
+
+    const changes: React.ReactNode[] = [];
+
+    // Изменение статуса
+    if (metadata.oldStatus && metadata.newStatus) {
+      changes.push(
+        <span key="status" className={isDark ? 'text-gray-300' : 'text-gray-700'}>
+          Статус: <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>{metadata.oldStatus}</span>
+          {' → '}
+          <span className={`font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{metadata.newStatus}</span>
+        </span>
+      );
+    }
+
+    // Закрытие заказа
+    if (metadata.result) {
+      changes.push(
+        <span key="result" className={isDark ? 'text-gray-300' : 'text-gray-700'}>
+          Итог: <span className={`font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}>{metadata.result} ₽</span>
+        </span>
+      );
+    }
+
+    // Другие изменения
+    if (metadata.changes) {
+      const fieldLabels: Record<string, string> = {
+        statusOrder: 'Статус',
+        masterId: 'Мастер',
+        address: 'Адрес',
+        phone: 'Телефон',
+        clientName: 'Клиент',
+        dateMeeting: 'Дата встречи',
+        problem: 'Проблема',
+        result: 'Итог',
+        expenditure: 'Расход',
+        clean: 'Чистыми',
+        masterChange: 'Сдача мастера',
+        comment: 'Комментарий',
+      };
+
+      Object.entries(metadata.changes).forEach(([field, change]) => {
+        if (change && typeof change === 'object' && 'old' in change && 'new' in change) {
+          const label = fieldLabels[field] || field;
+          let oldVal = change.old ?? '—';
+          let newVal = change.new ?? '—';
+          
+          // Форматируем даты
+          if (field === 'dateMeeting') {
+            if (oldVal !== '—') oldVal = new Date(oldVal as string).toLocaleString('ru-RU');
+            if (newVal !== '—') newVal = new Date(newVal as string).toLocaleString('ru-RU');
+          }
+
+          changes.push(
+            <span key={field} className={isDark ? 'text-gray-300' : 'text-gray-700'}>
+              {label}: <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>{String(oldVal)}</span>
+              {' → '}
+              <span className={`font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{String(newVal)}</span>
+            </span>
+          );
+        }
+      });
+    }
+
+    return changes.length > 0 ? changes : null;
+  };
+
+  const formatDateTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
   return (
     <div className="space-y-4">
       {/* Записи звонков */}
@@ -281,95 +400,69 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
       <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
         <div className={`px-4 py-3 border-b flex items-center justify-between ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
           <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>История изменений</h3>
+          <button
+            onClick={loadChangeHistory}
+            disabled={changeHistoryLoading}
+            className={`p-1.5 rounded-lg transition-colors ${
+              isDark 
+                ? 'text-gray-400 hover:text-teal-400 hover:bg-[#3a4451]' 
+                : 'text-gray-400 hover:text-teal-600 hover:bg-gray-100'
+            } disabled:opacity-50`}
+          >
+            <RefreshCw className={`w-4 h-4 ${changeHistoryLoading ? 'animate-spin' : ''}`} />
+          </button>
         </div>
         
-        <div className="p-4 space-y-3">
-          {/* Текущий статус */}
-          {order?.statusOrder && (
-            <div className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Текущий статус</div>
-                  <div className="mt-1 text-sm">
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Статус: </span>
-                    <span className={`font-medium ${
-                      order.statusOrder === 'Готово' ? (isDark ? 'text-green-400' : 'text-green-600') :
-                      order.statusOrder === 'Отказ' || order.statusOrder === 'Незаказ' ? (isDark ? 'text-red-400' : 'text-red-600') :
-                      order.statusOrder === 'В работе' || order.statusOrder === 'В пути' ? (isDark ? 'text-blue-400' : 'text-blue-600') :
-                      isDark ? 'text-gray-100' : 'text-gray-800'
-                    }`}>{order.statusOrder}</span>
-                  </div>
-                </div>
-                <div className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                  {formatDate(order.updatedAt)}
-                </div>
-              </div>
+        <div className="p-4">
+          {changeHistoryLoading ? (
+            <div className="flex items-center justify-center py-6">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-teal-500 border-t-transparent"></div>
             </div>
-          )}
-          
-          {/* Назначен мастер */}
-          {order?.masterId && order?.masterName && (
-            <div className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Назначен мастер</div>
-                  <div className="mt-1 text-sm">
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Мастер: </span>
-                    <span className={`font-medium ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{order.masterName}</span>
-                  </div>
-                </div>
-              </div>
+          ) : changeHistoryError ? (
+            <div className="py-4 text-center">
+              <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{changeHistoryError}</span>
             </div>
-          )}
-          
-          {/* Финансы заполнены */}
-          {order?.result && order.result > 0 && (
-            <div className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Финансы</div>
-                  <div className="mt-1 text-sm space-y-0.5">
-                    <div>
-                      <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Итог: </span>
-                      <span className={`font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}>{order.result.toLocaleString('ru-RU')} ₽</span>
+          ) : changeHistory.length > 0 ? (
+            <div className="space-y-3">
+              {changeHistory.map((item) => {
+                const changes = formatChanges(item.metadata);
+                
+                return (
+                  <div 
+                    key={item.id}
+                    className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
+                          {getEventLabel(item.eventType)}
+                        </div>
+                        {changes && (
+                          <div className="mt-1 space-y-0.5 text-sm">
+                            {changes.map((change, idx) => (
+                              <div key={idx}>{change}</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                          {formatDateTime(item.timestamp)}
+                        </div>
+                        {(item.userName || item.login) && (
+                          <div className={`text-xs mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {item.userName || item.login}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    {order.expenditure && order.expenditure > 0 && (
-                      <div>
-                        <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Расход: </span>
-                        <span className={`font-medium ${isDark ? 'text-red-400' : 'text-red-600'}`}>{order.expenditure.toLocaleString('ru-RU')} ₽</span>
-                      </div>
-                    )}
-                    {order.clean && (
-                      <div>
-                        <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Чистыми: </span>
-                        <span className={`font-medium ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>{order.clean.toLocaleString('ru-RU')} ₽</span>
-                      </div>
-                    )}
                   </div>
-                </div>
-                {order.dateClosmod && (
-                  <div className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                    {formatShortDate(order.dateClosmod)}
-                  </div>
-                )}
-              </div>
+                );
+              })}
             </div>
-          )}
-          
-          {/* Создание заказа */}
-          {order?.createdAt && (
-            <div className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Создание заказа</div>
-                  <div className={`mt-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Заказ #{order.id} создан
-                  </div>
-                </div>
-                <div className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                  {formatDate(order.createdAt)}
-                </div>
-              </div>
+          ) : (
+            <div className="py-6 text-center">
+              <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>История изменений пуста</span>
             </div>
           )}
         </div>

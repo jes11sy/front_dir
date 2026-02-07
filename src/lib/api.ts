@@ -1754,6 +1754,47 @@ export class ApiClient {
     const result = await safeParseJson(response, { data: {} })
     return result.data || {}
   }
+
+  // Orders History API - получить историю изменений заказа
+  async getOrderHistory(orderId: number): Promise<OrderHistoryItem[]> {
+    const response = await this.safeFetch(`${this.baseURL}/orders/${orderId}/history`, {
+      method: 'GET',
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return []
+      }
+      const errorMessage = await extractErrorMessage(response, 'Ошибка получения истории изменений')
+      throw new Error(errorMessage)
+    }
+
+    const result = await safeParseJson(response, [])
+    return Array.isArray(result) ? result : (result.data || [])
+  }
+}
+
+// Типы для истории заказа
+export interface OrderHistoryItem {
+  id: number;
+  timestamp: string;
+  eventType: 'order.create' | 'order.update' | 'order.close' | 'order.status.change';
+  userId?: number;
+  role?: string;
+  login?: string;
+  userName?: string;
+  metadata?: {
+    orderId?: number;
+    changes?: Record<string, { old: string | number | null; new: string | number | null }>;
+    oldStatus?: string;
+    newStatus?: string;
+    result?: string;
+    expenditure?: string;
+    clean?: string;
+    city?: string;
+    clientName?: string;
+    phone?: string;
+  };
 }
 
 export const apiClient = new ApiClient()

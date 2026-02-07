@@ -379,7 +379,11 @@ function EmployeeViewContent() {
                     onChange={handleInputChange}
                     placeholder="Введите ФИО сотрудника"
                     required
-                    className="h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                    className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
+                      isDark 
+                        ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
+                        : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
+                    }`}
                   />
                 </div>
 
@@ -394,7 +398,11 @@ function EmployeeViewContent() {
                       value={employee.login || ''}
                       onChange={handleInputChange}
                       placeholder="Введите логин"
-                      className="flex-1 h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                      className={`flex-1 h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
+                        isDark 
+                          ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
+                          : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
+                      }`}
                     />
                     <Button
                       type="button"
@@ -420,12 +428,16 @@ function EmployeeViewContent() {
                         value={employee.password || ''}
                         onChange={handleInputChange}
                         placeholder={hasPassword ? "Введите новый для изменения" : "Введите пароль"}
-                        className="h-12 pr-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                        className={`h-12 pr-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
+                          isDark 
+                            ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
+                            : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
+                        }`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className={`absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -457,12 +469,16 @@ function EmployeeViewContent() {
                         <button
                           type="button"
                           onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
-                          className="w-full h-12 bg-[#f5f5f0] text-gray-800 rounded-lg px-4 text-left flex items-center justify-between focus:ring-2 focus:ring-[#0d5c4b] focus:outline-none"
+                          className={`w-full h-12 rounded-lg px-4 text-left flex items-center justify-between focus:ring-2 focus:ring-[#0d5c4b] focus:outline-none ${
+                            isDark 
+                              ? 'bg-[#1e2530] text-gray-100' 
+                              : 'bg-[#f5f5f0] text-gray-800'
+                          }`}
                         >
-                          <span className={selectedCities.length === 0 ? 'text-gray-400' : 'text-gray-800'}>
+                          <span className={selectedCities.length === 0 ? (isDark ? 'text-gray-500' : 'text-gray-400') : (isDark ? 'text-gray-100' : 'text-gray-800')}>
                             {selectedCities.length === 0 ? 'Выберите' : `${selectedCities.length} выбрано`}
                           </span>
-                          <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
+                          <ChevronDown className={`w-5 h-5 transition-transform ${isDark ? 'text-gray-500' : 'text-gray-400'} ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
                         
                         {isCityDropdownOpen && (
@@ -515,10 +531,14 @@ function EmployeeViewContent() {
                       <button
                         type="button"
                         onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                        className="w-full h-12 bg-[#f5f5f0] text-gray-800 rounded-lg px-4 text-left flex items-center justify-between focus:ring-2 focus:ring-[#0d5c4b] focus:outline-none"
+                        className={`w-full h-12 rounded-lg px-4 text-left flex items-center justify-between focus:ring-2 focus:ring-[#0d5c4b] focus:outline-none ${
+                          isDark 
+                            ? 'bg-[#1e2530] text-gray-100' 
+                            : 'bg-[#f5f5f0] text-gray-800'
+                        }`}
                       >
                         <span>{employee.statusWork}</span>
-                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-5 h-5 transition-transform ${isDark ? 'text-gray-500' : 'text-gray-400'} ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
                       </button>
                       
                       {isStatusDropdownOpen && (
@@ -552,7 +572,11 @@ function EmployeeViewContent() {
                     value={employee.note || ''}
                     onChange={handleInputChange}
                     placeholder="Введите заметку о сотруднике"
-                    className="h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                    className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
+                      isDark 
+                        ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
+                        : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
+                    }`}
                   />
                 </div>
 
@@ -567,7 +591,11 @@ function EmployeeViewContent() {
                       value={employee.tgId || ''}
                       onChange={handleInputChange}
                       placeholder="Введите Telegram ID"
-                      className="h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                      className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
+                        isDark 
+                          ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
+                          : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
+                      }`}
                     />
                   </div>
                   <div>
@@ -579,7 +607,11 @@ function EmployeeViewContent() {
                       value={employee.chatId || ''}
                       onChange={handleInputChange}
                       placeholder="Введите Chat ID"
-                      className="h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-[#0d5c4b]"
+                      className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
+                        isDark 
+                          ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
+                          : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
+                      }`}
                     />
                   </div>
                 </div>
