@@ -221,46 +221,39 @@ function MastersReportContent() {
             {/* Основной контент */}
             {!loading && !error && (
               <>
-                {/* Фильтрация */}
+                {/* Панель управления: иконка фильтров + экспорт */}
                 <div className="mb-6">
-                  {/* Кнопка экспорта для мобильной версии */}
-                  <div className="block md:hidden mb-3">
-                    <button 
-                      onClick={exportToExcel}
-                      className="w-full px-3 py-2 text-white rounded transition-colors text-sm"
-                      style={{backgroundColor: '#2a6b68'}}
-                      onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#1a5a57'}
-                      onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#2a6b68'}
-                    >
-                      Экспорт в Excel
-                    </button>
-                  </div>
-                  
                   <div className="flex items-center justify-between mb-3">
-                    <button
-                      onClick={() => setShowFilters(!showFilters)}
-                      className="flex items-center gap-2 text-left cursor-pointer group"
-                    >
-                      <h3 className="text-gray-700 font-semibold group-hover:text-teal-600 transition-colors duration-200">
-                        Фильтр
-                      </h3>
-                      <svg
-                        className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
-                          showFilters ? 'rotate-180' : ''
+                    <div className="flex items-center gap-2">
+                      {/* Иконка фильтров */}
+                      <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`relative p-2 rounded-lg transition-all duration-200 ${
+                          showFilters 
+                            ? 'bg-teal-100 text-teal-600' 
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-teal-600'
                         }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        title="Фильтры"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {/* Кнопка экспорта для десктопной версии */}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        {/* Индикатор активных фильтров */}
+                        {(startDate || endDate) && (
+                          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 border-white"></span>
+                        )}
+                      </button>
+                    </div>
+                    
+                    {/* Кнопка экспорта */}
                     <button 
                       onClick={exportToExcel}
-                      className="hidden md:block px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
+                      className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium"
                     >
-                      Экспорт в Excel
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="hidden sm:inline">Excel</span>
                     </button>
                   </div>
                   

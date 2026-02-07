@@ -216,21 +216,21 @@ function IncomeContent() {
             )}
 
             {/* Заголовок и кнопки */}
-            <div className="mb-6 animate-slide-in-left">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
+            <div className="mb-4 animate-slide-in-left">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {/* Иконка фильтров */}
                   <button
                     onClick={() => setShowFilterDrawer(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:border-teal-400 hover:bg-teal-50 transition-all duration-200 shadow-sm hover:shadow group"
+                    className="relative p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 hover:text-teal-600 transition-all duration-200"
+                    title="Фильтры"
                   >
-                    <svg className="w-5 h-5 text-gray-500 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                     </svg>
-                    <span className="font-medium">Фильтры</span>
+                    {/* Индикатор активных фильтров */}
                     {activeFiltersCount > 0 && (
-                      <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-teal-500 rounded-full">
-                        {activeFiltersCount}
-                      </span>
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 border-white"></span>
                     )}
                   </button>
 
@@ -265,7 +265,7 @@ function IncomeContent() {
                         onClick={resetFilters}
                         className="text-xs text-gray-500 hover:text-red-500 transition-colors"
                       >
-                        Сбросить все
+                        Сбросить
                       </button>
                     </div>
                   )}
@@ -273,12 +273,9 @@ function IncomeContent() {
                 
                 <button 
                   onClick={() => setShowAddModal(true)}
-                  className="px-4 py-2.5 text-white rounded-xl transition-all duration-200 hover:shadow-lg text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 flex items-center gap-2"
+                  className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Добавить приход
+                  + Добавить приход
                 </button>
               </div>
             </div>
@@ -288,42 +285,31 @@ function IncomeContent() {
               <>
                 {/* Overlay */}
                 <div 
-                  className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300"
+                  className="fixed inset-0 bg-black/30 z-40 transition-opacity duration-300"
                   onClick={() => setShowFilterDrawer(false)}
                 />
                 
                 {/* Drawer */}
-                <div className="fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-2xl z-50 animate-slide-in-right overflow-hidden flex flex-col">
+                <div className="fixed top-0 right-0 h-full w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
                   {/* Header */}
-                  <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gradient-to-r from-teal-600 to-emerald-600">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-bold text-white">Фильтры</h2>
-                        <p className="text-xs text-white/70">Настройте параметры поиска</p>
-                      </div>
-                    </div>
+                  <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-10">
+                    <h2 className="text-lg font-semibold text-gray-800">Фильтры</h2>
                     <button
                       onClick={() => setShowFilterDrawer(false)}
-                      className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                      className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1 overflow-y-auto p-5 space-y-6">
-                    {/* Быстрый выбор периода */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        Быстрый выбор периода
-                      </label>
+                  <div className="p-4 space-y-4">
+                    {/* Секция: Период */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Период</h3>
+                      
                       <div className="grid grid-cols-2 gap-2">
                         {quickPeriods.map((period) => (
                           <button
@@ -333,96 +319,82 @@ function IncomeContent() {
                               setStartDate(start)
                               setEndDate(end)
                             }}
-                            className="px-4 py-2.5 bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 rounded-xl text-sm font-medium text-gray-700 hover:text-teal-700 transition-all duration-200"
+                            className="px-3 py-2 bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 rounded-lg text-sm font-medium text-gray-700 hover:text-teal-700 transition-all duration-200"
                           >
                             {period.label}
                           </button>
                         ))}
                       </div>
-                    </div>
-
-                    {/* Период */}
-                    <div className="space-y-3">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Свой диапазон дат
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
+                      
+                      <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-xs text-gray-500 mb-1.5">От</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">С</label>
                           <input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm transition-all"
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-500 mb-1.5">До</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">По</label>
                           <input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm transition-all"
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                           />
                         </div>
                       </div>
                     </div>
 
-                    {/* Разделитель */}
-                    <div className="border-t border-gray-100" />
+                    <hr className="border-gray-200" />
 
-                    {/* Город */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Город
-                      </label>
-                      <CustomSelect
-                        value={cityFilter}
-                        onChange={(value) => setCityFilter(value)}
-                        options={[{ value: '', label: 'Все города' }, ...cities]}
-                        placeholder="Выберите город"
-                        selectId="filter-city"
-                        openSelect={filterOpenSelect}
-                        setOpenSelect={setFilterOpenSelect}
-                      />
-                    </div>
+                    {/* Секция: Основные */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Основные</h3>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Город</label>
+                        <CustomSelect
+                          value={cityFilter}
+                          onChange={(value) => setCityFilter(value)}
+                          options={[{ value: '', label: 'Все города' }, ...cities]}
+                          placeholder="Выберите город"
+                          selectId="filter-city"
+                          openSelect={filterOpenSelect}
+                          setOpenSelect={setFilterOpenSelect}
+                        />
+                      </div>
 
-                    {/* Назначение платежа */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Назначение платежа
-                      </label>
-                      <CustomSelect
-                        value={purposeFilter}
-                        onChange={(value) => setPurposeFilter(value)}
-                        options={[{ value: '', label: 'Все назначения' }, ...purposes]}
-                        placeholder="Выберите назначение"
-                        selectId="filter-purpose"
-                        openSelect={filterOpenSelect}
-                        setOpenSelect={setFilterOpenSelect}
-                      />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Назначение</label>
+                        <CustomSelect
+                          value={purposeFilter}
+                          onChange={(value) => setPurposeFilter(value)}
+                          options={[{ value: '', label: 'Все назначения' }, ...purposes]}
+                          placeholder="Выберите назначение"
+                          selectId="filter-purpose"
+                          openSelect={filterOpenSelect}
+                          setOpenSelect={setFilterOpenSelect}
+                        />
+                      </div>
                     </div>
                   </div>
 
                   {/* Footer */}
-                  <div className="p-5 border-t border-gray-100 bg-gray-50 space-y-3">
-                    <button
-                      onClick={applyFilters}
-                      className="w-full px-4 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Применить фильтры
-                    </button>
+                  <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-2">
                     <button
                       onClick={resetFilters}
-                      className="w-full px-4 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Сбросить все
+                      Сбросить
+                    </button>
+                    <button
+                      onClick={applyFilters}
+                      className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Применить
                     </button>
                   </div>
                 </div>
