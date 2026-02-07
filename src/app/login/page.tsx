@@ -14,6 +14,7 @@ import { getErrorMessage } from "@/lib/utils"
 import { toast } from "@/components/ui/toast"
 import { validators, validateField } from "@/lib/validation"
 import { LoadingScreen } from "@/components/ui/loading-screen"
+import { useDesignStore } from "@/store/design.store"
 
 // Компонент формы логина (использует useSearchParams)
 function LoginForm() {
@@ -31,6 +32,9 @@ function LoginForm() {
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null)
   const MAX_ATTEMPTS = 10 // Максимум попыток
   const BLOCK_DURATION = 5 * 60 * 1000 // 5 минут в миллисекундах
+  
+  // Версия дизайна
+  const { version, toggleVersion } = useDesignStore()
   
   /**
    * Безопасная валидация redirect URL
@@ -207,7 +211,40 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
+    <div className="min-h-screen flex items-center justify-center relative" style={{backgroundColor: '#114643'}}>
+      {/* Переключатель версий */}
+      <div className="absolute top-4 right-4 z-10">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-2">
+          <span 
+            className="text-sm font-medium transition-colors"
+            style={{color: version === 'v1' ? '#14b8a6' : 'rgba(255,255,255,0.5)'}}
+          >
+            V1
+          </span>
+          <button
+            onClick={toggleVersion}
+            className="relative w-12 h-6 rounded-full transition-colors duration-300"
+            style={{
+              backgroundColor: version === 'v2' ? '#14b8a6' : 'rgba(255,255,255,0.3)'
+            }}
+            title={`Переключить на ${version === 'v1' ? 'V2' : 'V1'}`}
+          >
+            <span
+              className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300"
+              style={{
+                transform: version === 'v2' ? 'translateX(24px)' : 'translateX(0)'
+              }}
+            />
+          </button>
+          <span 
+            className="text-sm font-medium transition-colors"
+            style={{color: version === 'v2' ? '#14b8a6' : 'rgba(255,255,255,0.5)'}}
+          >
+            V2
+          </span>
+        </div>
+      </div>
+
       <div className="max-w-md w-full space-y-8 py-12 px-4 sm:px-6 lg:px-8">
         <Card className="backdrop-blur-lg shadow-2xl border-0 rounded-2xl bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.02] animate-fade-in">
           <CardHeader className="text-center pb-8">

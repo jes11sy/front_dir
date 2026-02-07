@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useCallback } from 'react'
 import { apiClient } from '@/lib/api'
+import { useDesignStore } from '@/store/design.store'
 
 // Ключ для сохранения позиции прокрутки (должен совпадать с orders/page.tsx)
 const SCROLL_POSITION_KEY = 'orders_scroll_position'
@@ -46,6 +47,7 @@ export function CustomNavigation() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null)
+  const { version, toggleVersion } = useDesignStore()
 
   const handleLogout = async () => {
     // Выполняем logout асинхронно и ждем завершения
@@ -241,6 +243,42 @@ export function CustomNavigation() {
                 </div>
               ))}
               
+              {/* Переключатель версий для мобильной версии */}
+              <div className="pt-2 mt-2 border-t" style={{borderColor: '#e5e7eb'}}>
+                <div className="flex items-center justify-between px-4 py-3">
+                  <span className="text-sm font-medium" style={{color: '#374151'}}>Версия дизайна</span>
+                  <div className="flex items-center gap-2">
+                    <span 
+                      className="text-sm font-medium transition-colors"
+                      style={{color: version === 'v1' ? '#14b8a6' : '#9ca3af'}}
+                    >
+                      V1
+                    </span>
+                    <button
+                      onClick={toggleVersion}
+                      className="relative w-12 h-6 rounded-full transition-colors duration-300"
+                      style={{
+                        backgroundColor: version === 'v2' ? '#14b8a6' : '#d1d5db'
+                      }}
+                      title={`Переключить на ${version === 'v1' ? 'V2' : 'V1'}`}
+                    >
+                      <span
+                        className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300"
+                        style={{
+                          transform: version === 'v2' ? 'translateX(24px)' : 'translateX(0)'
+                        }}
+                      />
+                    </button>
+                    <span 
+                      className="text-sm font-medium transition-colors"
+                      style={{color: version === 'v2' ? '#14b8a6' : '#9ca3af'}}
+                    >
+                      V2
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* Кнопка выхода для мобильной версии */}
               <div className="pt-2 mt-2 border-t" style={{borderColor: '#e5e7eb'}}>
                 <button
@@ -391,6 +429,42 @@ export function CustomNavigation() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Переключатель версий для десктопа */}
+        <div className="px-4 py-4 border-t" style={{borderColor: '#e5e7eb'}}>
+          <div className="flex items-center justify-between px-4 py-2">
+            <span className="text-sm font-medium" style={{color: '#374151'}}>Версия</span>
+            <div className="flex items-center gap-2">
+              <span 
+                className="text-sm font-medium transition-colors"
+                style={{color: version === 'v1' ? '#14b8a6' : '#9ca3af'}}
+              >
+                V1
+              </span>
+              <button
+                onClick={toggleVersion}
+                className="relative w-12 h-6 rounded-full transition-colors duration-300"
+                style={{
+                  backgroundColor: version === 'v2' ? '#14b8a6' : '#d1d5db'
+                }}
+                title={`Переключить на ${version === 'v1' ? 'V2' : 'V1'}`}
+              >
+                <span
+                  className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300"
+                  style={{
+                    transform: version === 'v2' ? 'translateX(24px)' : 'translateX(0)'
+                  }}
+                />
+              </button>
+              <span 
+                className="text-sm font-medium transition-colors"
+                style={{color: version === 'v2' ? '#14b8a6' : '#9ca3af'}}
+              >
+                V2
+              </span>
+            </div>
           </div>
         </div>
 
