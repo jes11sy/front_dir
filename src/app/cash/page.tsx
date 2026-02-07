@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useDesignStore } from '@/store/design.store'
 
 const tabs = [
   { name: 'Приход', href: '/cash/income' },
@@ -11,12 +12,14 @@ const tabs = [
 
 export default function CashPage() {
   const pathname = usePathname()
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#1e2530]' : 'bg-white'}`}>
       <div className="px-6 py-6">
         {/* Табы */}
-        <div className="border-b border-gray-200 mb-6">
+        <div className={`border-b mb-6 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <nav className="flex gap-8">
             {tabs.map((tab) => {
               const isActive = pathname === tab.href
@@ -26,8 +29,10 @@ export default function CashPage() {
                   href={tab.href}
                   className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
                     isActive
-                      ? 'border-teal-500 text-teal-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-teal-500 text-teal-500'
+                      : isDark
+                        ? 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
                   {tab.name}
@@ -38,7 +43,7 @@ export default function CashPage() {
         </div>
 
         {/* Контент - подсказка выбрать раздел */}
-        <div className="text-center py-16 text-gray-500">
+        <div className={`text-center py-16 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
           <p>Выберите раздел для работы с кассой</p>
         </div>
       </div>

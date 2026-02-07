@@ -5,6 +5,7 @@
 import React from 'react';
 import CustomSelect from '@/components/optimized/CustomSelect';
 import { Master } from '@/lib/api';
+import { useDesignStore } from '@/store/design.store';
 
 interface OrderMasterTabProps {
   orderStatus: string;
@@ -59,12 +60,16 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
   openSelect,
   setOpenSelect,
 }) => {
+  // Тема из store
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
+
   return (
     <div className="space-y-4">
       {/* Блок: Мастер */}
-      <div className="bg-white rounded-xl shadow-sm">
-        <div className="px-4 py-2 border-b border-gray-100">
-          <h3 className="text-gray-700 font-medium text-sm">Мастер</h3>
+      <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+        <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+          <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Мастер</h3>
         </div>
         <div className="p-4 relative">
           <CustomSelect
@@ -85,43 +90,49 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
 
       {orderStatus === 'Модерн' ? (
         // Поля для статуса "Модерн"
-        <div className="bg-white rounded-xl shadow-sm">
-          <div className="px-4 py-2 border-b border-gray-100">
-            <h3 className="text-gray-700 font-medium text-sm">Модерн</h3>
+        <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+          <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+            <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Модерн</h3>
           </div>
           <div className="p-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Сумма предоплаты</label>
+                <label className={`block text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Сумма предоплаты</label>
                 <input 
                   type="number" 
                   value={prepayment}
                   onChange={(e) => setPrepayment(e.target.value)}
                   disabled={isFieldsDisabled()}
-                  className={`w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
+                    isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''
+                  } ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-white border-gray-200 text-gray-800'}`}
                   placeholder="Введите сумму"
                 />
               </div>
               
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Дата закрытия</label>
+                <label className={`block text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Дата закрытия</label>
                 <input 
                   type="date" 
                   value={dateClosmod}
                   onChange={(e) => setDateClosmod(e.target.value)}
                   disabled={isFieldsDisabled()}
-                  className={`w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
+                    isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''
+                  } ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-white border-gray-200 text-gray-800'}`}
                 />
               </div>
             </div>
             
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Комментарий</label>
+              <label className={`block text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Комментарий</label>
               <textarea 
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 disabled={isFieldsDisabled()}
-                className={`w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
+                  isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''
+                } ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-white border-gray-200 text-gray-800'}`}
                 rows={2}
                 placeholder="Введите комментарий"
               />
@@ -133,14 +144,14 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
         <>
           {/* Блок: Финансы */}
           {!shouldHideFinancialFields() && (
-            <div className="bg-white rounded-xl shadow-sm">
-              <div className="px-4 py-2 border-b border-gray-100">
-                <h3 className="text-gray-700 font-medium text-sm">Финансы</h3>
+            <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+              <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Финансы</h3>
               </div>
               <div className="p-4">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Итог</label>
+                    <label className={`block text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Итог</label>
                     <input 
                       type="number" 
                       value={result}
@@ -148,15 +159,19 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
                       disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
                       className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${
                         orderStatus === 'Отказ' || orderStatus === 'Незаказ' || isFieldsDisabled()
-                          ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' 
-                          : 'bg-white text-gray-800 border-gray-200'
+                          ? isDark 
+                            ? 'bg-[#3a4451] text-gray-500 cursor-not-allowed border-gray-600' 
+                            : 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200'
+                          : isDark
+                            ? 'bg-[#3a4451] text-gray-100 border-gray-600'
+                            : 'bg-white text-gray-800 border-gray-200'
                       }`}
                       placeholder="0"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Расход</label>
+                    <label className={`block text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Расход</label>
                     <input 
                       type="number" 
                       value={expenditure}
@@ -164,8 +179,12 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
                       disabled={isFieldsDisabled() || orderStatus === 'Отказ' || orderStatus === 'Незаказ'}
                       className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${
                         orderStatus === 'Отказ' || orderStatus === 'Незаказ' || isFieldsDisabled()
-                          ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' 
-                          : 'bg-white text-gray-800 border-gray-200'
+                          ? isDark 
+                            ? 'bg-[#3a4451] text-gray-500 cursor-not-allowed border-gray-600' 
+                            : 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200'
+                          : isDark
+                            ? 'bg-[#3a4451] text-gray-100 border-gray-600'
+                            : 'bg-white text-gray-800 border-gray-200'
                       }`}
                       placeholder="0"
                     />
@@ -174,23 +193,31 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
                   {orderStatus === 'Готово' && (
                     <>
                       <div>
-                        <label className="block text-xs text-gray-500 mb-1">Чистыми</label>
+                        <label className={`block text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Чистыми</label>
                         <input 
                           type="number" 
                           value={clean || ''}
                           readOnly
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500 cursor-not-allowed"
+                          className={`w-full px-3 py-2 border rounded-lg text-sm cursor-not-allowed ${
+                            isDark 
+                              ? 'bg-[#3a4451] border-gray-600 text-gray-400'
+                              : 'bg-gray-50 border-gray-200 text-gray-500'
+                          }`}
                           placeholder="Авто"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-xs text-gray-500 mb-1">Сдача мастера</label>
+                        <label className={`block text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Сдача мастера</label>
                         <input 
                           type="number" 
                           value={masterChange || ''}
                           readOnly
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500 cursor-not-allowed"
+                          className={`w-full px-3 py-2 border rounded-lg text-sm cursor-not-allowed ${
+                            isDark 
+                              ? 'bg-[#3a4451] border-gray-600 text-gray-400'
+                              : 'bg-gray-50 border-gray-200 text-gray-500'
+                          }`}
                           placeholder="Авто"
                         />
                       </div>
@@ -203,16 +230,18 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
 
           {/* Блок: Комментарий */}
           {(orderStatus === 'Готово' || orderStatus === 'В работе') && (
-            <div className="bg-white rounded-xl shadow-sm">
-              <div className="px-4 py-2 border-b border-gray-100">
-                <h3 className="text-gray-700 font-medium text-sm">Комментарий</h3>
+            <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+              <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Комментарий</h3>
               </div>
               <div className="p-4">
                 <textarea 
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   disabled={isFieldsDisabled()}
-                  className={`w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 ${isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                    isFieldsDisabled() ? 'opacity-50 cursor-not-allowed' : ''
+                  } ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-white border-gray-200 text-gray-800'}`}
                   rows={2}
                   placeholder="Введите комментарий..."
                 />

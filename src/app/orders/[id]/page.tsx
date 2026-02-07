@@ -12,6 +12,7 @@ import { OrderMasterTab } from '@/components/orders/OrderMasterTab'
 import { OrderMultipleFileUpload } from '@/components/orders/OrderMultipleFileUpload'
 import { OrderInfoTabContent } from '@/components/orders/OrderInfoTabContent'
 import { OrderCallsTab } from '@/components/orders/OrderCallsTab'
+import { useDesignStore } from '@/store/design.store'
 
 function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -19,6 +20,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const [activeTab, setActiveTab] = useState('main')
   const [openSelect, setOpenSelect] = useState<string | null>(null)
   const [callsLoaded, setCallsLoaded] = useState(false)
+  
+  // Тема из store
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
   
   // Используем хуки для загрузки данных
   const { order, masters, loading, error, updating, updateOrder } = useOrder(resolvedParams.id)
@@ -326,10 +331,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className={`flex items-center justify-center py-12 min-h-screen ${isDark ? 'bg-[#1e2530]' : 'bg-[#daece2]'}`}>
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-gray-500">Загрузка заказа...</span>
+          <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Загрузка заказа...</span>
         </div>
       </div>
     )
@@ -337,27 +342,35 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
   if (error || !order) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-        <p className="text-red-600 text-sm">{error instanceof Error ? error.message : error || 'Заказ не найден'}</p>
+      <div className={`min-h-screen p-4 ${isDark ? 'bg-[#1e2530]' : 'bg-[#daece2]'}`}>
+        <div className={`rounded-xl p-4 ${isDark ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
+          <p className={isDark ? 'text-red-400 text-sm' : 'text-red-600 text-sm'}>{error instanceof Error ? error.message : error || 'Заказ не найден'}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4 min-h-screen bg-[#daece2] -m-4 sm:-m-6 p-4 sm:p-6">
+    <div className={`space-y-4 min-h-screen -m-4 sm:-m-6 p-4 sm:p-6 transition-colors duration-300 ${
+      isDark ? 'bg-[#1e2530]' : 'bg-[#daece2]'
+    }`}>
       {/* Шапка заказа */}
-      <div className="bg-white rounded-b-xl shadow-sm">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 relative">
+      <div className={`rounded-b-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+        <div className={`flex items-center justify-between px-4 py-3 border-b relative ${
+          isDark ? 'border-gray-700' : 'border-gray-100'
+        }`}>
           <div className="flex items-center gap-3">
             <button 
               onClick={() => router.back()}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              className={`p-1.5 rounded-lg transition-colors ${
+                isDark ? 'hover:bg-[#3a4451]' : 'hover:bg-gray-100'
+              }`}
             >
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-lg font-semibold text-gray-800">Заказ #{resolvedParams.id}</h1>
+            <h1 className={`text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Заказ #{resolvedParams.id}</h1>
             <StatusSelect
               value={orderStatus}
               onChange={setOrderStatus}
@@ -383,20 +396,24 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         </div>
 
         {/* Компактные табы */}
-        <div className="flex border-b border-gray-100 bg-gray-50/50">
+        <div className={`flex border-b ${
+          isDark ? 'border-gray-700 bg-[#3a4451]/50' : 'border-gray-100 bg-gray-50/50'
+        }`}>
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
                 activeTab === tab.id
-                  ? 'text-teal-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-teal-500'
+                  : isDark 
+                    ? 'text-gray-400 hover:text-gray-200'
+                    : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500"></div>
               )}
             </button>
           ))}
@@ -405,8 +422,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
       {/* Ошибка */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-          <p className="text-red-600 text-sm">{(error as Error).message || String(error)}</p>
+        <div className={`rounded-xl p-3 ${
+          isDark ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'
+        }`}>
+          <p className={isDark ? 'text-red-400 text-sm' : 'text-red-600 text-sm'}>{(error as Error).message || String(error)}</p>
         </div>
       )}
 
@@ -416,72 +435,72 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
           {activeTab === 'main' && (
             <div className="space-y-4">
               {/* Блок: Заказ */}
-              <div className="bg-white rounded-xl shadow-sm">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <h3 className="text-gray-700 font-medium text-sm">Заказ</h3>
+              <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+                <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                  <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Заказ</h3>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                <div className={`grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Тип</div>
-                    <div className="text-sm font-medium text-gray-800">{order.typeOrder || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Тип</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.typeOrder || '-'}</div>
                   </div>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">РК</div>
-                    <div className="text-sm font-medium text-gray-800">{order.rk || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>РК</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.rk || '-'}</div>
                   </div>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Источник</div>
-                    <div className="text-sm font-medium text-gray-800">{order.avitoName || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Источник</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.avitoName || '-'}</div>
                   </div>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Направление</div>
-                    <div className="text-sm font-medium text-gray-800">{order.typeEquipment || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Направление</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.typeEquipment || '-'}</div>
                   </div>
                 </div>
               </div>
 
               {/* Блок: Клиент */}
-              <div className="bg-white rounded-xl shadow-sm">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <h3 className="text-gray-700 font-medium text-sm">Клиент</h3>
+              <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+                <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                  <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Клиент</h3>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                <div className={`grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Город</div>
-                    <div className="text-sm font-medium text-gray-800">{order.city || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Город</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.city || '-'}</div>
                   </div>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Адрес</div>
-                    <div className="text-sm font-medium text-gray-800 truncate" title={order.address}>{order.address || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Адрес</div>
+                    <div className={`text-sm font-medium truncate ${isDark ? 'text-gray-100' : 'text-gray-800'}`} title={order.address}>{order.address || '-'}</div>
                   </div>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Имя</div>
-                    <div className="text-sm font-medium text-gray-800">{order.clientName || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Имя</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.clientName || '-'}</div>
                   </div>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Телефон</div>
-                    <div className="text-sm font-medium text-gray-800">{order.phone || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Телефон</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.phone || '-'}</div>
                   </div>
                 </div>
               </div>
 
               {/* Блок: Детали */}
-              <div className="bg-white rounded-xl shadow-sm">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <h3 className="text-gray-700 font-medium text-sm">Детали</h3>
+              <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+                <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                  <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Детали</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                <div className={`grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Дата встречи</div>
-                    <div className="text-sm font-medium text-gray-800">
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Дата встречи</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
                       {order.dateMeeting ? new Date(order.dateMeeting).toLocaleDateString('ru-RU', {
                         day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC'
                       }) : '-'}
                     </div>
                   </div>
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Проблема</div>
-                    <div className="text-sm text-gray-800">{order.problem || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Проблема</div>
+                    <div className={`text-sm ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.problem || '-'}</div>
                   </div>
                 </div>
               </div>

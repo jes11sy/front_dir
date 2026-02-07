@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Order, Call, apiClient } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { useDesignStore } from '@/store/design.store';
 
 interface OrderHistory {
   id: number;
@@ -79,6 +80,10 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
   const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  
+  // Тема из store
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark';
 
   // Получаем прямые S3 URL для записей
   useEffect(() => {
@@ -129,9 +134,9 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
   return (
     <div className="space-y-4">
       {/* Записи звонков */}
-      <div className="bg-white rounded-xl shadow-sm">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="text-gray-700 font-medium text-sm">Записи звонков</h3>
+      <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+        <div className={`px-4 py-3 border-b flex items-center justify-between ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+          <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Записи звонков</h3>
           {calls.length > 0 && (
             <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{calls.length}</span>
           )}
@@ -144,15 +149,15 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
             </div>
           ) : callsError ? (
             <div className="py-4 text-center">
-              <span className="text-sm text-gray-400">Записи звонков недоступны</span>
+              <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Записи звонков недоступны</span>
             </div>
           ) : Array.isArray(calls) && calls.length > 0 ? (
             <div className="space-y-3">
               {calls.map((call) => (
-                <div key={call.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <div key={call.id} className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-800">Звонок #{call.id}</span>
-                    <span className="text-xs text-gray-400">
+                    <span className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Звонок #{call.id}</span>
+                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                       {formatDate(call.createdAt || call.recordingProcessedAt)}
                     </span>
                   </div>
@@ -174,7 +179,7 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
             </div>
           ) : (
             <div className="py-6 text-center">
-              <span className="text-sm text-gray-400">Записи не найдены</span>
+              <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Записи не найдены</span>
             </div>
           )}
         </div>
@@ -182,7 +187,7 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
       
       {/* Кнопка чата Авито */}
       {order?.avitoChatId && (
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className={`rounded-xl shadow-sm p-4 ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
           <button 
             className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
             onClick={() => router.push(`/orders/${order.id}/avito`)}
@@ -193,11 +198,11 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
       )}
 
       {/* История заказов клиента */}
-      <div className="bg-white rounded-xl shadow-sm">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="text-gray-700 font-medium text-sm">История заказов</h3>
+      <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+        <div className={`px-4 py-3 border-b flex items-center justify-between ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+          <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>История заказов</h3>
           {order?.phone && (
-            <span className="text-xs text-gray-400">{order.phone}</span>
+            <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{order.phone}</span>
           )}
         </div>
         
@@ -208,20 +213,24 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
             </div>
           ) : historyError ? (
             <div className="py-4 text-center">
-              <span className="text-sm text-gray-400">{historyError}</span>
+              <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{historyError}</span>
             </div>
           ) : orderHistory.length > 0 ? (
             <div className="space-y-3">
               {orderHistory.map((historyOrder) => (
                 <div 
                   key={historyOrder.id} 
-                  className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-teal-200 hover:bg-teal-50/30 transition-colors cursor-pointer"
+                  className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                    isDark 
+                      ? 'bg-[#3a4451] border-gray-600 hover:border-teal-600 hover:bg-[#3a4451]/80'
+                      : 'bg-gray-50 border-gray-100 hover:border-teal-200 hover:bg-teal-50/30'
+                  }`}
                   onClick={() => router.push(`/orders/${historyOrder.id}`)}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium text-gray-800">#{historyOrder.id}</span>
+                        <span className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>#{historyOrder.id}</span>
                         <span className={`px-1.5 py-0.5 text-xs font-medium rounded ${
                           historyOrder.statusOrder === 'Готово' ? 'bg-green-100 text-green-700' :
                           historyOrder.statusOrder === 'Отказ' ? 'bg-red-100 text-red-700' :
@@ -232,13 +241,13 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
                           {historyOrder.statusOrder}
                         </span>
                         {historyOrder.result && historyOrder.result > 0 && (
-                          <span className="text-xs font-medium text-green-600">
+                          <span className={`text-xs font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                             {historyOrder.result.toLocaleString('ru-RU')} ₽
                           </span>
                         )}
                       </div>
                       
-                      <div className="mt-1.5 text-xs text-gray-500 space-y-0.5">
+                      <div className={`mt-1.5 text-xs space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                         <div className="flex flex-wrap gap-x-2">
                           <span>{historyOrder.city}</span>
                           {historyOrder.typeEquipment && (
@@ -246,14 +255,14 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
                           )}
                         </div>
                         {historyOrder.problem && (
-                          <p className="line-clamp-1 text-gray-400">{historyOrder.problem}</p>
+                          <p className={`line-clamp-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{historyOrder.problem}</p>
                         )}
                         {historyOrder.master && (
-                          <p className="text-teal-600">Мастер: {historyOrder.master.name}</p>
+                          <p className={isDark ? 'text-teal-400' : 'text-teal-600'}>Мастер: {historyOrder.master.name}</p>
                         )}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-400 whitespace-nowrap">
+                    <div className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                       {formatShortDate(historyOrder.createdAt)}
                     </div>
                   </div>
@@ -262,36 +271,36 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
             </div>
           ) : (
             <div className="py-6 text-center">
-              <span className="text-sm text-gray-400">Нет других заказов</span>
+              <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Нет других заказов</span>
             </div>
           )}
         </div>
       </div>
 
       {/* История изменений заказа */}
-      <div className="bg-white rounded-xl shadow-sm">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="text-gray-700 font-medium text-sm">История изменений</h3>
+      <div className={`rounded-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+        <div className={`px-4 py-3 border-b flex items-center justify-between ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+          <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>История изменений</h3>
         </div>
         
         <div className="p-4 space-y-3">
           {/* Текущий статус */}
           {order?.statusOrder && (
-            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-medium text-gray-800">Текущий статус</div>
+                  <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Текущий статус</div>
                   <div className="mt-1 text-sm">
-                    <span className="text-gray-500">Статус: </span>
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Статус: </span>
                     <span className={`font-medium ${
-                      order.statusOrder === 'Готово' ? 'text-green-600' :
-                      order.statusOrder === 'Отказ' || order.statusOrder === 'Незаказ' ? 'text-red-600' :
-                      order.statusOrder === 'В работе' || order.statusOrder === 'В пути' ? 'text-blue-600' :
-                      'text-gray-800'
+                      order.statusOrder === 'Готово' ? (isDark ? 'text-green-400' : 'text-green-600') :
+                      order.statusOrder === 'Отказ' || order.statusOrder === 'Незаказ' ? (isDark ? 'text-red-400' : 'text-red-600') :
+                      order.statusOrder === 'В работе' || order.statusOrder === 'В пути' ? (isDark ? 'text-blue-400' : 'text-blue-600') :
+                      isDark ? 'text-gray-100' : 'text-gray-800'
                     }`}>{order.statusOrder}</span>
                   </div>
                 </div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">
+                <div className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                   {formatDate(order.updatedAt)}
                 </div>
               </div>
@@ -300,13 +309,13 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
           
           {/* Назначен мастер */}
           {order?.masterId && order?.masterName && (
-            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-medium text-gray-800">Назначен мастер</div>
+                  <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Назначен мастер</div>
                   <div className="mt-1 text-sm">
-                    <span className="text-gray-500">Мастер: </span>
-                    <span className="font-medium text-purple-600">{order.masterName}</span>
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Мастер: </span>
+                    <span className={`font-medium ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{order.masterName}</span>
                   </div>
                 </div>
               </div>
@@ -315,31 +324,31 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
           
           {/* Финансы заполнены */}
           {order?.result && order.result > 0 && (
-            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-medium text-gray-800">Финансы</div>
+                  <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Финансы</div>
                   <div className="mt-1 text-sm space-y-0.5">
                     <div>
-                      <span className="text-gray-500">Итог: </span>
-                      <span className="font-medium text-green-600">{order.result.toLocaleString('ru-RU')} ₽</span>
+                      <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Итог: </span>
+                      <span className={`font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}>{order.result.toLocaleString('ru-RU')} ₽</span>
                     </div>
                     {order.expenditure && order.expenditure > 0 && (
                       <div>
-                        <span className="text-gray-500">Расход: </span>
-                        <span className="font-medium text-red-600">{order.expenditure.toLocaleString('ru-RU')} ₽</span>
+                        <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Расход: </span>
+                        <span className={`font-medium ${isDark ? 'text-red-400' : 'text-red-600'}`}>{order.expenditure.toLocaleString('ru-RU')} ₽</span>
                       </div>
                     )}
                     {order.clean && (
                       <div>
-                        <span className="text-gray-500">Чистыми: </span>
-                        <span className="font-medium text-teal-600">{order.clean.toLocaleString('ru-RU')} ₽</span>
+                        <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Чистыми: </span>
+                        <span className={`font-medium ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>{order.clean.toLocaleString('ru-RU')} ₽</span>
                       </div>
                     )}
                   </div>
                 </div>
                 {order.dateClosmod && (
-                  <div className="text-xs text-gray-400 whitespace-nowrap">
+                  <div className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                     {formatShortDate(order.dateClosmod)}
                   </div>
                 )}
@@ -349,15 +358,15 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
           
           {/* Создание заказа */}
           {order?.createdAt && (
-            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div className={`p-3 rounded-lg border ${isDark ? 'bg-[#3a4451] border-gray-600' : 'bg-gray-50 border-gray-100'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-medium text-gray-800">Создание заказа</div>
-                  <div className="mt-1 text-sm text-gray-500">
+                  <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Создание заказа</div>
+                  <div className={`mt-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Заказ #{order.id} создан
                   </div>
                 </div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">
+                <div className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                   {formatDate(order.createdAt)}
                 </div>
               </div>

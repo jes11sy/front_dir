@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { X, Download, UploadCloud } from 'lucide-react';
+import { useDesignStore } from '@/store/design.store';
 
 interface FileWithPreview {
   file: File | null;
@@ -32,6 +33,10 @@ export const OrderMultipleFileUpload: React.FC<OrderMultipleFileUploadProps> = (
   isFieldsDisabled,
   canAddMore,
 }) => {
+  // Тема из store
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
@@ -56,7 +61,7 @@ export const OrderMultipleFileUpload: React.FC<OrderMultipleFileUploadProps> = (
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
         {label} ({filesWithPreviews.length} фото)
       </label>
 
@@ -65,8 +70,12 @@ export const OrderMultipleFileUpload: React.FC<OrderMultipleFileUploadProps> = (
           dragOver
             ? 'border-blue-400 bg-blue-50'
             : filesWithPreviews.length > 0
-              ? 'border-green-400 bg-green-50'
-              : 'border-gray-300 bg-gray-50'
+              ? isDark 
+                ? 'border-green-600 bg-green-900/20'
+                : 'border-green-400 bg-green-50'
+              : isDark
+                ? 'border-gray-600 bg-[#3a4451]'
+                : 'border-gray-300 bg-gray-50'
         }`}
         onDragOver={(e) => {
           e.preventDefault();
@@ -121,7 +130,7 @@ export const OrderMultipleFileUpload: React.FC<OrderMultipleFileUploadProps> = (
                   )}
                 </div>
                 {fileWithPreview.file && (
-                  <div className="text-xs text-gray-600 text-center mt-1 truncate px-1">
+                  <div className={`text-xs text-center mt-1 truncate px-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                     {fileWithPreview.file.name}
                   </div>
                 )}
@@ -130,11 +139,11 @@ export const OrderMultipleFileUpload: React.FC<OrderMultipleFileUploadProps> = (
           </div>
         ) : (
           <div className="space-y-3">
-            <UploadCloud className="w-16 h-16 text-gray-400 mx-auto" />
-            <div className="text-gray-700 font-medium">
+            <UploadCloud className={`w-16 h-16 mx-auto ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+            <div className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
               {dragOver ? 'Отпустите файлы' : 'Перетащите файлы сюда'}
             </div>
-            <div className="text-sm text-gray-500">или нажмите для выбора (можно несколько)</div>
+            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>или нажмите для выбора (можно несколько)</div>
             {!canAddMore && (
               <div className="text-sm text-red-500 font-medium">Достигнут лимит файлов</div>
             )}
