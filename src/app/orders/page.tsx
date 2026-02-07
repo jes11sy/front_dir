@@ -562,9 +562,9 @@ function OrdersContent() {
                 />
                 
                 {/* Панель фильтров */}
-                <div className="fixed top-16 right-0 h-[calc(100%-4rem)] w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
-                  {/* Заголовок панели */}
-                  <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-10">
+                <div className="fixed top-16 md:top-0 right-0 h-[calc(100%-4rem)] md:h-full w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
+                  {/* Заголовок панели - только на десктопе */}
+                  <div className="hidden md:flex sticky top-0 bg-white border-b border-gray-200 px-4 py-3 items-center justify-between z-10">
                     <h2 className="text-lg font-semibold text-gray-800">Фильтры</h2>
                     <button
                       onClick={() => setShowFilters(false)}
@@ -574,6 +574,19 @@ function OrdersContent() {
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
+                    </button>
+                  </div>
+
+                  {/* Кнопка скрыть - только на мобильных */}
+                  <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 px-4 py-3 z-10">
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                      Скрыть фильтры
                     </button>
                   </div>
 

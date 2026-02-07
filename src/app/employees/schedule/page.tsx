@@ -31,15 +31,6 @@ function getWeekDates(monday: Date): Date[] {
   return dates
 }
 
-// Форматировать дату как ДД.ММ.ГГГГ
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
-}
-
 // Форматировать дату как ДД.ММ
 function formatShortDate(date: Date): string {
   return date.toLocaleDateString('ru-RU', {
@@ -52,6 +43,11 @@ function formatShortDate(date: Date): string {
 function getDayName(date: Date): string {
   const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
   return days[date.getDay()]
+}
+
+// Получить только число
+function getDayNumber(date: Date): string {
+  return date.getDate().toString().padStart(2, '0')
 }
 
 // Преобразовать дату в строку YYYY-MM-DD (локальная дата, без UTC сдвига)
@@ -70,6 +66,16 @@ export default function SchedulePage() {
   const [currentMonday, setCurrentMonday] = useState<Date>(getMonday(new Date()))
   
   const weekDates = getWeekDates(currentMonday)
+
+  // Подсчёт рабочих дней для мастера
+  const getWorkingDaysCount = (masterId: number): number => {
+    let count = 0
+    weekDates.forEach(date => {
+      const key = `${masterId}-${toDateString(date)}`
+      if (schedule.get(key)) count++
+    })
+    return count
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -157,153 +163,134 @@ export default function SchedulePage() {
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-        <div className="text-gray-700 text-lg mt-4">Загрузка графика...</div>
+      <div className="flex items-center justify-center py-12">
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-500">Загрузка...</span>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <div className="text-red-600 text-lg">Ошибка: {error}</div>
+      <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+        <p className="text-red-600 text-sm">{error}</p>
       </div>
     )
   }
 
   return (
-    <div>
-      {/* Навигация по неделям */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <p className="text-sm text-gray-500">
-          Неделя: {formatDate(weekDates[0])} — {formatDate(weekDates[6])}
-        </p>
-        <div className="flex items-center gap-2">
+    <div className="space-y-4">
+      {/* Компактная навигация */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
           <button 
             onClick={goToPreviousWeek}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
-            title="Предыдущая неделя"
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <button 
-            onClick={goToCurrentWeek}
-            disabled={isCurrentWeek()}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              isCurrentWeek() 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                : 'bg-teal-600 text-white hover:bg-teal-700'
-            }`}
-          >
-            Сегодня
-          </button>
+          <span className="text-sm font-medium text-gray-700 min-w-[140px] text-center">
+            {formatShortDate(weekDates[0])} — {formatShortDate(weekDates[6])}
+          </span>
           <button 
             onClick={goToNextWeek}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
-            title="Следующая неделя"
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
+        
+        {!isCurrentWeek() && (
+          <button 
+            onClick={goToCurrentWeek}
+            className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+          >
+            Текущая неделя
+          </button>
+        )}
       </div>
 
-      {/* Таблица */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b-2 bg-gray-50 border-gray-200">
-              <th className="text-left py-4 px-4 font-semibold text-gray-700 min-w-[180px]">ФИО</th>
-              {weekDates.map((date, idx) => (
-                <th 
-                  key={idx} 
-                  className={`text-center py-3 px-2 font-semibold min-w-[70px] ${
-                    isToday(date) ? 'bg-teal-100' : ''
-                  }`}
-                >
-                  <div className="text-xs text-gray-500">{getDayName(date)}</div>
-                  <div className="text-gray-700">{formatShortDate(date)}</div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {masters.map((master) => (
-              <tr key={master.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                <td className="py-4 px-4 text-gray-800 font-medium">
-                  {master.name}
-                </td>
-                {weekDates.map((date, idx) => {
-                  const key = `${master.id}-${toDateString(date)}`
-                  const isWorking = schedule.get(key) ?? false
-                  
-                  return (
-                    <td 
-                      key={idx} 
-                      className={`text-center py-3 px-2 ${isToday(date) ? 'bg-teal-50' : ''}`}
-                    >
-                      <button
-                        onClick={() => toggleSchedule(master.id, date)}
-                        className={`
-                          w-10 h-10 rounded-lg flex items-center justify-center mx-auto
-                          transition-all duration-200 cursor-pointer
-                          ${isWorking 
-                            ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-                            : 'bg-red-100 text-red-600 hover:bg-red-200'
-                          }
-                        `}
-                        title={isWorking ? 'Работает' : 'Не работает'}
-                      >
-                        {isWorking ? (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        )}
-                      </button>
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Компактная таблица с точками */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {/* Заголовок с днями */}
+        <div className="grid grid-cols-[1fr_repeat(7,40px)_50px] gap-0 bg-gray-50 border-b border-gray-200">
+          <div className="py-2 px-3 text-xs font-medium text-gray-500">Мастер</div>
+          {weekDates.map((date, idx) => (
+            <div 
+              key={idx} 
+              className={`py-2 text-center ${isToday(date) ? 'bg-teal-50' : ''}`}
+            >
+              <div className="text-[10px] text-gray-400 leading-none">{getDayName(date)}</div>
+              <div className={`text-xs font-medium mt-0.5 ${isToday(date) ? 'text-teal-600' : 'text-gray-600'}`}>
+                {getDayNumber(date)}
+              </div>
+            </div>
+          ))}
+          <div className="py-2 px-2 text-center text-[10px] text-gray-400">Дней</div>
+        </div>
 
-      {masters.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          Нет активных мастеров. Добавьте мастеров на странице "Мастера".
+        {/* Строки мастеров */}
+        <div className="divide-y divide-gray-100">
+          {masters.map((master) => (
+            <div 
+              key={master.id} 
+              className="grid grid-cols-[1fr_repeat(7,40px)_50px] gap-0 items-center hover:bg-gray-50/50 transition-colors"
+            >
+              <div className="py-2.5 px-3 text-sm text-gray-800 truncate" title={master.name}>
+                {master.name}
+              </div>
+              
+              {weekDates.map((date, idx) => {
+                const key = `${master.id}-${toDateString(date)}`
+                const isWorking = schedule.get(key) ?? false
+                
+                return (
+                  <div 
+                    key={idx} 
+                    className={`py-2.5 flex justify-center ${isToday(date) ? 'bg-teal-50/50' : ''}`}
+                  >
+                    <button
+                      onClick={() => toggleSchedule(master.id, date)}
+                      className={`
+                        w-4 h-4 rounded-full transition-all duration-200 
+                        hover:scale-125 cursor-pointer
+                        ${isWorking 
+                          ? 'bg-emerald-500 hover:bg-emerald-600 shadow-sm shadow-emerald-200' 
+                          : 'bg-gray-200 hover:bg-gray-300'
+                        }
+                      `}
+                      title={`${master.name} — ${getDayName(date)}, ${formatShortDate(date)} — ${isWorking ? 'Работает' : 'Выходной'}`}
+                    />
+                  </div>
+                )
+              })}
+              
+              <div className="py-2.5 px-2 text-center">
+                <span className={`text-xs font-medium ${
+                  getWorkingDaysCount(master.id) >= 5 
+                    ? 'text-emerald-600' 
+                    : getWorkingDaysCount(master.id) >= 3 
+                      ? 'text-amber-600' 
+                      : 'text-gray-400'
+                }`}>
+                  {getWorkingDaysCount(master.id)}/7
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
-      )}
 
-      {/* Легенда */}
-      <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-gray-600">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-green-100 flex items-center justify-center">
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+        {masters.length === 0 && (
+          <div className="py-8 text-center text-sm text-gray-400">
+            Нет мастеров
           </div>
-          <span>Работает</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-red-100 flex items-center justify-center">
-            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <span>Не работает</span>
-        </div>
-        <div className="text-gray-400 ml-auto">
-          Нажмите на ячейку для изменения статуса
-        </div>
+        )}
       </div>
     </div>
   )
