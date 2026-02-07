@@ -445,27 +445,29 @@ function OrdersContent() {
 
             {/* Табы статусов */}
             <div className="mb-4 animate-slide-in-left">
-              <div className="flex flex-wrap gap-1 p-1 bg-gray-100 rounded-lg">
-                {[
-                  { id: 'all', label: 'Все' },
-                  { id: 'Ожидает', label: 'Ожидает' },
-                  { id: 'Принял', label: 'Принял' },
-                  { id: 'В работе', label: 'В работе' },
-                  { id: 'Модерн', label: 'Модерн' },
-                  { id: 'completed', label: 'Завершённые' },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleStatusTabChange(tab.id)}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                      statusTab === tab.id
-                        ? 'bg-white text-teal-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+                <div className="flex gap-1 p-1 bg-gray-100 rounded-lg w-max md:w-auto">
+                  {[
+                    { id: 'all', label: 'Все' },
+                    { id: 'Ожидает', label: 'Ожидает' },
+                    { id: 'Принял', label: 'Принял' },
+                    { id: 'В работе', label: 'В работе' },
+                    { id: 'Модерн', label: 'Модерн' },
+                    { id: 'completed', label: 'Завершённые' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleStatusTabChange(tab.id)}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
+                        statusTab === tab.id
+                          ? 'bg-white text-teal-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
