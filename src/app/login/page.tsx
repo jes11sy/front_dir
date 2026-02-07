@@ -213,7 +213,7 @@ function LoginForm() {
   return (
     <div 
       className={`min-h-screen flex items-center justify-center p-4 relative transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-[#1e2530]' : 'bg-[#114643]'
+        theme === 'dark' ? 'bg-[#1e2530]' : 'bg-[#afd4bc]'
       }`}
     >
       {/* Login Card */}
