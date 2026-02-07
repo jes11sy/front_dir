@@ -175,9 +175,14 @@ function LoginForm() {
       
       logger.info('Пользователь успешно авторизован')
       
+      // Сбрасываем возможные застрявшие стили (мобильное меню)
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = ''
+      }
+      
       // Безопасный редирект (защита от Open Redirect атаки)
       const safeRedirectUrl = getSafeRedirectUrl()
-      router.push(safeRedirectUrl)
+      router.replace(safeRedirectUrl)
     } catch (error) {
       // ❌ НЕУДАЧНАЯ ПОПЫТКА - увеличиваем счетчик
       const newAttemptCount = attemptCount + 1

@@ -21,6 +21,12 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
     return pathname === '/login' || pathname === '/logout'
   }, [pathname])
 
+  // Сбрасываем застрявшие стили при монтировании (после логина)
+  useEffect(() => {
+    // Очищаем overflow на body - мог застрять от мобильного меню
+    document.body.style.overflow = ''
+  }, [])
+
   // Синхронизируем класс dark на html элементе при изменении темы
   useEffect(() => {
     const html = document.documentElement

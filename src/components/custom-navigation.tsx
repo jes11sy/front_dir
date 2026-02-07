@@ -26,8 +26,16 @@ export function CustomNavigation() {
   const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
   const { user } = useAuthStore()
 
+  // Принудительно закрываем меню при монтировании (после логина)
+  useEffect(() => {
+    setMobileMenuOpen(false)
+    // Очищаем overflow на body на случай если он застрял
+    document.body.style.overflow = ''
+  }, [])
+
   // Переход на главную страницу заказов (сброс всех фильтров и позиции)
   const handleLogoClick = useCallback(() => {
+    setMobileMenuOpen(false)
     // Очищаем сохранённую позицию прокрутки
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem(SCROLL_POSITION_KEY)
@@ -39,6 +47,7 @@ export function CustomNavigation() {
   // Закрываем меню при смене маршрута
   useEffect(() => {
     setMobileMenuOpen(false)
+    document.body.style.overflow = ''
   }, [pathname])
 
   // Блокируем скролл body при открытом меню
