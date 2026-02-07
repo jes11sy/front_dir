@@ -15,6 +15,7 @@ import { toast } from "@/components/ui/toast"
 import { validators, validateField } from "@/lib/validation"
 import { LoadingScreen } from "@/components/ui/loading-screen"
 import { useDesignStore } from "@/store/design.store"
+import { Sun, Moon } from 'lucide-react'
 
 // Компонент формы логина (использует useSearchParams)
 function LoginForm() {
@@ -213,43 +214,35 @@ function LoginForm() {
   return (
     <div 
       className={`min-h-screen flex items-center justify-center p-4 relative transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-[#1e2530]' : 'bg-[#afd4bc]'
+        theme === 'dark' ? 'bg-[#1e2530]' : 'bg-[#daece2]'
       }`}
     >
       {/* Login Card */}
-      <div className={`w-full max-w-md rounded-2xl p-8 shadow-xl relative transition-colors duration-300 ${
+      <div className={`w-full max-w-sm rounded-2xl p-8 shadow-xl relative transition-colors duration-300 ${
         theme === 'dark' ? 'bg-[#2a3441]' : 'bg-white'
       }`}>
         
         {/* Переключатель темы справа вверху */}
         <button
           onClick={toggleTheme}
-          className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
-            theme === 'dark' 
-              ? 'text-teal-400 hover:bg-gray-700/50' 
-              : 'text-teal-500 hover:bg-gray-100'
-          }`}
+          className="absolute top-4 right-4 p-2 text-[#0d5c4b] transition-colors"
           title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
         >
           {theme === 'dark' ? (
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-            </svg>
+            <Sun className="w-5 h-5" />
           ) : (
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-            </svg>
+            <Moon className="w-5 h-5" />
           )}
         </button>
 
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <Image 
             src="/images/logo_light_v2.png"
             alt="Новые Схемы" 
-            width={240} 
-            height={70} 
-            className="h-16 w-auto object-contain" 
+            width={180} 
+            height={40} 
+            className="h-10 w-auto object-contain" 
             priority
           />
         </div>
@@ -324,7 +317,7 @@ function LoginForm() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-lg transition-colors" 
+            className="w-full h-12 bg-[#0d5c4b] hover:bg-[#0a4a3c] text-white font-semibold rounded-lg transition-colors" 
             disabled={isLoading || (blockedUntil !== null && Date.now() < blockedUntil)}
           >
             {isLoading ? (

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { LoadingScreen } from '@/components/ui/loading-screen'
+import { useAuthStore } from '@/store/auth.store'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -16,6 +17,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const [authError, setAuthError] = useState<string | null>(null)
   const router = useRouter()
   const hasCheckedAuth = useRef(false)
+  const { setUser } = useAuthStore()
 
   // Колбэк для обработки ошибок авторизации (используется в apiClient)
   const handleAuthError = useCallback(() => {
@@ -48,9 +50,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
           setTimeout(() => reject(new Error('AUTH_TIMEOUT')), 15000)
         )
         
-        await Promise.race([apiClient.getProfile(), timeoutPromise])
+        const userData = await Promise.race([apiClient.getProfile(), timeoutPromise])
         
         if (isMounted) {
+          setUser(userData) // Сохраняем данные пользователя в store
           setIsAuthenticated(true)
           setAuthError(null)
         }
@@ -80,6 +83,15 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         
         if (restored) {
           logger.debug('Session restored from IndexedDB')
+          // Загружаем данные пользователя после восстановления сессии
+          try {
+            const userData = await apiClient.getProfile()
+            if (isMounted) {
+              setUser(userData)
+            }
+          } catch {
+            logger.debug('Failed to load user data after session restore')
+          }
           if (isMounted) {
             setIsAuthenticated(true)
             setAuthError(null)
