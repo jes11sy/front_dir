@@ -212,185 +212,146 @@ function LoginForm() {
 
   return (
     <div 
-      className="min-h-screen flex flex-col relative transition-colors duration-300" 
-      style={{backgroundColor: theme === 'dark' ? '#1a2e2c' : '#114643'}}
+      className={`min-h-screen flex items-center justify-center p-4 relative transition-colors duration-300 ${
+        theme === 'dark' ? 'bg-[#1e2530]' : 'bg-[#114643]'
+      }`}
     >
-      {/* Верхняя панель с логотипом и переключателями */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          {/* Логотип слева */}
-          <div className="flex-shrink-0">
-            <Image
-              src="/images/logo_light_v2.png"
-              alt="Новые Схемы"
-              width={160}
-              height={45}
-              className="h-10 w-auto object-contain"
-              priority
-            />
-          </div>
-
-          {/* Переключатель версий справа */}
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-2">
-            <span 
-              className="text-sm font-medium transition-colors"
-              style={{color: version === 'v1' ? '#14b8a6' : 'rgba(255,255,255,0.5)'}}
-            >
-              V1
-            </span>
-            <button
-              onClick={toggleVersion}
-              className="relative w-12 h-6 rounded-full transition-colors duration-300"
-              style={{
-                backgroundColor: version === 'v2' ? '#14b8a6' : 'rgba(255,255,255,0.3)'
-              }}
-              title={`Переключить на ${version === 'v1' ? 'V2' : 'V1'}`}
-            >
-              <span
-                className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300"
-                style={{
-                  transform: version === 'v2' ? 'translateX(24px)' : 'translateX(0)'
-                }}
-              />
-            </button>
-            <span 
-              className="text-sm font-medium transition-colors"
-              style={{color: version === 'v2' ? '#14b8a6' : 'rgba(255,255,255,0.5)'}}
-            >
-              V2
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Форма логина по центру */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-        <Card className="backdrop-blur-lg shadow-2xl border-0 rounded-2xl bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.02] animate-fade-in">
-          {/* Шапка карточки: лого слева, переключатель темы справа */}
-          <div className="flex items-center justify-between px-6 pt-6 pb-2">
-            <Image
-              src="/images/logo_light_v2.png"
-              alt="Новые Схемы"
-              width={120}
-              height={35}
-              className="h-8 w-auto object-contain"
-            />
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-300"
-              title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
-            >
-              {theme === 'dark' ? (
-                <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                </svg>
-              )}
-            </button>
-          </div>
-          <CardHeader className="text-center pb-4 pt-2">
-            <CardTitle className="text-2xl font-semibold text-gray-800">Авторизация</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2 animate-slide-in-left">
-                <Label htmlFor="login" className="font-medium text-gray-700 transition-colors duration-200">Логин</Label>
-                <CustomInput
-                  id="login"
-                  type="text"
-                  placeholder="Введите логин"
-                  value={login}
-                  onChange={(e) => {
-                    setLogin(sanitizeString(e.target.value))
-                    // Очищаем ошибку при вводе
-                    if (errors.login) setErrors(prev => ({ ...prev, login: undefined }))
-                  }}
-                  className={`bg-white text-gray-800 placeholder:text-gray-400 rounded-xl hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover ${
-                    errors.login ? 'border-red-500 focus:border-red-500' : ''
-                  }`}
-                  required
-                  autoComplete="username"
-                  maxLength={50}
-                />
-                {errors.login && (
-                  <p className="text-red-500 text-sm mt-1 animate-fade-in">
-                    {sanitizeString(errors.login)}
-                  </p>
-                )}
-              </div>
-              
-              <div className="space-y-2 animate-slide-in-right">
-                <Label htmlFor="password" className="font-medium text-gray-700 transition-colors duration-200">Пароль</Label>
-                <CustomInput
-                  id="password"
-                  type="password"
-                  placeholder="Введите пароль"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value)
-                    // Очищаем ошибку при вводе
-                    if (errors.password) setErrors(prev => ({ ...prev, password: undefined }))
-                  }}
-                  className={`bg-white text-gray-800 placeholder:text-gray-400 rounded-xl hover:border-gray-300 shadow-sm hover:shadow-md form-input-hover ${
-                    errors.password ? 'border-red-500 focus:border-red-500' : ''
-                  }`}
-                  required
-                  autoComplete="current-password"
-                  maxLength={100}
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-sm mt-1 animate-fade-in">
-                    {sanitizeString(errors.password)}
-                  </p>
-                )}
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" 
-                disabled={isLoading || (blockedUntil !== null && Date.now() < blockedUntil)}
-              >
-                <span className="flex items-center justify-center">
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Вход...
-                    </>
-                  ) : blockedUntil && Date.now() < blockedUntil ? (
-                    <>🔒 Заблокировано</>
-                  ) : (
-                    'Войти'
-                  )}
-                </span>
-              </Button>
-              
-              {/* Предупреждение о количестве оставшихся попыток */}
-              {attemptCount > 0 && attemptCount < MAX_ATTEMPTS && !blockedUntil && (
-                <div className="text-center mt-2 animate-fade-in">
-                  <p className="text-yellow-600 text-sm font-medium">
-                    ⚠️ Осталось попыток: {MAX_ATTEMPTS - attemptCount}
-                  </p>
-                </div>
-              )}
-            </form>
-          </CardContent>
-        </Card>
+      {/* Login Card */}
+      <div className={`w-full max-w-md rounded-2xl p-8 shadow-xl relative transition-colors duration-300 ${
+        theme === 'dark' ? 'bg-[#2a3441]' : 'bg-[#1a3a38]'
+      }`}>
         
+        {/* Переключатель темы справа вверху */}
+        <button
+          onClick={toggleTheme}
+          className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
+            theme === 'dark' 
+              ? 'text-teal-400 hover:bg-gray-700/50' 
+              : 'text-teal-300 hover:bg-white/10'
+          }`}
+          title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+        >
+          {theme === 'dark' ? (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+            </svg>
+          )}
+        </button>
+
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <Image 
+            src="/images/logo_light_v2.png"
+            alt="Новые Схемы" 
+            width={180} 
+            height={50} 
+            className="h-12 w-auto object-contain" 
+            priority
+          />
         </div>
+
+        {/* Title */}
+        <h1 className="text-2xl font-semibold text-center mb-8 text-gray-100">
+          Авторизация
+        </h1>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <Label className="text-sm font-medium mb-2 block text-gray-300">
+              Логин
+            </Label>
+            <CustomInput
+              id="login"
+              type="text"
+              placeholder="Введите логин"
+              value={login}
+              onChange={(e) => {
+                setLogin(sanitizeString(e.target.value))
+                if (errors.login) setErrors(prev => ({ ...prev, login: undefined }))
+              }}
+              className={`h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                errors.login ? 'ring-2 ring-red-500' : ''
+              }`}
+              required
+              autoComplete="username"
+              maxLength={50}
+            />
+            {errors.login && (
+              <p className="text-red-400 text-sm mt-1">
+                {sanitizeString(errors.login)}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium mb-2 block text-gray-300">
+              Пароль
+            </Label>
+            <div className="relative">
+              <CustomInput
+                id="password"
+                type="password"
+                placeholder="Введите пароль"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (errors.password) setErrors(prev => ({ ...prev, password: undefined }))
+                }}
+                className={`h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                  errors.password ? 'ring-2 ring-red-500' : ''
+                }`}
+                required
+                autoComplete="current-password"
+                maxLength={100}
+              />
+            </div>
+            {errors.password && (
+              <p className="text-red-400 text-sm mt-1">
+                {sanitizeString(errors.password)}
+              </p>
+            )}
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full h-12 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-lg transition-colors" 
+            disabled={isLoading || (blockedUntil !== null && Date.now() < blockedUntil)}
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Вход...
+              </span>
+            ) : blockedUntil && Date.now() < blockedUntil ? (
+              'Заблокировано'
+            ) : (
+              'Войти'
+            )}
+          </Button>
+          
+          {/* Предупреждение о количестве оставшихся попыток */}
+          {attemptCount > 0 && attemptCount < MAX_ATTEMPTS && !blockedUntil && (
+            <div className="text-center mt-2">
+              <p className="text-yellow-400 text-sm font-medium">
+                Осталось попыток: {MAX_ATTEMPTS - attemptCount}
+              </p>
+            </div>
+          )}
+        </form>
       </div>
 
-      {/* Футер внизу страницы */}
-      <div className="w-full py-4 text-center">
-        <p className="text-white/60 text-xs hover:text-white/80 transition-colors duration-200">
-          © 2026 Новые Схемы. Все права защищены.
-        </p>
+      {/* Footer */}
+      <div className={`absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center text-xs transition-colors ${
+        theme === 'dark' ? 'text-gray-500' : 'text-white/50'
+      }`}>
+        © 2026 Новые Схемы
       </div>
     </div>
   )
