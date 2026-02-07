@@ -4,24 +4,30 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { name: 'По городу', href: '/reports/city' },
-  { name: 'По мастерам', href: '/reports/masters' },
+  { name: 'Приход', href: '/cash/income' },
+  { name: 'Расход', href: '/cash/expense' },
+  { name: 'История', href: '/cash/history' },
 ]
 
-export default function ReportsPage() {
+export default function CashLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  
+  // Не показываем табы на главной странице /cash и на страницах просмотра
+  if (pathname === '/cash' || pathname.includes('/view/')) {
+    return <>{children}</>
+  }
 
   return (
     <div className="min-h-screen bg-white">
       <div className="px-6 py-6">
         {/* Заголовок */}
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Отчеты</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Касса</h1>
 
         {/* Табы */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="flex gap-8">
             {tabs.map((tab) => {
-              const isActive = pathname === tab.href
+              const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
               return (
                 <Link
                   key={tab.href}
@@ -39,10 +45,8 @@ export default function ReportsPage() {
           </nav>
         </div>
 
-        {/* Контент - подсказка выбрать раздел */}
-        <div className="text-center py-16 text-gray-500">
-          <p>Выберите тип отчета</p>
-        </div>
+        {/* Контент */}
+        {children}
       </div>
     </div>
   )

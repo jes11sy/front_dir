@@ -8,8 +8,13 @@ const tabs = [
   { name: 'По мастерам', href: '/reports/masters' },
 ]
 
-export default function ReportsPage() {
+export default function ReportsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  
+  // Не показываем табы на главной странице /reports (там свои)
+  if (pathname === '/reports') {
+    return <>{children}</>
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -21,7 +26,7 @@ export default function ReportsPage() {
         <div className="border-b border-gray-200 mb-6">
           <nav className="flex gap-8">
             {tabs.map((tab) => {
-              const isActive = pathname === tab.href
+              const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
               return (
                 <Link
                   key={tab.href}
@@ -39,10 +44,8 @@ export default function ReportsPage() {
           </nav>
         </div>
 
-        {/* Контент - подсказка выбрать раздел */}
-        <div className="text-center py-16 text-gray-500">
-          <p>Выберите тип отчета</p>
-        </div>
+        {/* Контент */}
+        {children}
       </div>
     </div>
   )

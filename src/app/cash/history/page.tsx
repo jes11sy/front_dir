@@ -113,12 +113,8 @@ function HistoryContent() {
   const balance = stats.balance
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#114643'}}>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-none mx-auto">
-          <div className="backdrop-blur-lg shadow-2xl rounded-2xl p-8 border bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.01] animate-fade-in" style={{borderColor: '#114643'}}>
-            
-            {/* Статистика */}
+    <div>
+      {/* Статистика */}
             <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slide-in-left">
               <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
                 <div className="text-sm text-gray-600 font-medium">Приходы</div>
@@ -326,21 +322,17 @@ function HistoryContent() {
               </div>
             )}
 
-            {/* Пагинация */}
-            {!loading && !error && totalPages > 1 && (
-              <div className="mt-6 animate-fade-in">
-                <OptimizedPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                  maxVisiblePages={7}
-                />
-              </div>
-            )}
-
-          </div>
+      {/* Пагинация */}
+      {!loading && !error && totalPages > 1 && (
+        <div className="mt-6 animate-fade-in">
+          <OptimizedPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxVisiblePages={7}
+          />
         </div>
-      </div>
+      )}
 
       {/* Стили для кастомного скроллбара */}
       <style jsx global>{`
