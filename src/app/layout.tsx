@@ -8,11 +8,21 @@ import Script from 'next/script'
 export const metadata: Metadata = {
   title: 'Новые схемы',
   description: 'CRM Директора',
+  manifest: '/manifest.json',
   icons: {
     icon: '/images/favicon.png',
     shortcut: '/images/favicon.png',
-    apple: '/images/favicon.png',
+    apple: '/images/pwa.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'НС Директор',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  themeColor: '#0d5c4b',
 }
 
 export default function RootLayout({

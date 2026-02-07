@@ -1,0 +1,38 @@
+{
+  "name": "Новые схемы - Директор",
+  "short_name": "НС Директор",
+  "description": "CRM для директора - управление заказами, кассой и сотрудниками",
+  "start_url": "/orders",
+  "display": "standalone",
+  "background_color": "#1e2530",
+  "theme_color": "#0d5c4b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/pwa.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/pwa.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/pwa.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/pwa.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "ru-RU"
+}
