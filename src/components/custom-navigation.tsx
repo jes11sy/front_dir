@@ -61,6 +61,8 @@ export function CustomNavigation() {
     return false
   }
 
+  const isDark = theme === 'dark'
+
   // Контент меню (переиспользуется для десктопа и мобильной версии)
   const MenuContent = ({ isMobile = false }: { isMobile?: boolean }) => (
     <>
@@ -86,7 +88,7 @@ export function CustomNavigation() {
                 <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
                   <path 
                     d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
-                    stroke="#14b8a6" 
+                    stroke="#0d5c4b" 
                     strokeWidth="1.5" 
                     strokeLinecap="round"
                     fill="none"
@@ -101,12 +103,22 @@ export function CustomNavigation() {
                   height={isMobile ? 24 : 20} 
                   className={`transition-all ${isMobile ? 'w-6 h-6' : 'w-5 h-5'} ${
                     active 
-                      ? 'brightness-0 saturate-100 [filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]' 
-                      : 'brightness-0 group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]'
+                      ? isDark
+                        ? '[filter:invert(27%)_sepia(51%)_saturate(1095%)_hue-rotate(140deg)_brightness(92%)_contrast(92%)]'
+                        : '[filter:invert(27%)_sepia(51%)_saturate(1095%)_hue-rotate(140deg)_brightness(92%)_contrast(92%)]'
+                      : isDark
+                        ? 'invert group-hover:[filter:invert(27%)_sepia(51%)_saturate(1095%)_hue-rotate(140deg)_brightness(92%)_contrast(92%)]'
+                        : 'brightness-0 group-hover:[filter:invert(27%)_sepia(51%)_saturate(1095%)_hue-rotate(140deg)_brightness(92%)_contrast(92%)]'
                   }`}
                 />
               )}
-              <span className="text-gray-800 group-hover:text-teal-600 transition-colors">
+              <span className={`transition-colors ${
+                active 
+                  ? 'text-[#0d5c4b]' 
+                  : isDark 
+                    ? 'text-gray-300 group-hover:text-[#0d5c4b]' 
+                    : 'text-gray-800 group-hover:text-[#0d5c4b]'
+              }`}>
                 {item.name}
               </span>
             </Link>
@@ -119,11 +131,11 @@ export function CustomNavigation() {
         {/* Version Toggle - только для V1 */}
         {version === 'v1' && (
           <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
-            <span className={`transition-colors ${isMobile ? 'text-base' : 'text-sm'} ${version === 'v1' ? 'text-teal-500' : 'text-gray-400'}`}>V1</span>
+            <span className={`transition-colors ${isMobile ? 'text-base' : 'text-sm'} ${version === 'v1' ? 'text-[#0d5c4b]' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>V1</span>
             <button
               onClick={toggleVersion}
               className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                version === 'v2' ? 'bg-teal-500' : 'bg-gray-300'
+                version === 'v2' ? 'bg-[#0d5c4b]' : isDark ? 'bg-gray-600' : 'bg-gray-300'
               }`}
             >
               <span
@@ -132,18 +144,18 @@ export function CustomNavigation() {
                 }`}
               />
             </button>
-            <span className={`transition-colors ${isMobile ? 'text-base' : 'text-sm'} ${version === 'v2' ? 'text-teal-500' : 'text-gray-400'}`}>V2</span>
+            <span className={`transition-colors ${isMobile ? 'text-base' : 'text-sm'} ${version === 'v2' ? 'text-[#0d5c4b]' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>V2</span>
           </div>
         )}
 
         {/* Theme Toggle - только для V2 */}
         {version === 'v2' && (
           <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
-            <Sun className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'light' ? 'text-teal-500' : 'text-gray-400'}`} />
+            <Sun className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'light' ? 'text-[#0d5c4b]' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
             <button
               onClick={toggleTheme}
               className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                theme === 'dark' ? 'bg-teal-500' : 'bg-gray-300'
+                theme === 'dark' ? 'bg-[#0d5c4b]' : isDark ? 'bg-gray-600' : 'bg-gray-300'
               }`}
             >
               <span
@@ -152,15 +164,15 @@ export function CustomNavigation() {
                 }`}
               />
             </button>
-            <Moon className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'dark' ? 'text-teal-500' : 'text-gray-400'}`} />
+            <Moon className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'dark' ? 'text-[#0d5c4b]' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
           </div>
         )}
 
         {/* Notifications */}
         <button
-          className={`relative flex items-center gap-3 px-3 text-gray-800 hover:text-teal-600 transition-colors w-full group ${
+          className={`relative flex items-center gap-3 px-3 transition-colors w-full group ${
             isMobile ? 'py-3 text-base' : 'py-2.5 text-sm'
-          }`}
+          } ${isDark ? 'text-gray-300 hover:text-[#0d5c4b]' : 'text-gray-800 hover:text-[#0d5c4b]'}`}
         >
           <div className="relative">
             <Bell className={isMobile ? 'h-6 w-6' : 'h-5 w-5'} />
@@ -168,7 +180,7 @@ export function CustomNavigation() {
               3
             </span>
           </div>
-          <span className="group-hover:text-teal-600 transition-colors">
+          <span className="group-hover:text-[#0d5c4b] transition-colors">
             Уведомления
           </span>
         </button>
@@ -189,15 +201,27 @@ export function CustomNavigation() {
             <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
               <path 
                 d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
-                stroke="#14b8a6" 
+                stroke="#0d5c4b" 
                 strokeWidth="1.5" 
                 strokeLinecap="round"
                 fill="none"
               />
             </svg>
           </span>
-          <User className={`${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${isActive('/profile') ? 'text-teal-600' : 'text-gray-500'} group-hover:text-teal-600`} />
-          <span className="text-gray-800 group-hover:text-teal-600 transition-colors">
+          <User className={`${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${
+            isActive('/profile') 
+              ? 'text-[#0d5c4b]' 
+              : isDark 
+                ? 'text-gray-400 group-hover:text-[#0d5c4b]' 
+                : 'text-gray-500 group-hover:text-[#0d5c4b]'
+          }`} />
+          <span className={`transition-colors ${
+            isActive('/profile')
+              ? 'text-[#0d5c4b]'
+              : isDark
+                ? 'text-gray-300 group-hover:text-[#0d5c4b]'
+                : 'text-gray-800 group-hover:text-[#0d5c4b]'
+          }`}>
             {user?.name || user?.login || 'Профиль'}
           </span>
         </Link>
@@ -209,8 +233,12 @@ export function CustomNavigation() {
     <>
       {/* Mobile Header */}
       <header 
-        className={`md:hidden fixed top-0 left-0 w-screen z-[9999] h-16 bg-white flex items-center justify-between px-6 transition-all ${
-          mobileMenuOpen ? '' : 'border-b border-gray-200'
+        className={`md:hidden fixed top-0 left-0 w-screen z-[9999] h-16 flex items-center justify-between px-6 transition-all duration-300 ${
+          isDark 
+            ? 'bg-[#1e2530]' 
+            : 'bg-white'
+        } ${
+          mobileMenuOpen ? '' : isDark ? 'border-b border-[#0d5c4b]/30' : 'border-b border-gray-200'
         }`}
       >
         <button 
@@ -218,7 +246,7 @@ export function CustomNavigation() {
           className="bg-transparent border-none cursor-pointer p-0"
         >
           <Image 
-            src={theme === 'dark' ? "/images/logo_dark_v2.png" : "/images/logo_light_v2.png"} 
+            src={isDark ? "/images/logo_dark_v2.png" : "/images/logo_light_v2.png"} 
             alt="Новые Схемы" 
             width={130} 
             height={36} 
@@ -229,7 +257,11 @@ export function CustomNavigation() {
         <div className="flex items-center gap-2">
           {/* Mobile Notifications Bell */}
           <button
-            className="p-2 text-gray-600 hover:text-teal-600 transition-colors relative"
+            className={`p-2 transition-colors relative ${
+              isDark 
+                ? 'text-gray-300 hover:text-[#0d5c4b]' 
+                : 'text-gray-600 hover:text-[#0d5c4b]'
+            }`}
             aria-label="Уведомления"
           >
             <Bell className="h-6 w-6" />
@@ -241,7 +273,11 @@ export function CustomNavigation() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-gray-600 hover:text-teal-600 transition-colors"
+            className={`p-2 transition-colors ${
+              isDark 
+                ? 'text-gray-300 hover:text-[#0d5c4b]' 
+                : 'text-gray-600 hover:text-[#0d5c4b]'
+            }`}
             aria-label="Открыть меню"
           >
             {mobileMenuOpen ? (
@@ -255,7 +291,9 @@ export function CustomNavigation() {
 
       {/* Mobile Full-screen Menu with slide animation */}
       <aside 
-        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] bg-white z-[9998] flex flex-col transition-transform duration-300 ease-out ${
+        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] z-[9998] flex flex-col transition-all duration-300 ease-out ${
+          isDark ? 'bg-[#1e2530]' : 'bg-white'
+        } ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -266,14 +304,20 @@ export function CustomNavigation() {
 
       {/* Overlay backdrop */}
       <div 
-        className={`md:hidden fixed inset-0 top-16 bg-black/20 z-[9997] transition-opacity duration-300 ${
+        className={`md:hidden fixed inset-0 top-16 z-[9997] transition-opacity duration-300 ${
+          isDark ? 'bg-black/40' : 'bg-black/20'
+        } ${
           mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setMobileMenuOpen(false)}
       />
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-56 bg-white h-screen flex-col border-r border-gray-200 fixed left-0 top-0">
+      <aside className={`hidden md:flex w-56 h-screen flex-col fixed left-0 top-0 transition-colors duration-300 ${
+        isDark 
+          ? 'bg-[#1e2530] border-r border-[#0d5c4b]/30' 
+          : 'bg-white border-r border-gray-200'
+      }`}>
         {/* Logo */}
         <div className="p-6 pb-16">
           <button 
@@ -281,7 +325,7 @@ export function CustomNavigation() {
             className="bg-transparent border-none cursor-pointer p-0"
           >
             <Image 
-              src={theme === 'dark' ? "/images/logo_dark_v2.png" : "/images/logo_light_v2.png"} 
+              src={isDark ? "/images/logo_dark_v2.png" : "/images/logo_light_v2.png"} 
               alt="Новые Схемы" 
               width={160} 
               height={45} 
