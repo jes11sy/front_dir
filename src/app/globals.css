@@ -99,6 +99,16 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Тёмная тема - применяется через класс на html (устанавливается скриптом до рендеринга) */
+html.dark {
+  background-color: #1e2530;
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #1e2530;
+}
+
 /* Фиксация навигации на мобильных устройствах */
 @supports (-webkit-touch-callout: none) {
   /* iOS specific */

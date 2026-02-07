@@ -114,7 +114,9 @@ export function CustomNavigation() {
               )}
               <span className={`transition-colors ${
                 active 
-                  ? 'text-[#0d5c4b]' 
+                  ? isDark 
+                    ? 'text-white' 
+                    : 'text-[#0d5c4b]'
                   : isDark 
                     ? 'text-gray-300 group-hover:text-[#0d5c4b]' 
                     : 'text-gray-800 group-hover:text-[#0d5c4b]'
@@ -217,7 +219,9 @@ export function CustomNavigation() {
           }`} />
           <span className={`transition-colors ${
             isActive('/profile')
-              ? 'text-[#0d5c4b]'
+              ? isDark
+                ? 'text-white'
+                : 'text-[#0d5c4b]'
               : isDark
                 ? 'text-gray-300 group-hover:text-[#0d5c4b]'
                 : 'text-gray-800 group-hover:text-[#0d5c4b]'

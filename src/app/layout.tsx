@@ -21,8 +21,29 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ru">
+    <html lang="ru" suppressHydrationWarning>
       <head>
+        {/* Скрипт инициализации темы - ДОЛЖЕН быть первым, чтобы избежать мелькания */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('design-storage');
+                  if (stored) {
+                    var data = JSON.parse(stored);
+                    var theme = data.state && data.state.theme;
+                    if (theme === 'dark') {
+                      document.documentElement.classList.add('dark');
+                      document.documentElement.style.backgroundColor = '#1e2530';
+                      document.documentElement.style.colorScheme = 'dark';
+                    }
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         <Script id="error-handler" strategy="beforeInteractive">
           {`
             // Глобальная обработка необработанных ошибок
@@ -41,7 +62,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="font-myriad">
+      <body className="font-myriad transition-colors duration-0">
         <ToastProvider>
           <ClientLayout>
             {children}

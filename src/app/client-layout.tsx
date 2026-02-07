@@ -5,7 +5,7 @@ import { CustomNavigation } from '@/components/custom-navigation'
 import { ErrorBoundary } from '@/components/error-boundary'
 import AuthGuard from '@/components/auth-guard'
 import { useDesignStore } from '@/store/design.store'
-import React, { useLayoutEffect, useMemo, useRef } from 'react'
+import React, { useLayoutEffect, useEffect, useMemo, useRef } from 'react'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -20,6 +20,20 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
   const isPublicPage = useMemo(() => {
     return pathname === '/login' || pathname === '/logout'
   }, [pathname])
+
+  // Синхронизируем класс dark на html элементе при изменении темы
+  useEffect(() => {
+    const html = document.documentElement
+    if (isDark) {
+      html.classList.add('dark')
+      html.style.backgroundColor = '#1e2530'
+      html.style.colorScheme = 'dark'
+    } else {
+      html.classList.remove('dark')
+      html.style.backgroundColor = ''
+      html.style.colorScheme = ''
+    }
+  }, [isDark])
 
   // Скроллим в начало при смене страницы, НО НЕ при возврате назад на страницу заказов
   useLayoutEffect(() => {
@@ -53,7 +67,7 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
     <ErrorBoundary>
       <AuthGuard>
         <CustomNavigation />
-        <main className={`pt-16 md:pt-0 md:ml-56 min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#1e2530]' : 'bg-white'}`}>{children}</main>
+        <main className="pt-16 md:pt-0 md:ml-56 min-h-screen bg-white dark:bg-[#1e2530]">{children}</main>
       </AuthGuard>
     </ErrorBoundary>
   )

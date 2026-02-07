@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useDesignStore } from '@/store/design.store'
+import { useState, useEffect } from 'react'
 
 interface LoadingScreenProps {
   /** Текст под спиннером (не используется в новом дизайне) */
@@ -10,6 +11,28 @@ interface LoadingScreenProps {
   fullScreen?: boolean
   /** Дополнительные классы */
   className?: string
+}
+
+/**
+ * Хук для определения темы без мелькания
+ * Сначала проверяет CSS класс dark на html, потом синхронизируется со store
+ */
+function useThemeWithoutFlash() {
+  const { theme } = useDesignStore()
+  const [isDark, setIsDark] = useState(() => {
+    // На сервере или при первом рендере проверяем CSS класс
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark')
+    }
+    return false
+  })
+
+  useEffect(() => {
+    // После гидратации синхронизируемся со store
+    setIsDark(theme === 'dark')
+  }, [theme])
+
+  return isDark
 }
 
 /**
@@ -24,10 +47,7 @@ export function LoadingScreen({
   fullScreen = true,
   className = ''
 }: LoadingScreenProps) {
-  const { theme } = useDesignStore()
-  const isDark = theme === 'dark'
-  
-  const bgColor = isDark ? 'bg-[#111827]' : 'bg-white'
+  const isDark = useThemeWithoutFlash()
 
   const content = (
     <div className="flex flex-col items-center justify-center px-4">
@@ -45,22 +65,24 @@ export function LoadingScreen({
 
       {/* Спиннер */}
       <div className="relative w-12 h-12">
-        <div className={`w-full h-full rounded-full border-4 ${isDark ? 'border-teal-500/20' : 'border-teal-500/20'}`} />
-        <div className={`absolute inset-0 rounded-full border-4 border-transparent border-t-teal-500 animate-spin`} />
+        <div className={`w-full h-full rounded-full border-4 ${isDark ? 'border-[#0d5c4b]/30' : 'border-[#0d5c4b]/20'}`} />
+        <div className={`absolute inset-0 rounded-full border-4 border-transparent border-t-[#0d5c4b] animate-spin`} />
       </div>
     </div>
   )
 
+  // Используем CSS-класс dark на html для определения фона без мелькания
+  // Класс dark устанавливается синхронным скриптом в layout.tsx до рендеринга React
   if (fullScreen) {
     return (
-      <div className={`min-h-screen min-h-[100dvh] flex items-center justify-center transition-colors duration-300 ${bgColor} ${className}`}>
+      <div className={`min-h-screen min-h-[100dvh] flex items-center justify-center bg-white dark:bg-[#1e2530] ${className}`}>
         {content}
       </div>
     )
   }
 
   return (
-    <div className={`flex items-center justify-center py-12 transition-colors duration-300 ${bgColor} ${className}`}>
+    <div className={`flex items-center justify-center py-12 bg-white dark:bg-[#1e2530] ${className}`}>
       {content}
     </div>
   )
@@ -84,8 +106,8 @@ export function LoadingSpinner({
 
   return (
     <div className={`relative ${sizeClasses[size]} ${className}`}>
-      <div className={`${sizeClasses[size]} rounded-full border-2 border-teal-500/20`} />
-      <div className={`absolute top-0 left-0 ${sizeClasses[size]} rounded-full border-2 border-transparent border-t-teal-500 animate-spin`} />
+      <div className={`${sizeClasses[size]} rounded-full border-2 border-[#0d5c4b]/20`} />
+      <div className={`absolute top-0 left-0 ${sizeClasses[size]} rounded-full border-2 border-transparent border-t-[#0d5c4b] animate-spin`} />
     </div>
   )
 }
@@ -105,7 +127,7 @@ export function LoadingState({
   return (
     <div className={`flex flex-col items-center justify-center py-8 space-y-3 ${className}`}>
       <LoadingSpinner size={size} />
-      <p className="text-sm text-gray-500">{message}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
     </div>
   )
 }
@@ -122,16 +144,11 @@ export function LoadingOverlay({
   message?: string
   children: React.ReactNode
 }) {
-  const { theme } = useDesignStore()
-  const isDark = theme === 'dark'
-  
   return (
     <div className="relative">
       {children}
       {isLoading && (
-        <div className={`absolute inset-0 backdrop-blur-sm flex items-center justify-center z-50 ${
-          isDark ? 'bg-[#111827]/80' : 'bg-white/80'
-        }`}>
+        <div className="absolute inset-0 backdrop-blur-sm flex items-center justify-center z-50 bg-white/80 dark:bg-[#1e2530]/80">
           <LoadingState message={message} />
         </div>
       )}
