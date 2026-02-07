@@ -115,7 +115,7 @@ export function CustomNavigation() {
       </nav>
 
       {/* Bottom Section */}
-      <div className={`px-5 pb-6 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
+      <div className={`px-5 ${isMobile ? 'pb-24 space-y-4' : 'pb-6 space-y-3'}`}>
         {/* Version Toggle - только для V1 */}
         {version === 'v1' && (
           <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
@@ -253,16 +253,24 @@ export function CustomNavigation() {
         </div>
       </header>
 
-      {/* Mobile Full-screen Menu */}
-      {mobileMenuOpen && (
+      {/* Mobile Full-screen Menu with slide animation */}
       <aside 
-        className="md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] bg-white z-[9998] transform transition-transform duration-300 ease-in-out flex flex-col translate-x-0"
+        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] bg-white z-[9998] flex flex-col transition-transform duration-300 ease-out ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
       >
         <div className="pt-6 flex flex-col h-full overflow-y-auto">
           <MenuContent isMobile={true} />
         </div>
       </aside>
-      )}
+
+      {/* Overlay backdrop */}
+      <div 
+        className={`md:hidden fixed inset-0 top-16 bg-black/20 z-[9997] transition-opacity duration-300 ${
+          mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-56 bg-white h-screen flex-col border-r border-gray-200 fixed left-0 top-0">

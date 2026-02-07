@@ -184,27 +184,211 @@ export default function SchedulePage() {
     )
   }
 
+  // Мобильная версия - карточки мастеров
+  const MobileView = () => (
+    <div className="space-y-3 md:hidden">
+      {masters.map((master) => {
+        const workDays = getWorkingDaysCount(master.id)
+        return (
+          <div key={master.id} className="bg-white rounded-xl border border-gray-200 p-4">
+            {/* Имя и счётчик */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-gray-800">{master.name}</span>
+              <span className={`
+                px-2 py-0.5 rounded-full text-xs font-bold
+                ${workDays >= 5 
+                  ? 'bg-emerald-100 text-emerald-700' 
+                  : workDays >= 3 
+                    ? 'bg-amber-100 text-amber-700' 
+                    : workDays > 0
+                      ? 'bg-red-100 text-red-600'
+                      : 'bg-gray-100 text-gray-400'
+                }
+              `}>
+                {workDays}/7
+              </span>
+            </div>
+            
+            {/* Дни недели */}
+            <div className="grid grid-cols-7 gap-1">
+              {weekDates.map((date, idx) => {
+                const key = `${master.id}-${toDateString(date)}`
+                const isWorking = schedule.get(key) ?? false
+                
+                return (
+                  <div key={idx} className="flex flex-col items-center">
+                    <span className={`text-[10px] mb-1 ${
+                      isToday(date) 
+                        ? 'text-teal-600 font-bold' 
+                        : isSunday(date) 
+                          ? 'text-red-500' 
+                          : 'text-gray-400'
+                    }`}>
+                      {getDayName(date)}
+                    </span>
+                    <button
+                      onClick={() => toggleSchedule(master.id, date)}
+                      className={`
+                        w-9 h-9 rounded-lg transition-all duration-200 
+                        flex items-center justify-center
+                        ${isToday(date) ? 'ring-2 ring-teal-400 ring-offset-1' : ''}
+                        ${isWorking 
+                          ? 'bg-emerald-500 text-white' 
+                          : 'bg-gray-100 text-gray-400'
+                        }
+                      `}
+                    >
+                      <span className="text-xs font-medium">{getDayNumber(date)}</span>
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+
+  // Десктопная версия - таблица
+  const DesktopView = () => (
+    <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+      <table className="w-full table-fixed">
+        <thead>
+          <tr className="bg-gray-50 border-b border-gray-200">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              Мастер
+            </th>
+            {weekDates.map((date, idx) => (
+              <th 
+                key={idx} 
+                className={`py-3 px-1 text-center w-[60px] lg:w-[80px] ${
+                  isToday(date) 
+                    ? 'bg-teal-500 text-white' 
+                    : isSunday(date) 
+                      ? 'bg-red-50 text-red-600' 
+                      : ''
+                }`}
+              >
+                <div className={`text-[10px] font-medium uppercase ${isToday(date) ? 'text-teal-100' : ''}`}>
+                  {getDayName(date)}
+                </div>
+                <div className="text-sm font-bold">
+                  {getDayNumber(date)}
+                </div>
+              </th>
+            ))}
+            <th className="py-3 px-2 text-center w-[60px] text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              Дней
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {masters.map((master) => {
+            const workDays = getWorkingDaysCount(master.id)
+            return (
+              <tr 
+                key={master.id} 
+                className="hover:bg-gray-50/70 transition-colors"
+              >
+                <td className="py-2.5 px-4">
+                  <span className="text-sm text-gray-800 font-medium truncate block">
+                    {master.name}
+                  </span>
+                </td>
+                
+                {weekDates.map((date, idx) => {
+                  const key = `${master.id}-${toDateString(date)}`
+                  const isWorking = schedule.get(key) ?? false
+                  
+                  return (
+                    <td 
+                      key={idx} 
+                      className={`py-2.5 px-1 text-center ${
+                        isToday(date) 
+                          ? 'bg-teal-50' 
+                          : isSunday(date) 
+                            ? 'bg-red-50/30' 
+                            : ''
+                      }`}
+                    >
+                      <button
+                        onClick={() => toggleSchedule(master.id, date)}
+                        className={`
+                          w-8 h-8 lg:w-9 lg:h-9 rounded-full transition-all duration-200 
+                          flex items-center justify-center mx-auto
+                          ${isWorking 
+                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm shadow-emerald-200' 
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-400'
+                          }
+                        `}
+                        title={`${master.name} — ${getDayName(date)}, ${formatShortDate(date)}`}
+                      >
+                        {isWorking ? (
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <span className="w-2 h-2 rounded-full bg-gray-300"></span>
+                        )}
+                      </button>
+                    </td>
+                  )
+                })}
+                
+                <td className="py-2.5 px-2 text-center">
+                  <span className={`
+                    inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-full text-xs font-bold
+                    ${workDays >= 5 
+                      ? 'bg-emerald-100 text-emerald-700' 
+                      : workDays >= 3 
+                        ? 'bg-amber-100 text-amber-700' 
+                        : workDays > 0
+                          ? 'bg-red-100 text-red-600'
+                          : 'bg-gray-100 text-gray-400'
+                    }
+                  `}>
+                    {workDays}
+                  </span>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+
+      {masters.length === 0 && (
+        <div className="py-12 text-center">
+          <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <p className="text-gray-500 text-sm">Нет мастеров для отображения</p>
+        </div>
+      )}
+    </div>
+  )
+
   return (
-    <div className="max-w-4xl">
+    <div>
       {/* Навигация по неделям */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center justify-between md:justify-start gap-4 mb-4 md:mb-6">
         <div className="flex items-center bg-white border border-gray-200 rounded-lg">
           <button 
             onClick={goToPreviousWeek}
-            className="p-2 hover:bg-gray-50 transition-colors rounded-l-lg border-r border-gray-200"
+            className="p-2 md:p-2.5 hover:bg-gray-50 transition-colors rounded-l-lg border-r border-gray-200"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="px-4 py-2 text-sm font-medium text-gray-700 min-w-[160px] text-center">
+          <span className="px-3 md:px-4 py-2 text-sm font-medium text-gray-700 min-w-[130px] md:min-w-[160px] text-center">
             {formatShortDate(weekDates[0])} — {formatShortDate(weekDates[6])}
           </span>
           <button 
             onClick={goToNextWeek}
-            className="p-2 hover:bg-gray-50 transition-colors rounded-r-lg border-l border-gray-200"
+            className="p-2 md:p-2.5 hover:bg-gray-50 transition-colors rounded-r-lg border-l border-gray-200"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -220,126 +404,14 @@ export default function SchedulePage() {
         )}
       </div>
 
-      {/* Таблица графика */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide w-[240px]">
-                Мастер
-              </th>
-              {weekDates.map((date, idx) => (
-                <th 
-                  key={idx} 
-                  className={`py-3 px-2 text-center w-[52px] ${
-                    isToday(date) 
-                      ? 'bg-teal-500 text-white' 
-                      : isSunday(date) 
-                        ? 'bg-red-50 text-red-600' 
-                        : ''
-                  }`}
-                >
-                  <div className={`text-[10px] font-medium uppercase ${isToday(date) ? 'text-teal-100' : ''}`}>
-                    {getDayName(date)}
-                  </div>
-                  <div className={`text-sm font-bold ${isToday(date) ? '' : ''}`}>
-                    {getDayNumber(date)}
-                  </div>
-                </th>
-              ))}
-              <th className="py-3 px-3 text-center w-[60px] text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                Дней
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {masters.map((master) => {
-              const workDays = getWorkingDaysCount(master.id)
-              return (
-                <tr 
-                  key={master.id} 
-                  className="hover:bg-gray-50/70 transition-colors"
-                >
-                  <td className="py-3 px-4">
-                    <span className="text-sm text-gray-800 font-medium">
-                      {master.name}
-                    </span>
-                  </td>
-                  
-                  {weekDates.map((date, idx) => {
-                    const key = `${master.id}-${toDateString(date)}`
-                    const isWorking = schedule.get(key) ?? false
-                    
-                    return (
-                      <td 
-                        key={idx} 
-                        className={`py-3 px-2 text-center ${
-                          isToday(date) 
-                            ? 'bg-teal-50' 
-                            : isSunday(date) 
-                              ? 'bg-red-50/30' 
-                              : ''
-                        }`}
-                      >
-                        <button
-                          onClick={() => toggleSchedule(master.id, date)}
-                          className={`
-                            w-7 h-7 rounded-full transition-all duration-200 
-                            flex items-center justify-center mx-auto
-                            ${isWorking 
-                              ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-200' 
-                              : 'bg-gray-100 hover:bg-gray-200 text-gray-400'
-                            }
-                          `}
-                          title={`${master.name} — ${getDayName(date)}, ${formatShortDate(date)}`}
-                        >
-                          {isWorking ? (
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          ) : (
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </button>
-                      </td>
-                    )
-                  })}
-                  
-                  <td className="py-3 px-3 text-center">
-                    <span className={`
-                      inline-flex items-center justify-center min-w-[36px] px-2 py-1 rounded-full text-xs font-bold
-                      ${workDays >= 5 
-                        ? 'bg-emerald-100 text-emerald-700' 
-                        : workDays >= 3 
-                          ? 'bg-amber-100 text-amber-700' 
-                          : workDays > 0
-                            ? 'bg-red-100 text-red-600'
-                            : 'bg-gray-100 text-gray-400'
-                      }
-                    `}>
-                      {workDays}
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+      {/* Мобильная версия */}
+      <MobileView />
 
-        {masters.length === 0 && (
-          <div className="py-12 text-center">
-            <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <p className="text-gray-500 text-sm">Нет мастеров для отображения</p>
-          </div>
-        )}
-      </div>
+      {/* Десктопная версия */}
+      <DesktopView />
 
-      {/* Легенда */}
-      <div className="mt-4 flex items-center gap-6 text-xs text-gray-500">
+      {/* Легенда - только на десктопе */}
+      <div className="hidden md:flex mt-4 items-center gap-6 text-xs text-gray-500">
         <div className="flex items-center gap-2">
           <span className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -350,9 +422,7 @@ export default function SchedulePage() {
         </div>
         <div className="flex items-center gap-2">
           <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
-            <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
+            <span className="w-2 h-2 rounded-full bg-gray-300"></span>
           </span>
           <span>Выходной</span>
         </div>
