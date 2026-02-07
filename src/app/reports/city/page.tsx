@@ -163,27 +163,9 @@ function CityReportContent() {
     window.URL.revokeObjectURL(url);
   }
 
-  // Данные для сводной таблицы
-  const summaryData = [
-    { label: 'Оборот', value: formatNumber(totals.turnover) + ' ₽', color: 'text-teal-600', bold: true },
-    { label: 'Прибыль', value: formatNumber(totals.profit) + ' ₽', color: 'text-emerald-600', bold: true },
-    { label: 'Заказов', value: totals.totalOrders, color: 'text-gray-800' }, // Готово + Отказ + Незаказ
-    { label: 'Не заказ', value: totals.notOrders, color: 'text-orange-600' }, // Статус "Незаказ"
-    { label: 'Ноль', value: totals.zeroOrders, color: 'text-red-500' }, // Количество отказов (статус "Отказ")
-    { label: 'Выполненных в деньги', value: totals.completedOrders, color: 'text-green-600', bold: true }, // Готово где result > 0
-    { 
-      label: 'Вып в деньги (%)', 
-      value: formatPercent(completedPercent), 
-      color: completedPercent >= 70 ? 'text-green-600' : completedPercent >= 50 ? 'text-yellow-600' : 'text-red-600',
-      badge: true,
-      badgeColor: completedPercent >= 70 ? 'bg-green-100' : completedPercent >= 50 ? 'bg-yellow-100' : 'bg-red-100'
-    },
-    { label: 'Микрочек (до 10к)', value: totals.microCheckCount, color: 'text-gray-600' },
-    { label: 'От 10к', value: totals.over10kCount, color: 'text-purple-600', bold: true },
-    { label: 'Ср чек', value: formatNumber(Math.round(avgCheck)) + ' ₽', color: 'text-gray-800' },
-    { label: 'Макс чек', value: formatNumber(totals.maxCheck) + ' ₽', color: 'text-purple-600', bold: true },
-    { label: 'СД', value: totals.masterHandover, color: 'text-teal-600', bold: true },
-  ]
+  // Цвет для процента выполнения
+  const completedPercentColor = completedPercent >= 70 ? 'text-green-600' : completedPercent >= 50 ? 'text-amber-600' : 'text-red-500'
+  const completedPercentBg = completedPercent >= 70 ? 'bg-green-100' : completedPercent >= 50 ? 'bg-amber-100' : 'bg-red-100'
 
   return (
     <div>
@@ -301,79 +283,91 @@ function CityReportContent() {
               )}
             </div>
 
-            {/* НОВАЯ СВОДНАЯ ТАБЛИЦА */}
-            <div className="mb-8">
-              <div className="overflow-hidden rounded-xl border border-gray-200 shadow-lg">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gradient-to-r from-teal-600 to-emerald-600">
-                      <th className="text-left py-2 px-3 font-semibold text-white text-sm">Показатель</th>
-                      <th className="text-right py-2 px-3 font-semibold text-white text-sm">Значение</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {summaryData.map((row, index) => (
-                      <tr 
-                        key={row.label} 
-                        className={`border-b border-gray-100 hover:bg-teal-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                      >
-                        <td className="py-2 px-3 text-gray-700 font-medium text-sm">{row.label}</td>
-                        <td className={`py-2 px-3 text-right ${row.color} ${row.bold ? 'font-bold' : 'font-medium'} text-sm`}>
-                          {row.badge ? (
-                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${row.badgeColor} ${row.color}`}>
-                              {row.value}
-                            </span>
-                          ) : (
-                            row.value
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {/* СВОДКА ПО БЛОКАМ */}
+            <div className="space-y-4 mb-8">
+              
+              {/* Блок: ДЕНЬГИ */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2">
+                  <h3 className="text-white font-semibold text-sm">Деньги</h3>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100">
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Оборот</div>
+                    <div className="text-lg font-bold text-teal-600">{formatNumber(totals.turnover)} ₽</div>
+                  </div>
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Прибыль</div>
+                    <div className="text-lg font-bold text-emerald-600">{formatNumber(totals.profit)} ₽</div>
+                  </div>
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Ср. чек</div>
+                    <div className="text-lg font-bold text-gray-800">{formatNumber(Math.round(avgCheck))} ₽</div>
+                  </div>
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Макс. чек</div>
+                    <div className="text-lg font-bold text-purple-600">{formatNumber(totals.maxCheck)} ₽</div>
+                  </div>
+                </div>
               </div>
+
+              {/* Блок: ЗАКАЗЫ */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2">
+                  <h3 className="text-white font-semibold text-sm">Заказы</h3>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-gray-100">
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Всего</div>
+                    <div className="text-lg font-bold text-gray-800">{totals.totalOrders}</div>
+                  </div>
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Выполнено</div>
+                    <div className="text-lg font-bold text-green-600">{totals.completedOrders}</div>
+                  </div>
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Вып. %</div>
+                    <div className={`text-lg font-bold ${completedPercentColor}`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-sm ${completedPercentBg}`}>
+                        {formatPercent(completedPercent)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Незаказ</div>
+                    <div className="text-lg font-bold text-orange-500">{totals.notOrders}</div>
+                  </div>
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Ноль</div>
+                    <div className="text-lg font-bold text-red-500">{totals.zeroOrders}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Блок: ЧЕКИ И СД */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2">
+                  <h3 className="text-white font-semibold text-sm">Чеки и СД</h3>
+                </div>
+                <div className="grid grid-cols-3 divide-x divide-gray-100">
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Микрочек (&lt;10К)</div>
+                    <div className="text-lg font-bold text-gray-600">{totals.microCheckCount}</div>
+                  </div>
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">От 10К</div>
+                    <div className="text-lg font-bold text-purple-600">{totals.over10kCount}</div>
+                  </div>
+                  <div className="p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-1">СД</div>
+                    <div className="text-lg font-bold text-teal-600">{totals.masterHandover}</div>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            {/* Статистические карточки */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
-                <div className="text-center">
-                  <div className="text-3xl font-bold mb-2 text-teal-600">
-                    {formatNumber(totals.totalOrders)}
-                  </div>
-                  <div className="text-gray-600 text-sm">Закрытых заказов</div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
-                <div className="text-center">
-                  <div className="text-3xl font-bold mb-2 text-red-600">
-                    {formatNumber(totals.refusals)}
-                  </div>
-                  <div className="text-gray-600 text-sm">Всего отказов</div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
-                <div className="text-center">
-                  <div className="text-3xl font-bold mb-2 text-yellow-600">
-                    {formatNumber(totals.notOrders)}
-                  </div>
-                  <div className="text-gray-600 text-sm">Всего Незаказов</div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-left">
-                <div className="text-center">
-                  <div className="text-3xl font-bold mb-2 text-purple-600">
-                    {formatNumber(Math.round(avgCheck)) + ' ₽'}
-                  </div>
-                  <div className="text-gray-600 text-sm">Средний чек</div>
-                </div>
-              </div>
-            </div>
-
-            {/* СТАРАЯ Таблица по городам */}
+            {/* Таблица по городам */}
             <h2 className="text-lg font-bold text-gray-800 mb-4">Детализация по городам</h2>
             <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
               <div className="min-w-[600px]">
