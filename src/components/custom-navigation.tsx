@@ -13,39 +13,16 @@ const SCROLL_POSITION_KEY = 'orders_scroll_position'
 
 const navigationItems = [
   { name: 'Заказы', href: '/orders', icon: '/images/navigate/orders.svg' },
-  { 
-    name: 'Касса', 
-    icon: '/images/navigate/cash.svg',
-    dropdown: [
-      { name: 'Приход', href: '/cash/income' },
-      { name: 'Расход', href: '/cash/expense' },
-      { name: 'История', href: '/cash/history' }
-    ]
-  },
-  { 
-    name: 'Отчеты', 
-    icon: '/images/navigate/reports.svg',
-    dropdown: [
-      { name: 'Отчет по городу', href: '/reports/city' },
-      { name: 'Отчет по мастерам', href: '/reports/masters' }
-    ]
-  },
+  { name: 'Касса', href: '/cash', icon: '/images/navigate/cash.svg' },
+  { name: 'Отчеты', href: '/reports', icon: '/images/navigate/reports.svg' },
   { name: 'Сдача мастеров', href: '/master-handover', icon: '/images/navigate/master-handover.svg' },
-  { 
-    name: 'Сотрудники', 
-    icon: '/images/navigate/employees.svg',
-    dropdown: [
-      { name: 'Мастера', href: '/employees' },
-      { name: 'График работы', href: '/employees/schedule' }
-    ]
-  },
+  { name: 'Сотрудники', href: '/employees', icon: '/images/navigate/employees.svg' },
 ]
 
 export function CustomNavigation() {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null)
   const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
   const { user } = useAuthStore()
 
@@ -59,7 +36,13 @@ export function CustomNavigation() {
     router.push('/orders')
   }, [router])
 
-  const isActive = (href: string) => pathname === href
+  // Проверяем активность с учетом подстраниц
+  const isActive = (href: string) => {
+    if (pathname === href) return true
+    // Для разделов с подстраницами (касса, отчеты, сотрудники)
+    if (href !== '/orders' && pathname.startsWith(href + '/')) return true
+    return false
+  }
 
   return (
     <>
@@ -124,72 +107,25 @@ export function CustomNavigation() {
             }}
           >
             <div className="px-4 py-4 space-y-1">
-              {navigationItems.map((item) => (
-                <div key={item.name}>
-                  {item.href ? (
-                    <Link
-                      href={item.href}
-                      className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
-                      style={{
-                        color: pathname === item.href ? 'white' : '#374151',
-                        backgroundColor: pathname === item.href ? '#14b8a6' : 'transparent',
-                        textDecoration: 'none',
-                        boxShadow: pathname === item.href ? '0 2px 4px rgba(20, 184, 166, 0.3)' : 'none'
-                      }}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <span className="flex-1 text-left">{item.name}</span>
-                    </Link>
-                  ) : (
-                    <div>
-                      <button
-                        className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
-                        style={{
-                          color: expandedDropdown === item.name ? 'white' : '#374151',
-                          backgroundColor: expandedDropdown === item.name ? '#14b8a6' : 'transparent',
-                          boxShadow: expandedDropdown === item.name ? '0 2px 4px rgba(20, 184, 166, 0.3)' : 'none'
-                        }}
-                        onClick={() => setExpandedDropdown(expandedDropdown === item.name ? null : item.name)}
-                      >
-                        <span className="flex-1 text-left">{item.name}</span>
-                        {item.dropdown && (
-                          <svg 
-                            className={`h-4 w-4 transition-transform duration-300 ${
-                              expandedDropdown === item.name ? 'rotate-180' : ''
-                            }`} 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        )}
-                      </button>
-                      
-                      {/* Выпадающий список для мобильных */}
-                      {item.dropdown && expandedDropdown === item.name && (
-                        <div className="space-y-1 mt-2 pl-4">
-                          {item.dropdown.map((dropdownItem) => (
-                            <Link
-                              key={dropdownItem.name}
-                              href={dropdownItem.href}
-                              className="flex items-center w-full px-4 py-2 text-sm transition-all duration-150 rounded-lg"
-                              style={{
-                                color: pathname === dropdownItem.href ? 'white' : '#6b7280',
-                                backgroundColor: pathname === dropdownItem.href ? '#14b8a6' : 'transparent',
-                                textDecoration: 'none'
-                              }}
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              <span className="flex-1 text-left">{dropdownItem.name}</span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+              {navigationItems.map((item) => {
+                const active = isActive(item.href)
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
+                    style={{
+                      color: active ? 'white' : '#374151',
+                      backgroundColor: active ? '#14b8a6' : 'transparent',
+                      textDecoration: 'none',
+                      boxShadow: active ? '0 2px 4px rgba(20, 184, 166, 0.3)' : 'none'
+                    }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <span className="flex-1 text-left">{item.name}</span>
+                  </Link>
+                )
+              })}
               
               {/* Переключатель версий для мобильной версии - только для v1 */}
               {version === 'v1' && (
@@ -289,205 +225,70 @@ export function CustomNavigation() {
         <div className="flex-1 px-4 py-6">
           <div className="space-y-2">
             {navigationItems.map((item) => {
-              const active = item.href ? isActive(item.href) : false
-              const isExpanded = expandedDropdown === item.name
+              const active = isActive(item.href)
               
               return (
-                <div
-                  key={item.name}
-                  className="relative"
-                >
-                  {item.href ? (
-                    version === 'v2' ? (
-                      // V2: иконка + текст, при выборе иконка зелёная, текст чёрный, при наведении всё зелёное
-                      <Link
-                        href={item.href}
-                        className="group relative flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
-                        style={{ textDecoration: 'none' }}
+                <div key={item.name} className="relative">
+                  {version === 'v2' ? (
+                    // V2: иконка + текст, при выборе иконка зелёная, текст чёрный, при наведении всё зелёное
+                    <Link
+                      href={item.href}
+                      className="group relative flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      {/* Индикатор активной вкладки - тонкая скобка */}
+                      <span 
+                        className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-all ${
+                          active ? 'opacity-100' : 'opacity-0'
+                        }`}
                       >
-                        {/* Индикатор активной вкладки - тонкая скобка */}
-                        <span 
-                          className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-all ${
-                            active ? 'opacity-100' : 'opacity-0'
-                          }`}
-                        >
-                          <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
-                            <path 
-                              d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
-                              stroke="#14b8a6" 
-                              strokeWidth="1.5" 
-                              strokeLinecap="round"
-                              fill="none"
-                            />
-                          </svg>
-                        </span>
-                        {item.icon && (
-                          <Image
-                            src={item.icon}
-                            alt=""
-                            width={20}
-                            height={20}
-                            className={`mr-3 transition-all duration-200 ${
-                              active 
-                                ? 'brightness-0 saturate-100 [filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)] group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]' 
-                                : 'brightness-0 group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]'
-                            }`}
+                        <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
+                          <path 
+                            d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
+                            stroke="#14b8a6" 
+                            strokeWidth="1.5" 
+                            strokeLinecap="round"
+                            fill="none"
                           />
-                        )}
-                        <span 
-                          className={`flex-1 text-left transition-colors duration-200 ${
+                        </svg>
+                      </span>
+                      {item.icon && (
+                        <Image
+                          src={item.icon}
+                          alt=""
+                          width={20}
+                          height={20}
+                          className={`mr-3 transition-all duration-200 ${
                             active 
-                              ? 'text-gray-700 group-hover:text-teal-600' 
-                              : 'text-gray-700 group-hover:text-teal-600'
+                              ? 'brightness-0 saturate-100 [filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)] group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]' 
+                              : 'brightness-0 group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]'
                           }`}
-                        >
-                          {item.name}
-                        </span>
-                      </Link>
-                    ) : (
-                      // V1: старый стиль с зелёным фоном
-                      <Link
-                        href={item.href}
-                        className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg hover:bg-teal-50 hover:text-teal-600"
-                        style={{
-                          color: active ? 'white' : '#374151',
-                          backgroundColor: active ? '#14b8a6' : 'transparent',
-                          textDecoration: 'none',
-                          boxShadow: active ? '0 2px 4px rgba(20, 184, 166, 0.3)' : 'none'
-                        }}
+                        />
+                      )}
+                      <span 
+                        className={`flex-1 text-left transition-colors duration-200 ${
+                          active 
+                            ? 'text-gray-700 group-hover:text-teal-600' 
+                            : 'text-gray-700 group-hover:text-teal-600'
+                        }`}
                       >
-                        <span className="flex-1 text-left">{item.name}</span>
-                      </Link>
-                    )
+                        {item.name}
+                      </span>
+                    </Link>
                   ) : (
-                    <>
-                      {version === 'v2' ? (
-                        // V2: кнопка с иконкой
-                        <button
-                          className="group relative flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer rounded-lg"
-                          onClick={() => {
-                            setExpandedDropdown(isExpanded ? null : item.name)
-                          }}
-                        >
-                          {/* Индикатор активной вкладки - тонкая скобка */}
-                          <span 
-                            className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-all ${
-                              isExpanded ? 'opacity-100' : 'opacity-0'
-                            }`}
-                          >
-                            <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
-                              <path 
-                                d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
-                                stroke="#14b8a6" 
-                                strokeWidth="1.5" 
-                                strokeLinecap="round"
-                                fill="none"
-                              />
-                            </svg>
-                          </span>
-                          {item.icon && (
-                            <Image
-                              src={item.icon}
-                              alt=""
-                              width={20}
-                              height={20}
-                              className={`mr-3 transition-all duration-200 ${
-                                isExpanded 
-                                  ? 'brightness-0 saturate-100 [filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)] group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]' 
-                                  : 'brightness-0 group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]'
-                              }`}
-                            />
-                          )}
-                          <span 
-                            className={`flex-1 text-left transition-colors duration-200 ${
-                              isExpanded 
-                                ? 'text-gray-700 group-hover:text-teal-600' 
-                                : 'text-gray-700 group-hover:text-teal-600'
-                            }`}
-                          >
-                            {item.name}
-                          </span>
-                          {item.dropdown && (
-                            <svg 
-                              className={`ml-2 h-4 w-4 transition-all duration-200 ${isExpanded ? 'rotate-180' : ''} ${
-                                isExpanded 
-                                  ? 'text-teal-600 group-hover:text-teal-600' 
-                                  : 'text-gray-700 group-hover:text-teal-600'
-                              }`} 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          )}
-                        </button>
-                      ) : (
-                        // V1: старый стиль
-                        <button
-                          className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer rounded-lg hover:bg-teal-50 hover:text-teal-600"
-                          style={{
-                            color: isExpanded ? 'white' : '#374151',
-                            backgroundColor: isExpanded ? '#14b8a6' : 'transparent'
-                          }}
-                          onClick={() => {
-                            setExpandedDropdown(isExpanded ? null : item.name)
-                          }}
-                        >
-                          <span className="flex-1 text-left">{item.name}</span>
-                          {item.dropdown && (
-                            <svg 
-                              className={`ml-2 h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          )}
-                        </button>
-                      )}
-                      
-                      {/* Выпадающий список для десктопа (снизу) */}
-                      {item.dropdown && isExpanded && (
-                        <div className="space-y-1 mt-2">
-                          {item.dropdown.map((dropdownItem) => {
-                            const isDropdownActive = pathname === dropdownItem.href
-                            return version === 'v2' ? (
-                              <Link
-                                key={dropdownItem.name}
-                                href={dropdownItem.href}
-                                className="group flex items-center w-full px-4 py-2 pl-11 text-sm transition-all duration-150 rounded-lg"
-                                style={{ textDecoration: 'none' }}
-                              >
-                                <span 
-                                  className={`flex-1 text-left transition-colors duration-200 ${
-                                    isDropdownActive 
-                                      ? 'text-teal-600 group-hover:text-teal-600' 
-                                      : 'text-gray-500 group-hover:text-teal-600'
-                                  }`}
-                                >
-                                  {dropdownItem.name}
-                                </span>
-                              </Link>
-                            ) : (
-                              <Link
-                                key={dropdownItem.name}
-                                href={dropdownItem.href}
-                                className="flex items-center w-full px-4 py-2 text-sm transition-all duration-150 rounded-lg hover:bg-teal-50 hover:text-teal-600"
-                                style={{
-                                  color: isDropdownActive ? 'white' : '#6b7280',
-                                  backgroundColor: isDropdownActive ? '#14b8a6' : 'transparent',
-                                  textDecoration: 'none'
-                                }}
-                              >
-                                <span className="flex-1 text-left">{dropdownItem.name}</span>
-                              </Link>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </>
+                    // V1: старый стиль с зелёным фоном
+                    <Link
+                      href={item.href}
+                      className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg hover:bg-teal-50 hover:text-teal-600"
+                      style={{
+                        color: active ? 'white' : '#374151',
+                        backgroundColor: active ? '#14b8a6' : 'transparent',
+                        textDecoration: 'none',
+                        boxShadow: active ? '0 2px 4px rgba(20, 184, 166, 0.3)' : 'none'
+                      }}
+                    >
+                      <span className="flex-1 text-left">{item.name}</span>
+                    </Link>
                   )}
                 </div>
               )

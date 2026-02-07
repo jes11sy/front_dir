@@ -1,12 +1,69 @@
-function CashContent() {
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">Касса</h1>
-      {/* Пустая страница кассы */}
-    </div>
-  )
-}
+'use client'
+
+import Link from 'next/link'
+import { ArrowRight, TrendingUp, TrendingDown, History } from 'lucide-react'
 
 export default function CashPage() {
-  return <CashContent />
+  const menuItems = [
+    {
+      title: 'Приход',
+      description: 'Добавить поступление денежных средств',
+      href: '/cash/income',
+      icon: TrendingUp,
+      color: 'bg-green-500',
+      hoverColor: 'hover:bg-green-600',
+    },
+    {
+      title: 'Расход',
+      description: 'Добавить расход денежных средств',
+      href: '/cash/expense',
+      icon: TrendingDown,
+      color: 'bg-red-500',
+      hoverColor: 'hover:bg-red-600',
+    },
+    {
+      title: 'История',
+      description: 'Просмотр истории операций',
+      href: '/cash/history',
+      icon: History,
+      color: 'bg-blue-500',
+      hoverColor: 'hover:bg-blue-600',
+    },
+  ]
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#daece2' }}>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Заголовок */}
+          <h1 className="text-3xl font-bold text-gray-800 mb-8">Касса</h1>
+
+          {/* Карточки меню */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {menuItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className={`w-12 h-12 ${item.color} ${item.hoverColor} rounded-lg flex items-center justify-center mb-4 transition-colors`}>
+                  <item.icon className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-2 group-hover:text-teal-600 transition-colors">
+                  {item.title}
+                </h2>
+                <p className="text-gray-500 text-sm mb-4">
+                  {item.description}
+                </p>
+                <div className="flex items-center text-teal-600 text-sm font-medium">
+                  Перейти
+                  <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
