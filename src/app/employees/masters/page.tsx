@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { apiClient, Employee } from '@/lib/api'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
+import { useDesignStore } from '@/store/design.store'
 
 export default function MastersPage() {
   const router = useRouter()
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
   const [currentPage, setCurrentPage] = useState(1)
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
@@ -112,16 +115,20 @@ export default function MastersPage() {
   if (loading) {
     return (
       <div className="text-center py-8">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-        <div className="text-gray-700 text-lg mt-4">Загрузка мастеров...</div>
+        <div className={`inline-block animate-spin rounded-full h-8 w-8 border-b-2 ${
+          isDark ? 'border-[#0d5c4b]' : 'border-[#0d5c4b]'
+        }`}></div>
+        <div className={`text-lg mt-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Загрузка мастеров...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <div className="text-red-600 text-lg">Ошибка: {error}</div>
+      <div className={`rounded-lg p-6 ${
+        isDark ? 'bg-red-900/30 border border-red-800' : 'bg-red-50 border border-red-200'
+      }`}>
+        <div className={isDark ? 'text-red-400 text-lg' : 'text-red-600 text-lg'}>Ошибка: {error}</div>
       </div>
     )
   }
@@ -136,8 +143,12 @@ export default function MastersPage() {
             onClick={() => setShowFilters(!showFilters)}
             className={`relative p-2 rounded-lg transition-all duration-200 ${
               showFilters 
-                ? 'bg-teal-100 text-teal-600' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-teal-600'
+                ? isDark 
+                  ? 'bg-[#0d5c4b]/20 text-[#0d5c4b]'
+                  : 'bg-[#daece2] text-[#0d5c4b]'
+                : isDark
+                  ? 'bg-[#2a3441] text-gray-400 hover:bg-[#2a3441]/80 hover:text-[#0d5c4b]'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-[#0d5c4b]'
             }`}
             title="Фильтры"
           >
@@ -146,14 +157,14 @@ export default function MastersPage() {
             </svg>
             {/* Индикатор активных фильтров */}
             {hasActiveFilters && (
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 border-white"></span>
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#0d5c4b] rounded-full border-2 border-white"></span>
             )}
           </button>
         </div>
 
         <Button 
           onClick={() => router.push('/employees/add')}
-          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors text-sm font-medium"
+          className="px-4 py-2 bg-[#0d5c4b] hover:bg-[#0a4a3c] text-white rounded-lg transition-colors text-sm font-medium"
         >
           + Добавить мастера
         </Button>
@@ -161,27 +172,39 @@ export default function MastersPage() {
 
       {/* Панель фильтров */}
       {showFilters && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in">
+        <div className={`mb-6 p-4 rounded-lg border animate-fade-in ${
+          isDark 
+            ? 'bg-[#2a3441] border-[#0d5c4b]/30' 
+            : 'bg-gray-50 border-gray-200'
+        }`}>
           <div className="flex flex-wrap gap-4 items-end">
             {/* Поиск по имени */}
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Поиск по имени</label>
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Поиск по имени</label>
               <input
                 type="text"
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
                 placeholder="Введите имя..."
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d5c4b] focus:border-transparent transition-all ${
+                  isDark 
+                    ? 'bg-[#1e2530] border-[#0d5c4b]/30 text-gray-200 placeholder-gray-500'
+                    : 'bg-white border-gray-200 text-gray-800 placeholder-gray-400'
+                }`}
               />
             </div>
 
             {/* Статус */}
             <div className="min-w-[180px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Статус</label>
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Статус</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'working' | 'fired' | 'all')}
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d5c4b] focus:border-transparent transition-all ${
+                  isDark 
+                    ? 'bg-[#1e2530] border-[#0d5c4b]/30 text-gray-200'
+                    : 'bg-white border-gray-200 text-gray-800'
+                }`}
               >
                 <option value="working">Работает</option>
                 <option value="fired">Уволен</option>
@@ -195,7 +218,11 @@ export default function MastersPage() {
                 setSearchName('')
                 setStatusFilter('working')
               }}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition-colors font-medium"
+              className={`px-4 py-2 rounded-lg text-sm transition-colors font-medium ${
+                isDark 
+                  ? 'bg-[#1e2530] hover:bg-[#1e2530]/80 text-gray-300'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+              }`}
             >
               Сбросить
             </button>
@@ -207,19 +234,21 @@ export default function MastersPage() {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b-2 border-gray-200 bg-gray-50">
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">ID</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Имя</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Логин</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Города</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Статус</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Дата создания</th>
+            <tr className={`border-b-2 ${
+              isDark ? 'border-[#0d5c4b]/30 bg-[#2a3441]' : 'border-gray-200 bg-gray-50'
+            }`}>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>ID</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Имя</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Логин</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Города</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Статус</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Дата создания</th>
             </tr>
           </thead>
           <tbody>
             {currentData.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-gray-500">
+                <td colSpan={6} className={`py-8 text-center ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                   {hasActiveFilters 
                     ? 'Нет мастеров по заданным фильтрам'
                     : 'Нет работающих мастеров'
@@ -246,19 +275,23 @@ export default function MastersPage() {
                 return (
                   <tr 
                     key={item.id} 
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className={`border-b transition-colors cursor-pointer ${
+                      isDark 
+                        ? 'border-[#0d5c4b]/20 hover:bg-[#2a3441]' 
+                        : 'border-gray-100 hover:bg-gray-50'
+                    }`}
                     onClick={() => router.push(`/employees/${item.id}`)}
                   >
-                    <td className="py-3 px-4 text-gray-800">{item.id}</td>
-                    <td className="py-3 px-4 text-gray-800 font-medium">{item.name}</td>
-                    <td className="py-3 px-4 text-gray-600">{item.login || '-'}</td>
-                    <td className="py-3 px-4 text-gray-600">{cities.length > 0 ? cities.join(', ') : '-'}</td>
+                    <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.id}</td>
+                    <td className={`py-3 px-4 font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{item.name}</td>
+                    <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{item.login || '-'}</td>
+                    <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{cities.length > 0 ? cities.join(', ') : '-'}</td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-1 rounded-full text-xs font-medium text-white" style={{backgroundColor: getStatusColor(item.statusWork)}}>
                         {statusWork}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-gray-600">{formatDate(item.dateCreate)}</td>
+                    <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{formatDate(item.dateCreate)}</td>
                   </tr>
                 )
               })

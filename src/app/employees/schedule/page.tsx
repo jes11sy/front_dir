@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { apiClient } from '@/lib/api'
+import { useDesignStore } from '@/store/design.store'
 
 // Тип мастера из нового API
 interface MasterWithSchedule {
@@ -59,6 +60,8 @@ function toDateString(date: Date): string {
 }
 
 export default function SchedulePage() {
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
   const [masters, setMasters] = useState<MasterWithSchedule[]>([])
   const [schedule, setSchedule] = useState<Map<string, boolean>>(new Map())
   const [loading, setLoading] = useState(true)
@@ -169,8 +172,8 @@ export default function SchedulePage() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-gray-500">Загрузка...</span>
+          <div className={`w-5 h-5 border-2 border-[#0d5c4b] border-t-transparent rounded-full animate-spin`}></div>
+          <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Загрузка...</span>
         </div>
       </div>
     )
@@ -178,8 +181,10 @@ export default function SchedulePage() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-        <p className="text-red-600 text-sm">{error}</p>
+      <div className={`rounded-xl p-4 ${
+        isDark ? 'bg-red-900/30 border border-red-800' : 'bg-red-50 border border-red-200'
+      }`}>
+        <p className={isDark ? 'text-red-400 text-sm' : 'text-red-600 text-sm'}>{error}</p>
       </div>
     )
   }
@@ -190,10 +195,12 @@ export default function SchedulePage() {
       {masters.map((master) => {
         const workDays = getWorkingDaysCount(master.id)
         return (
-          <div key={master.id} className="bg-white rounded-xl border border-gray-200 p-4">
+          <div key={master.id} className={`rounded-xl border p-4 ${
+            isDark ? 'bg-[#2a3441] border-[#0d5c4b]/30' : 'bg-white border-gray-200'
+          }`}>
             {/* Имя и счётчик */}
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-800">{master.name}</span>
+              <span className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{master.name}</span>
               <span className={`
                 px-2 py-0.5 rounded-full text-xs font-bold
                 ${workDays >= 5 
@@ -202,7 +209,7 @@ export default function SchedulePage() {
                     ? 'bg-amber-100 text-amber-700' 
                     : workDays > 0
                       ? 'bg-red-100 text-red-600'
-                      : 'bg-gray-100 text-gray-400'
+                      : isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-400'
                 }
               `}>
                 {workDays}/7
@@ -219,10 +226,10 @@ export default function SchedulePage() {
                   <div key={idx} className="flex flex-col items-center">
                     <span className={`text-[10px] mb-1 ${
                       isToday(date) 
-                        ? 'text-teal-600 font-bold' 
+                        ? 'text-[#0d5c4b] font-bold' 
                         : isSunday(date) 
                           ? 'text-red-500' 
-                          : 'text-gray-400'
+                          : isDark ? 'text-gray-500' : 'text-gray-400'
                     }`}>
                       {getDayName(date)}
                     </span>
@@ -231,10 +238,10 @@ export default function SchedulePage() {
                       className={`
                         w-9 h-9 rounded-lg transition-all duration-200 
                         flex items-center justify-center
-                        ${isToday(date) ? 'ring-2 ring-teal-400 ring-offset-1' : ''}
+                        ${isToday(date) ? 'ring-2 ring-[#0d5c4b] ring-offset-1' : ''}
                         ${isWorking 
-                          ? 'bg-emerald-500 text-white' 
-                          : 'bg-gray-100 text-gray-400'
+                          ? 'bg-[#0d5c4b] text-white' 
+                          : isDark ? 'bg-[#1e2530] text-gray-500' : 'bg-gray-100 text-gray-400'
                         }
                       `}
                     >
@@ -252,11 +259,17 @@ export default function SchedulePage() {
 
   // Десктопная версия - таблица
   const DesktopView = () => (
-    <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <div className={`hidden md:block rounded-xl border overflow-hidden shadow-sm ${
+      isDark ? 'bg-[#2a3441] border-[#0d5c4b]/30' : 'bg-white border-gray-200'
+    }`}>
       <table className="w-full table-fixed">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <tr className={`border-b ${
+            isDark ? 'bg-[#1e2530] border-[#0d5c4b]/30' : 'bg-gray-50 border-gray-200'
+          }`}>
+            <th className={`text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide ${
+              isDark ? 'text-gray-400' : 'text-gray-500'
+            }`}>
               Мастер
             </th>
             {weekDates.map((date, idx) => (
@@ -264,13 +277,13 @@ export default function SchedulePage() {
                 key={idx} 
                 className={`py-3 px-1 text-center w-[60px] lg:w-[80px] ${
                   isToday(date) 
-                    ? 'bg-teal-500 text-white' 
+                    ? 'bg-[#0d5c4b] text-white' 
                     : isSunday(date) 
-                      ? 'bg-red-50 text-red-600' 
+                      ? isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600' 
                       : ''
                 }`}
               >
-                <div className={`text-[10px] font-medium uppercase ${isToday(date) ? 'text-teal-100' : ''}`}>
+                <div className={`text-[10px] font-medium uppercase ${isToday(date) ? 'text-[#0d5c4b]/60' : ''}`}>
                   {getDayName(date)}
                 </div>
                 <div className="text-sm font-bold">
@@ -278,21 +291,27 @@ export default function SchedulePage() {
                 </div>
               </th>
             ))}
-            <th className="py-3 px-2 text-center w-[60px] text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <th className={`py-3 px-2 text-center w-[60px] text-xs font-semibold uppercase tracking-wide ${
+              isDark ? 'text-gray-400' : 'text-gray-500'
+            }`}>
               Дней
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className={`divide-y ${isDark ? 'divide-[#0d5c4b]/20' : 'divide-gray-100'}`}>
           {masters.map((master) => {
             const workDays = getWorkingDaysCount(master.id)
             return (
               <tr 
                 key={master.id} 
-                className="hover:bg-gray-50/70 transition-colors"
+                className={`transition-colors ${
+                  isDark ? 'hover:bg-[#1e2530]/50' : 'hover:bg-gray-50/70'
+                }`}
               >
                 <td className="py-2.5 px-4">
-                  <span className="text-sm text-gray-800 font-medium truncate block">
+                  <span className={`text-sm font-medium truncate block ${
+                    isDark ? 'text-gray-200' : 'text-gray-800'
+                  }`}>
                     {master.name}
                   </span>
                 </td>
@@ -306,9 +325,9 @@ export default function SchedulePage() {
                       key={idx} 
                       className={`py-2.5 px-1 text-center ${
                         isToday(date) 
-                          ? 'bg-teal-50' 
+                          ? isDark ? 'bg-[#0d5c4b]/20' : 'bg-[#daece2]/50' 
                           : isSunday(date) 
-                            ? 'bg-red-50/30' 
+                            ? isDark ? 'bg-red-900/10' : 'bg-red-50/30' 
                             : ''
                       }`}
                     >
@@ -318,8 +337,10 @@ export default function SchedulePage() {
                           w-8 h-8 lg:w-9 lg:h-9 rounded-full transition-all duration-200 
                           flex items-center justify-center mx-auto
                           ${isWorking 
-                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm shadow-emerald-200' 
-                            : 'bg-gray-100 hover:bg-gray-200 text-gray-400'
+                            ? 'bg-[#0d5c4b] hover:bg-[#0a4a3c] text-white shadow-sm' 
+                            : isDark 
+                              ? 'bg-[#1e2530] hover:bg-[#1e2530]/80 text-gray-500'
+                              : 'bg-gray-100 hover:bg-gray-200 text-gray-400'
                           }
                         `}
                         title={`${master.name} — ${getDayName(date)}, ${formatShortDate(date)}`}
@@ -329,7 +350,7 @@ export default function SchedulePage() {
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         ) : (
-                          <span className="w-2 h-2 rounded-full bg-gray-300"></span>
+                          <span className={`w-2 h-2 rounded-full ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`}></span>
                         )}
                       </button>
                     </td>
@@ -345,7 +366,7 @@ export default function SchedulePage() {
                         ? 'bg-amber-100 text-amber-700' 
                         : workDays > 0
                           ? 'bg-red-100 text-red-600'
-                          : 'bg-gray-100 text-gray-400'
+                          : isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-400'
                     }
                   `}>
                     {workDays}
@@ -359,10 +380,10 @@ export default function SchedulePage() {
 
       {masters.length === 0 && (
         <div className="py-12 text-center">
-          <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          <p className="text-gray-500 text-sm">Нет мастеров для отображения</p>
+          <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Нет мастеров для отображения</p>
         </div>
       )}
     </div>
@@ -372,23 +393,35 @@ export default function SchedulePage() {
     <div>
       {/* Навигация по неделям */}
       <div className="flex items-center justify-between md:justify-start gap-4 mb-4 md:mb-6">
-        <div className="flex items-center bg-white border border-gray-200 rounded-lg">
+        <div className={`flex items-center border rounded-lg ${
+          isDark ? 'bg-[#2a3441] border-[#0d5c4b]/30' : 'bg-white border-gray-200'
+        }`}>
           <button 
             onClick={goToPreviousWeek}
-            className="p-2 md:p-2.5 hover:bg-gray-50 transition-colors rounded-l-lg border-r border-gray-200"
+            className={`p-2 md:p-2.5 transition-colors rounded-l-lg border-r ${
+              isDark 
+                ? 'hover:bg-[#1e2530] border-[#0d5c4b]/30' 
+                : 'hover:bg-gray-50 border-gray-200'
+            }`}
           >
-            <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-4 h-4 md:w-5 md:h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="px-3 md:px-4 py-2 text-sm font-medium text-gray-700 min-w-[130px] md:min-w-[160px] text-center">
+          <span className={`px-3 md:px-4 py-2 text-sm font-medium min-w-[130px] md:min-w-[160px] text-center ${
+            isDark ? 'text-gray-300' : 'text-gray-700'
+          }`}>
             {formatShortDate(weekDates[0])} — {formatShortDate(weekDates[6])}
           </span>
           <button 
             onClick={goToNextWeek}
-            className="p-2 md:p-2.5 hover:bg-gray-50 transition-colors rounded-r-lg border-l border-gray-200"
+            className={`p-2 md:p-2.5 transition-colors rounded-r-lg border-l ${
+              isDark 
+                ? 'hover:bg-[#1e2530] border-[#0d5c4b]/30' 
+                : 'hover:bg-gray-50 border-gray-200'
+            }`}
           >
-            <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-4 h-4 md:w-5 md:h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -397,7 +430,11 @@ export default function SchedulePage() {
         {!isCurrentWeek() && (
           <button 
             onClick={goToCurrentWeek}
-            className="px-3 py-2 text-sm text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors font-medium"
+            className={`px-3 py-2 text-sm rounded-lg transition-colors font-medium ${
+              isDark 
+                ? 'text-[#0d5c4b] hover:bg-[#0d5c4b]/20' 
+                : 'text-[#0d5c4b] hover:text-[#0a4a3c] hover:bg-[#daece2]/50'
+            }`}
           >
             Сегодня
           </button>
@@ -411,9 +448,9 @@ export default function SchedulePage() {
       <DesktopView />
 
       {/* Легенда - только на десктопе */}
-      <div className="hidden md:flex mt-4 items-center gap-6 text-xs text-gray-500">
+      <div className={`hidden md:flex mt-4 items-center gap-6 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
         <div className="flex items-center gap-2">
-          <span className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+          <span className="w-5 h-5 bg-[#0d5c4b] rounded-full flex items-center justify-center">
             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
@@ -421,13 +458,13 @@ export default function SchedulePage() {
           <span>Рабочий день</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="w-2 h-2 rounded-full bg-gray-300"></span>
+          <span className={`w-5 h-5 rounded-full flex items-center justify-center ${isDark ? 'bg-[#1e2530]' : 'bg-gray-200'}`}>
+            <span className={`w-2 h-2 rounded-full ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`}></span>
           </span>
           <span>Выходной</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-5 h-5 bg-teal-500 rounded"></span>
+          <span className="w-5 h-5 bg-[#0d5c4b] rounded"></span>
           <span>Сегодня</span>
         </div>
       </div>

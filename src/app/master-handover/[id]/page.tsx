@@ -107,7 +107,7 @@ function MasterHandoverDetailContent() {
       }`}>
         <div className="text-center">
           <div className={`animate-spin rounded-full h-10 w-10 border-2 mx-auto mb-3 ${
-            theme === 'dark' ? 'border-teal-400 border-t-transparent' : 'border-teal-600 border-t-transparent'
+            theme === 'dark' ? 'border-[#0d5c4b] border-t-transparent' : 'border-[#0d5c4b] border-t-transparent'
           }`}></div>
           <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Загрузка...</p>
         </div>
@@ -145,14 +145,14 @@ function MasterHandoverDetailContent() {
     }`}>
       {/* Шапка с кнопкой назад и именем мастера */}
       <div className={`sticky top-0 z-10 px-4 py-3 flex items-center gap-4 ${
-        theme === 'dark' ? 'bg-[#2a3441] border-b border-gray-700' : 'bg-white border-b border-gray-200'
+        theme === 'dark' ? 'bg-[#2a3441] border-b border-[#0d5c4b]/30' : 'bg-white border-b border-gray-200'
       }`}>
         <button
           onClick={handleBack}
           className={`p-2 rounded-lg transition-colors ${
             theme === 'dark' 
-              ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
-              : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+              ? 'hover:bg-[#1e2530] text-gray-400 hover:text-[#0d5c4b]' 
+              : 'hover:bg-gray-100 text-gray-600 hover:text-[#0d5c4b]'
           }`}
         >
           <ArrowLeft className="w-5 h-5" />
@@ -178,7 +178,7 @@ function MasterHandoverDetailContent() {
         <div className="w-full overflow-x-auto">
           <table className="w-full border-collapse text-sm min-w-[800px]">
             <thead className={theme === 'dark' ? 'bg-[#2a3441]' : 'bg-white'}>
-              <tr className={theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}>
+              <tr className={theme === 'dark' ? 'border-b border-[#0d5c4b]/30' : 'border-b border-gray-200'}>
                 <th className={`text-left py-3 px-4 font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>ID</th>
                 <th className={`text-left py-3 px-4 font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Адрес</th>
                 <th className={`text-left py-3 px-4 font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Проблема</th>
@@ -195,7 +195,7 @@ function MasterHandoverDetailContent() {
                   key={order.id}
                   className={`transition-colors duration-150 ${
                     theme === 'dark' 
-                      ? 'border-b border-gray-700/50 hover:bg-[#2a3441]' 
+                      ? 'border-b border-[#0d5c4b]/20 hover:bg-[#2a3441]' 
                       : 'border-b border-gray-100 hover:bg-gray-50'
                   }`}
                 >
@@ -211,7 +211,7 @@ function MasterHandoverDetailContent() {
                   <td className={`py-3 px-4 font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                     {order.result?.toLocaleString() || 0} ₽
                   </td>
-                  <td className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-teal-400' : 'text-teal-600'}`}>
+                  <td className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'}`}>
                     {order.masterChange?.toLocaleString() || 0} ₽
                   </td>
                   <td className="py-3 px-4">
@@ -226,7 +226,7 @@ function MasterHandoverDetailContent() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`text-sm underline ${
-                          theme === 'dark' ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'
+                          theme === 'dark' ? 'text-[#0d5c4b] hover:text-[#0a4a3c]' : 'text-[#0d5c4b] hover:text-[#0a4a3c]'
                         }`}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -241,7 +241,7 @@ function MasterHandoverDetailContent() {
                       <div className="flex gap-2">
                         <button
                           onClick={(e) => handleApproveRequest(order.id, e)}
-                          className="py-1 px-3 text-xs rounded-md bg-teal-500 hover:bg-teal-600 text-white transition-colors font-medium"
+                          className="py-1 px-3 text-xs rounded-md bg-[#0d5c4b] hover:bg-[#0a4a3c] text-white transition-colors font-medium"
                         >
                           Да
                         </button>

@@ -3,12 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/auth.store'
+import { useDesignStore } from '@/store/design.store'
 import { apiClient } from '@/lib/api'
 import { User, Edit2, LogOut, MapPin, Calendar, Eye, EyeOff, Save, X, Loader2 } from 'lucide-react'
 
 export default function ProfilePage() {
   const router = useRouter()
   const { user } = useAuthStore()
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
@@ -114,7 +117,7 @@ export default function ProfilePage() {
   const cities = user?.cities || []
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#1e2530]' : 'bg-white'}`}>
       <div className="px-6 py-6">
         <div className="max-w-2xl space-y-6">
           
@@ -130,14 +133,14 @@ export default function ProfilePage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="text-xl text-gray-900 bg-transparent border-b border-gray-300 focus:border-teal-500 focus:outline-none"
+                    className={`text-xl bg-transparent border-b focus:border-teal-500 focus:outline-none ${isDark ? 'text-gray-100 border-gray-600' : 'text-gray-900 border-gray-300'}`}
                   />
                 ) : (
-                  <h1 className="text-xl text-gray-900">{user?.name || 'Пользователь'}</h1>
+                  <h1 className={`text-xl ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{user?.name || 'Пользователь'}</h1>
                 )}
-                <p className="text-gray-500">{user?.login}</p>
+                <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>{user?.login}</p>
                 {user?.role && (
-                  <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded">
+                  <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded ${isDark ? 'bg-teal-900/40 text-teal-400' : 'bg-teal-100 text-teal-700'}`}>
                     {user.role === 'director' ? 'Директор' : user.role}
                   </span>
                 )}
@@ -146,7 +149,7 @@ export default function ProfilePage() {
             {!isEditing ? (
               <button 
                 onClick={handleEdit} 
-                className="text-gray-400 hover:text-teal-600 transition-colors"
+                className={`transition-colors ${isDark ? 'text-gray-500 hover:text-teal-400' : 'text-gray-400 hover:text-teal-600'}`}
               >
                 <Edit2 className="h-5 w-5" />
               </button>
@@ -154,14 +157,14 @@ export default function ProfilePage() {
               <div className="flex gap-2">
                 <button 
                   onClick={handleCancel} 
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className={`transition-colors ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   <X className="h-5 w-5" />
                 </button>
                 <button 
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="text-teal-600 hover:text-teal-700 transition-colors disabled:opacity-50"
+                  className={`transition-colors disabled:opacity-50 ${isDark ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'}`}
                 >
                   {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
                 </button>
@@ -170,48 +173,48 @@ export default function ProfilePage() {
           </div>
 
           {/* Разделитель */}
-          <div className="border-b border-gray-200" />
+          <div className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`} />
 
           {/* Информация */}
           <div className="space-y-4">
             {/* Города */}
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-gray-500">Города</span>
-              <span className="text-gray-900">{cities.length > 0 ? cities.join(', ') : 'Не указаны'}</span>
+            <div className={`flex justify-between items-center py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Города</span>
+              <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>{cities.length > 0 ? cities.join(', ') : 'Не указаны'}</span>
             </div>
 
             {/* Дата регистрации */}
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-gray-500">Дата регистрации</span>
-              <span className="text-gray-900">
+            <div className={`flex justify-between items-center py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Дата регистрации</span>
+              <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>
                 {user?.createdAt ? formatDate(user.createdAt) : user?.dateCreate ? formatDate(user.dateCreate) : 'Не указана'}
               </span>
             </div>
 
             {/* Примечание */}
-            <div className="flex justify-between items-start py-2 border-b border-gray-100">
-              <span className="text-gray-500">Примечание</span>
+            <div className={`flex justify-between items-start py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Примечание</span>
               {isEditing ? (
                 <textarea
                   value={formData.note}
                   onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                  className="w-64 text-right text-gray-900 bg-transparent border border-gray-200 rounded-lg p-2 focus:border-teal-500 focus:outline-none resize-none"
+                  className={`w-64 text-right bg-transparent border rounded-lg p-2 focus:border-teal-500 focus:outline-none resize-none ${isDark ? 'text-gray-200 border-gray-600' : 'text-gray-900 border-gray-200'}`}
                   rows={2}
                 />
               ) : (
-                <span className="text-gray-900 text-right max-w-xs">{user?.note || 'Не указано'}</span>
+                <span className={`text-right max-w-xs ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>{user?.note || 'Не указано'}</span>
               )}
             </div>
           </div>
 
           {/* Разделитель */}
-          <div className="border-b border-gray-200" />
+          <div className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`} />
 
           {/* Смена пароля */}
           <div>
             <button
               onClick={() => setIsChangingPassword(!isChangingPassword)}
-              className="text-gray-500 hover:text-teal-600 transition-colors text-sm"
+              className={`text-sm transition-colors ${isDark ? 'text-gray-400 hover:text-teal-400' : 'text-gray-500 hover:text-teal-600'}`}
             >
               {isChangingPassword ? 'Отмена' : 'Сменить пароль'}
             </button>
@@ -220,18 +223,18 @@ export default function ProfilePage() {
               <div className="mt-4 space-y-4">
                 {/* Текущий пароль */}
                 <div className="space-y-1">
-                  <label className="text-sm text-gray-500">Текущий пароль</label>
+                  <label className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Текущий пароль</label>
                   <div className="relative">
                     <input
                       type={showCurrentPassword ? 'text' : 'password'}
                       value={passwordData.currentPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                      className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg text-gray-900 focus:border-teal-500 focus:outline-none"
+                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:border-teal-500 focus:outline-none ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'border-gray-200 text-gray-900'}`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -240,18 +243,18 @@ export default function ProfilePage() {
 
                 {/* Новый пароль */}
                 <div className="space-y-1">
-                  <label className="text-sm text-gray-500">Новый пароль</label>
+                  <label className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Новый пароль</label>
                   <div className="relative">
                     <input
                       type={showNewPassword ? 'text' : 'password'}
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg text-gray-900 focus:border-teal-500 focus:outline-none"
+                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:border-teal-500 focus:outline-none ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'border-gray-200 text-gray-900'}`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -260,18 +263,18 @@ export default function ProfilePage() {
 
                 {/* Подтверждение пароля */}
                 <div className="space-y-1">
-                  <label className="text-sm text-gray-500">Подтвердите пароль</label>
+                  <label className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Подтвердите пароль</label>
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                      className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg text-gray-900 focus:border-teal-500 focus:outline-none"
+                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:border-teal-500 focus:outline-none ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'border-gray-200 text-gray-900'}`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -280,7 +283,7 @@ export default function ProfilePage() {
 
                 {/* Ошибка */}
                 {passwordError && (
-                  <p className="text-sm text-red-500">{passwordError}</p>
+                  <p className={`text-sm ${isDark ? 'text-red-400' : 'text-red-500'}`}>{passwordError}</p>
                 )}
 
                 {/* Кнопка сохранения */}
@@ -297,13 +300,13 @@ export default function ProfilePage() {
           </div>
 
           {/* Разделитель */}
-          <div className="border-b border-gray-200" />
+          <div className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`} />
 
           {/* Выход */}
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center justify-start gap-2 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+            className={`w-full flex items-center justify-start gap-2 transition-colors disabled:opacity-50 ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-600'}`}
           >
             <LogOut className="h-4 w-4" />
             {isLoggingOut ? 'Выход...' : 'Выйти из аккаунта'}

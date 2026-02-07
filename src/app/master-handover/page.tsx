@@ -48,7 +48,7 @@ function MasterHandoverContent() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className={`animate-spin rounded-full h-10 w-10 border-2 mx-auto mb-3 ${
-              theme === 'dark' ? 'border-teal-400 border-t-transparent' : 'border-teal-600 border-t-transparent'
+              theme === 'dark' ? 'border-[#0d5c4b] border-t-transparent' : 'border-[#0d5c4b] border-t-transparent'
             }`}></div>
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Загрузка...</p>
           </div>
@@ -72,7 +72,7 @@ function MasterHandoverContent() {
           {/* Общая сумма к сдаче */}
           {totalAmount > 0 && (
             <div className={`px-4 py-3 border-b ${
-              theme === 'dark' ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'
+              theme === 'dark' ? 'bg-[#2a3441] border-[#0d5c4b]/30' : 'bg-white border-gray-200'
             }`}>
               <div className="flex items-center gap-2">
                 <span className={`text-sm ${
@@ -81,7 +81,7 @@ function MasterHandoverContent() {
                   Общая сумма к сдаче:
                 </span>
                 <span className={`text-lg font-bold ${
-                  theme === 'dark' ? 'text-teal-400' : 'text-teal-600'
+                  theme === 'dark' ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'
                 }`}>
                   {totalAmount.toLocaleString()} ₽
                 </span>
@@ -94,7 +94,7 @@ function MasterHandoverContent() {
             <thead className={`sticky top-0 z-10 ${
               theme === 'dark' ? 'bg-[#2a3441]' : 'bg-white'
             }`}>
-              <tr className={theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}>
+              <tr className={theme === 'dark' ? 'border-b border-[#0d5c4b]/30' : 'border-b border-gray-200'}>
                 <th className={`text-left py-3 px-4 font-semibold ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>Имя мастера</th>
@@ -115,7 +115,7 @@ function MasterHandoverContent() {
                   key={master.id} 
                   className={`cursor-pointer transition-colors duration-150 ${
                     theme === 'dark' 
-                      ? 'border-b border-gray-700/50 hover:bg-[#2a3441]' 
+                      ? 'border-b border-[#0d5c4b]/20 hover:bg-[#2a3441]' 
                       : 'border-b border-gray-100 hover:bg-gray-50'
                   }`}
                   onClick={() => handleMasterClick(master.id)}
@@ -131,14 +131,14 @@ function MasterHandoverContent() {
                     {master.cities?.join(', ') || '—'}
                   </td>
                   <td className={`py-3 px-4 font-semibold ${
-                    theme === 'dark' ? 'text-teal-400' : 'text-teal-600'
+                    theme === 'dark' ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'
                   }`}>
                     {master.totalAmount.toLocaleString()} ₽
                   </td>
                   <td className="py-3 px-4">
                     <span className={`inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-full text-xs font-medium ${
                       master.ordersCount > 0 
-                        ? 'bg-teal-500 text-white' 
+                        ? 'bg-[#0d5c4b] text-white' 
                         : theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-300 text-gray-600'
                     }`}>
                       {master.ordersCount}

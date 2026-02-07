@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react'
 import { apiClient, CityReport } from '@/lib/api'
 import ExcelJS from 'exceljs'
 import CustomSelect from '@/components/optimized/CustomSelect'
+import { useDesignStore } from '@/store/design.store'
 
 function CityReportContent() {
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
   // Основные фильтры (применённые)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -279,15 +282,15 @@ function CityReportContent() {
       {loading && (
         <div className="text-center py-8 animate-fade-in">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-          <div className="text-gray-700 text-xl mt-4">Загрузка отчета...</div>
+          <div className={`text-xl mt-4 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Загрузка отчета...</div>
         </div>
       )}
 
       {/* Состояние ошибки */}
       {error && (
         <div className="text-center py-8 animate-slide-in-left">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <div className="text-red-600 text-xl mb-4">Ошибка: {error}</div>
+          <div className={`rounded-lg p-6 ${isDark ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
+            <div className={`text-xl mb-4 ${isDark ? 'text-red-400' : 'text-red-600'}`}>Ошибка: {error}</div>
             <button 
               onClick={() => loadCityReport()}
               className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md"
@@ -308,7 +311,7 @@ function CityReportContent() {
                 {/* Иконка фильтров */}
                 <button
                   onClick={openFilterDrawer}
-                  className="relative p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 hover:text-teal-600 transition-all duration-200"
+                  className={`relative p-2 rounded-lg transition-all duration-200 ${isDark ? 'bg-[#3a4451] hover:bg-[#4a5461] text-gray-300 hover:text-teal-400' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-teal-600'}`}
                   title="Фильтры"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,7 +319,7 @@ function CityReportContent() {
                   </svg>
                   {/* Индикатор активных фильтров */}
                   {activeFiltersCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 border-white"></span>
+                    <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 ${isDark ? 'border-[#2a3441]' : 'border-white'}`}></span>
                   )}
                 </button>
 
@@ -324,26 +327,26 @@ function CityReportContent() {
                 {activeFiltersCount > 0 && (
                   <div className="flex items-center gap-2 flex-wrap">
                     {startDate && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-medium border border-teal-200">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-teal-900/30 text-teal-300 border-teal-700' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>
                         От: {new Date(startDate).toLocaleDateString('ru-RU')}
-                        <button onClick={() => { setStartDate(''); loadCityReport({ endDate: endDate || undefined }) }} className="hover:text-teal-900 ml-1">×</button>
+                        <button onClick={() => { setStartDate(''); loadCityReport({ endDate: endDate || undefined }) }} className={`ml-1 ${isDark ? 'hover:text-teal-100' : 'hover:text-teal-900'}`}>×</button>
                       </span>
                     )}
                     {endDate && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-medium border border-teal-200">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-teal-900/30 text-teal-300 border-teal-700' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>
                         До: {new Date(endDate).toLocaleDateString('ru-RU')}
-                        <button onClick={() => { setEndDate(''); loadCityReport({ startDate: startDate || undefined }) }} className="hover:text-teal-900 ml-1">×</button>
+                        <button onClick={() => { setEndDate(''); loadCityReport({ startDate: startDate || undefined }) }} className={`ml-1 ${isDark ? 'hover:text-teal-100' : 'hover:text-teal-900'}`}>×</button>
                       </span>
                     )}
                     {cityFilter && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-medium border border-teal-200">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-teal-900/30 text-teal-300 border-teal-700' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>
                         {cityFilter}
-                        <button onClick={() => setCityFilter('')} className="hover:text-teal-900 ml-1">×</button>
+                        <button onClick={() => setCityFilter('')} className={`ml-1 ${isDark ? 'hover:text-teal-100' : 'hover:text-teal-900'}`}>×</button>
                       </span>
                     )}
                     <button
                       onClick={clearAllFilters}
-                      className="text-xs text-gray-500 hover:text-red-500 transition-colors"
+                      className={`text-xs transition-colors ${isDark ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}`}
                     >
                       Сбросить
                     </button>
@@ -374,13 +377,13 @@ function CityReportContent() {
               />
               
               {/* Drawer */}
-              <div className="fixed top-16 md:top-0 right-0 h-[calc(100%-4rem)] md:h-full w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
+              <div className={`fixed top-16 md:top-0 right-0 h-[calc(100%-4rem)] md:h-full w-full sm:w-80 shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
                 {/* Header - только на десктопе */}
-                <div className="hidden md:flex sticky top-0 bg-white border-b border-gray-200 px-4 py-3 items-center justify-between z-10">
-                  <h2 className="text-lg font-semibold text-gray-800">Фильтры</h2>
+                <div className={`hidden md:flex sticky top-0 border-b px-4 py-3 items-center justify-between z-10 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <h2 className={`text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Фильтры</h2>
                   <button
                     onClick={() => setShowFilterDrawer(false)}
-                    className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    className={`p-2 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-[#3a4451]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
                     title="Закрыть"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -390,10 +393,10 @@ function CityReportContent() {
                 </div>
 
                 {/* Кнопка скрыть - только на мобильных */}
-                <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 px-4 py-3 z-10">
+                <div className={`md:hidden sticky top-0 border-b px-4 py-3 z-10 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
                   <button
                     onClick={() => setShowFilterDrawer(false)}
-                    className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    className={`w-full py-2.5 px-4 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 ${isDark ? 'bg-[#3a4451] hover:bg-[#4a5461] text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -406,7 +409,7 @@ function CityReportContent() {
                 <div className="p-4 space-y-4">
                   {/* Секция: Период */}
                   <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Период</h3>
+                    <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Период</h3>
                     
                     <div className="grid grid-cols-2 gap-2">
                       {quickPeriods.map((period) => (
@@ -417,7 +420,7 @@ function CityReportContent() {
                             setDraftStartDate(start)
                             setDraftEndDate(end)
                           }}
-                          className="px-3 py-2 bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 rounded-lg text-sm font-medium text-gray-700 hover:text-teal-700 transition-all duration-200"
+                          className={`px-3 py-2 border rounded-lg text-sm font-medium transition-all duration-200 ${isDark ? 'bg-[#3a4451] hover:bg-teal-900/30 border-gray-600 hover:border-teal-600 text-gray-300 hover:text-teal-400' : 'bg-gray-50 hover:bg-teal-50 border-gray-200 hover:border-teal-300 text-gray-700 hover:text-teal-700'}`}
                         >
                           {period.label}
                         </button>
@@ -426,31 +429,31 @@ function CityReportContent() {
                     
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">С</label>
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>С</label>
                         <input
                           type="date"
                           value={draftStartDate}
                           onChange={(e) => setDraftStartDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                          className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-200 text-gray-800'}`}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">По</label>
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>По</label>
                         <input
                           type="date"
                           value={draftEndDate}
                           onChange={(e) => setDraftEndDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                          className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-200 text-gray-800'}`}
                         />
                       </div>
                     </div>
                   </div>
 
-                  <hr className="border-gray-200" />
+                  <hr className={isDark ? 'border-gray-700' : 'border-gray-200'} />
 
                   {/* Секция: Город */}
                   <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Город</h3>
+                    <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Город</h3>
                     
                     <CustomSelect
                       value={draftCityFilter}
@@ -465,10 +468,10 @@ function CityReportContent() {
                 </div>
 
                 {/* Footer */}
-                <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-2">
+                <div className={`sticky bottom-0 border-t px-4 py-3 flex gap-2 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
                   <button
                     onClick={resetFilters}
-                    className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark ? 'bg-[#3a4451] hover:bg-[#4a5461] text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
                   >
                     Сбросить
                   </button>
@@ -487,80 +490,80 @@ function CityReportContent() {
           <div className="space-y-4 mb-8">
             
             {/* Блок: ДЕНЬГИ */}
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-4 py-2 border-b border-gray-100">
-                <h3 className="text-gray-700 font-medium text-sm">Деньги</h3>
+            <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Деньги</h3>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100">
+              <div className={`grid grid-cols-2 sm:grid-cols-4 divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Оборот</div>
-                  <div className="text-lg font-bold text-teal-600">{formatNumber(totals.turnover)} ₽</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Оборот</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>{formatNumber(totals.turnover)} ₽</div>
                 </div>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Прибыль</div>
-                  <div className="text-lg font-bold text-emerald-600">{formatNumber(totals.profit)} ₽</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Прибыль</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatNumber(totals.profit)} ₽</div>
                 </div>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Ср. чек</div>
-                  <div className="text-lg font-bold text-gray-800">{formatNumber(Math.round(avgCheck))} ₽</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Ср. чек</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{formatNumber(Math.round(avgCheck))} ₽</div>
                 </div>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Макс. чек</div>
-                  <div className="text-lg font-bold text-purple-600">{formatNumber(totals.maxCheck)} ₽</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Макс. чек</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{formatNumber(totals.maxCheck)} ₽</div>
                 </div>
               </div>
             </div>
 
             {/* Блок: ЗАКАЗЫ */}
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-4 py-2 border-b border-gray-100">
-                <h3 className="text-gray-700 font-medium text-sm">Заказы</h3>
+            <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Заказы</h3>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-gray-100">
+              <div className={`grid grid-cols-2 sm:grid-cols-5 divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Всего</div>
-                  <div className="text-lg font-bold text-gray-800">{totals.totalOrders}</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Всего</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{totals.totalOrders}</div>
                 </div>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Выполнено</div>
-                  <div className="text-lg font-bold text-green-600">{totals.completedOrders}</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Выполнено</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>{totals.completedOrders}</div>
                 </div>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Вып. %</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Вып. %</div>
                   <div className={`text-lg font-bold ${completedPercentColor}`}>
-                    <span className={`inline-block px-2 py-0.5 rounded-full text-sm ${completedPercentBg}`}>
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-sm ${isDark ? 'bg-opacity-30' : ''} ${completedPercentBg}`}>
                       {formatPercent(completedPercent)}
                     </span>
                   </div>
                 </div>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Незаказ</div>
-                  <div className="text-lg font-bold text-orange-500">{totals.notOrders}</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Незаказ</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-500'}`}>{totals.notOrders}</div>
                 </div>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Ноль</div>
-                  <div className="text-lg font-bold text-red-500">{totals.zeroOrders}</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Ноль</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-red-400' : 'text-red-500'}`}>{totals.zeroOrders}</div>
                 </div>
               </div>
             </div>
 
             {/* Блок: ЧЕКИ И СД */}
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-4 py-2 border-b border-gray-100">
-                <h3 className="text-gray-700 font-medium text-sm">Чеки и СД</h3>
+            <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                <h3 className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Чеки и СД</h3>
               </div>
-              <div className="grid grid-cols-3 divide-x divide-gray-100">
+              <div className={`grid grid-cols-3 divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">Микрочек (&lt;10К)</div>
-                  <div className="text-lg font-bold text-gray-600">{totals.microCheckCount}</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Микрочек (&lt;10К)</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{totals.microCheckCount}</div>
                 </div>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">От 10К</div>
-                  <div className="text-lg font-bold text-purple-600">{totals.over10kCount}</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>От 10К</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{totals.over10kCount}</div>
                 </div>
                 <div className="p-4 text-center">
-                  <div className="text-xs text-gray-500 mb-1">СД</div>
-                  <div className="text-lg font-bold text-teal-600">{totals.masterHandover}</div>
+                  <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>СД</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>{totals.masterHandover}</div>
                 </div>
               </div>
             </div>
@@ -568,23 +571,23 @@ function CityReportContent() {
           </div>
 
           {/* Таблица по городам */}
-          <h2 className="text-lg font-bold text-gray-800 mb-4">
+          <h2 className={`text-lg font-bold mb-4 ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
             Детализация по городам
-            <span className="text-sm font-normal text-gray-500 ml-2">
+            <span className={`text-sm font-normal ml-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
               ({sortedReports.length} {sortedReports.length === 1 ? 'город' : sortedReports.length < 5 ? 'города' : 'городов'})
             </span>
           </h2>
           <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
             <div className="min-w-[600px]">
-              <table className="w-full border-collapse text-sm bg-white rounded-lg shadow-lg overflow-hidden">
+              <table className={`w-full border-collapse text-sm rounded-lg shadow-lg overflow-hidden ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
                 <thead>
-                  <tr className="border-b-2 bg-gray-50" style={{borderColor: '#14b8a6'}}>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Город</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Закрытых заказов</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Средний чек</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Оборот</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Доход компании</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Касса</th>
+                  <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451]' : 'bg-gray-50'}`} style={{borderColor: '#14b8a6'}}>
+                    <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Город</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Закрытых заказов</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Средний чек</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Оборот</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Доход компании</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Касса</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -597,24 +600,23 @@ function CityReportContent() {
                     return (
                       <tr 
                         key={cityReport.city} 
-                        className={`border-b hover:bg-teal-50 transition-colors ${getTopStyle(rank)}`}
-                        style={{borderColor: '#e5e7eb'}}
+                        className={`border-b transition-colors ${isDark ? 'hover:bg-[#3a4451] border-gray-700' : `hover:bg-teal-50 ${getTopStyle(rank)}`}`}
                       >
-                        <td className={`py-3 px-4 text-gray-800 ${isTop3 ? 'font-bold' : 'font-semibold'}`}>
+                        <td className={`py-3 px-4 ${isDark ? 'text-gray-200' : 'text-gray-800'} ${isTop3 ? 'font-bold' : 'font-semibold'}`}>
                           <div className="flex items-center">
                             {getTopBadge(rank)}
                             {cityReport.city}
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-gray-800">{formatNumber(cityReport?.orders?.closedOrders || 0)}</td>
-                        <td className="py-3 px-4 text-gray-800">{formatNumber(cityReport?.orders?.avgCheck || 0)} ₽</td>
-                        <td className={`py-3 px-4 font-semibold ${isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                        <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatNumber(cityReport?.orders?.closedOrders || 0)}</td>
+                        <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatNumber(cityReport?.orders?.avgCheck || 0)} ₽</td>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
                           {formatNumber(turnover)} ₽
                         </td>
-                        <td className={`py-3 px-4 font-semibold ${isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
                           {formatNumber(companyIncome)} ₽
                         </td>
-                        <td className={`py-3 px-4 font-semibold ${isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
                           {formatNumber(cityReport?.cash?.totalAmount || 0)} ₽
                         </td>
                       </tr>

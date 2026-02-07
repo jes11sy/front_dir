@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { CustomNavigation } from '@/components/custom-navigation'
 import { ErrorBoundary } from '@/components/error-boundary'
 import AuthGuard from '@/components/auth-guard'
+import { useDesignStore } from '@/store/design.store'
 import React, { useLayoutEffect, useMemo, useRef } from 'react'
 
 interface ClientLayoutProps {
@@ -13,6 +14,8 @@ interface ClientLayoutProps {
 const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
   const pathname = usePathname()
   const prevPathname = useRef(pathname)
+  const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
   
   const isPublicPage = useMemo(() => {
     return pathname === '/login' || pathname === '/logout'
@@ -50,7 +53,7 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
     <ErrorBoundary>
       <AuthGuard>
         <CustomNavigation />
-        <main className="pt-16 md:pt-0 md:ml-64">{children}</main>
+        <main className={`pt-16 md:pt-0 md:ml-56 min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#1e2530]' : 'bg-white'}`}>{children}</main>
       </AuthGuard>
     </ErrorBoundary>
   )
