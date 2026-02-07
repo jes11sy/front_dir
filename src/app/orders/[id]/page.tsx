@@ -415,12 +415,45 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
         <>
           {activeTab === 'main' && (
             <div className="space-y-4">
+              {/* Блок: Заказ */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <h3 className="text-gray-700 font-medium text-sm">Заказ</h3>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Тип</div>
+                    <div className="text-sm font-medium text-gray-800">{order.typeOrder || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">РК</div>
+                    <div className="text-sm font-medium text-gray-800">{order.rk || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Источник</div>
+                    <div className="text-sm font-medium text-gray-800">{order.avitoName || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Направление</div>
+                    <div className="text-sm font-medium text-gray-800">{order.typeEquipment || '-'}</div>
+                  </div>
+                </div>
+              </div>
+
               {/* Блок: Клиент */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2">
-                  <h3 className="text-white font-semibold text-sm">Клиент</h3>
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <h3 className="text-gray-700 font-medium text-sm">Клиент</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Город</div>
+                    <div className="text-sm font-medium text-gray-800">{order.city || '-'}</div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">Адрес</div>
+                    <div className="text-sm font-medium text-gray-800 truncate" title={order.address}>{order.address || '-'}</div>
+                  </div>
                   <div className="p-4">
                     <div className="text-xs text-gray-500 mb-1">Имя</div>
                     <div className="text-sm font-medium text-gray-800">{order.clientName || '-'}</div>
@@ -429,31 +462,15 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
                     <div className="text-xs text-gray-500 mb-1">Телефон</div>
                     <div className="text-sm font-medium text-gray-800">{order.phone || '-'}</div>
                   </div>
-                  <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Адрес</div>
-                    <div className="text-sm font-medium text-gray-800 truncate" title={order.address}>{order.address || '-'}</div>
-                  </div>
                 </div>
               </div>
 
-              {/* Блок: Заказ */}
+              {/* Блок: Детали */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2">
-                  <h3 className="text-white font-semibold text-sm">Заказ</h3>
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <h3 className="text-gray-700 font-medium text-sm">Детали</h3>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-                  <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Тип</div>
-                    <div className="text-sm font-medium text-gray-800">{order.typeOrder || '-'}</div>
-                  </div>
-                  <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Направление</div>
-                    <div className="text-sm font-medium text-gray-800">{order.typeEquipment || '-'}</div>
-                  </div>
-                  <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Город</div>
-                    <div className="text-sm font-medium text-gray-800">{order.city || '-'}</div>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
                   <div className="p-4">
                     <div className="text-xs text-gray-500 mb-1">Дата встречи</div>
                     <div className="text-sm font-medium text-gray-800">
@@ -462,27 +479,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
                       }) : '-'}
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Блок: Детали */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2">
-                  <h3 className="text-white font-semibold text-sm">Детали</h3>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">РК</div>
-                    <div className="text-sm font-medium text-gray-800">{order.rk || '-'}</div>
+                    <div className="text-xs text-gray-500 mb-1">Проблема</div>
+                    <div className="text-sm text-gray-800">{order.problem || '-'}</div>
                   </div>
-                  <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">Имя мастера (Авито)</div>
-                    <div className="text-sm font-medium text-gray-800">{order.avitoName || '-'}</div>
-                  </div>
-                </div>
-                <div className="border-t border-gray-100 p-4">
-                  <div className="text-xs text-gray-500 mb-1">Проблема</div>
-                  <div className="text-sm text-gray-800">{order.problem || '-'}</div>
                 </div>
               </div>
             </div>

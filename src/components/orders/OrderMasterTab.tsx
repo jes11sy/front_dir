@@ -62,11 +62,11 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
   return (
     <div className="space-y-4">
       {/* Блок: Мастер */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2">
-          <h3 className="text-white font-semibold text-sm">Мастер</h3>
+      <div className="bg-white rounded-xl border border-gray-200">
+        <div className="px-4 py-2 border-b border-gray-100">
+          <h3 className="text-gray-700 font-medium text-sm">Мастер</h3>
         </div>
-        <div className="p-4">
+        <div className="p-4 relative">
           <CustomSelect
             value={selectedMaster}
             onChange={setSelectedMaster}
@@ -86,8 +86,8 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
       {orderStatus === 'Модерн' ? (
         // Поля для статуса "Модерн"
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2">
-            <h3 className="text-white font-semibold text-sm">Модерн</h3>
+          <div className="px-4 py-2 border-b border-gray-100">
+            <h3 className="text-gray-700 font-medium text-sm">Модерн</h3>
           </div>
           <div className="p-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -134,8 +134,8 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
           {/* Блок: Финансы */}
           {!shouldHideFinancialFields() && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2">
-                <h3 className="text-white font-semibold text-sm">Финансы</h3>
+              <div className="px-4 py-2 border-b border-gray-100">
+                <h3 className="text-gray-700 font-medium text-sm">Финансы</h3>
               </div>
               <div className="p-4">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -204,8 +204,8 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
           {/* Блок: Комментарий */}
           {(orderStatus === 'Готово' || orderStatus === 'В работе') && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-600 to-gray-700 px-4 py-2">
-                <h3 className="text-white font-semibold text-sm">Комментарий</h3>
+              <div className="px-4 py-2 border-b border-gray-100">
+                <h3 className="text-gray-700 font-medium text-sm">Комментарий</h3>
               </div>
               <div className="p-4">
                 <textarea 

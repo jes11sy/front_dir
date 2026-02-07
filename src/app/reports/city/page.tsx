@@ -288,8 +288,8 @@ function CityReportContent() {
               
               {/* Блок: ДЕНЬГИ */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2">
-                  <h3 className="text-white font-semibold text-sm">Деньги</h3>
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <h3 className="text-gray-700 font-medium text-sm">Деньги</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100">
                   <div className="p-4 text-center">
@@ -313,8 +313,8 @@ function CityReportContent() {
 
               {/* Блок: ЗАКАЗЫ */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2">
-                  <h3 className="text-white font-semibold text-sm">Заказы</h3>
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <h3 className="text-gray-700 font-medium text-sm">Заказы</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-gray-100">
                   <div className="p-4 text-center">
@@ -346,8 +346,8 @@ function CityReportContent() {
 
               {/* Блок: ЧЕКИ И СД */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2">
-                  <h3 className="text-white font-semibold text-sm">Чеки и СД</h3>
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <h3 className="text-gray-700 font-medium text-sm">Чеки и СД</h3>
                 </div>
                 <div className="grid grid-cols-3 divide-x divide-gray-100">
                   <div className="p-4 text-center">
