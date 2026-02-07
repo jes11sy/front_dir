@@ -49,6 +49,19 @@ function OrdersContent() {
   const [dateFrom, setDateFrom] = useState(() => searchParams.get('dateFrom') || '')
   const [dateTo, setDateTo] = useState(() => searchParams.get('dateTo') || '')
 
+  // Черновые состояния для панели фильтров (применяются только по кнопке)
+  const [draftSearchId, setDraftSearchId] = useState('')
+  const [draftSearchPhone, setDraftSearchPhone] = useState('')
+  const [draftSearchAddress, setDraftSearchAddress] = useState('')
+  const [draftStatusFilter, setDraftStatusFilter] = useState('')
+  const [draftCityFilter, setDraftCityFilter] = useState('')
+  const [draftMasterFilter, setDraftMasterFilter] = useState('')
+  const [draftRkFilter, setDraftRkFilter] = useState('')
+  const [draftTypeEquipmentFilter, setDraftTypeEquipmentFilter] = useState('')
+  const [draftDateType, setDraftDateType] = useState<'create' | 'close' | 'meeting'>('create')
+  const [draftDateFrom, setDraftDateFrom] = useState('')
+  const [draftDateTo, setDraftDateTo] = useState('')
+
   // Состояние для данных
   const [orders, setOrders] = useState<Order[]>([])
   const [allStatuses, setAllStatuses] = useState<string[]>([])
@@ -345,9 +358,58 @@ function OrdersContent() {
   // Получаем уникальные значения для фильтров из загруженных данных
   const safeOrders = Array.isArray(orders) ? orders : []
 
-  // Сброс фильтров
+  // Открытие панели фильтров — копируем текущие значения в черновик
+  const openFiltersPanel = () => {
+    setDraftSearchId(searchId)
+    setDraftSearchPhone(searchPhone)
+    setDraftSearchAddress(searchAddress)
+    setDraftStatusFilter(statusFilter)
+    setDraftCityFilter(cityFilter)
+    setDraftMasterFilter(masterFilter)
+    setDraftRkFilter(rkFilter)
+    setDraftTypeEquipmentFilter(typeEquipmentFilter)
+    setDraftDateType(dateType)
+    setDraftDateFrom(dateFrom)
+    setDraftDateTo(dateTo)
+    setShowFilters(true)
+  }
+
+  // Применение фильтров — копируем черновик в основные состояния
+  const applyFilters = () => {
+    setSearchId(draftSearchId)
+    setSearchPhone(draftSearchPhone)
+    setSearchAddress(draftSearchAddress)
+    setStatusFilter(draftStatusFilter)
+    setCityFilter(draftCityFilter)
+    setMasterFilter(draftMasterFilter)
+    setRkFilter(draftRkFilter)
+    setTypeEquipmentFilter(draftTypeEquipmentFilter)
+    setDateType(draftDateType)
+    setDateFrom(draftDateFrom)
+    setDateTo(draftDateTo)
+    setCurrentPage(1)
+    setShowFilters(false)
+  }
+
+  // Сброс фильтров — очищаем и черновик, и основные
   const resetFilters = () => {
+    // Сбрасываем черновик
+    setDraftSearchId('')
+    setDraftSearchPhone('')
+    setDraftSearchAddress('')
+    setDraftStatusFilter('')
+    setDraftCityFilter('')
+    setDraftMasterFilter('')
+    setDraftRkFilter('')
+    setDraftTypeEquipmentFilter('')
+    setDraftDateType('create')
+    setDraftDateFrom('')
+    setDraftDateTo('')
+    // Сбрасываем основные фильтры
     setSearchTerm('')
+    setSearchId('')
+    setSearchPhone('')
+    setSearchAddress('')
     setStatusFilter('')
     setCityFilter('')
     setMasterFilter('')
@@ -357,6 +419,7 @@ function OrdersContent() {
     setDateFrom('')
     setDateTo('')
     setCurrentPage(1)
+    setShowFilters(false)
     // Очищаем URL и сохраненную позицию
     window.history.replaceState(null, '', '/orders')
     sessionStorage.removeItem(SCROLL_POSITION_KEY)
@@ -391,28 +454,28 @@ function OrdersContent() {
     }
   }
 
-  // Функция для получения цвета статуса
-  const getStatusColor = (status: string) => {
+  // Функция для получения стилей статуса (пастельные бейджи)
+  const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'Готово': return '#059669'
-      case 'В работе': return '#3b82f6'
-      case 'Ожидает': return '#f59e0b'
-      case 'Отказ': return '#ef4444'
-      case 'Принял': return '#10b981'
-      case 'В пути': return '#8b5cf6'
-      case 'Модерн': return '#f97316'
-      case 'Незаказ': return '#6b7280'
-      default: return '#6b7280'
+      case 'Готово': return 'bg-green-100 text-green-700'
+      case 'В работе': return 'bg-blue-100 text-blue-700'
+      case 'Ожидает': return 'bg-amber-100 text-amber-700'
+      case 'Отказ': return 'bg-red-100 text-red-700'
+      case 'Принял': return 'bg-emerald-100 text-emerald-700'
+      case 'В пути': return 'bg-violet-100 text-violet-700'
+      case 'Модерн': return 'bg-orange-100 text-orange-700'
+      case 'Незаказ': return 'bg-gray-100 text-gray-600'
+      default: return 'bg-gray-100 text-gray-600'
     }
   }
 
-  // Функция для получения цвета типа заказа
-  const getTypeColor = (type: string) => {
+  // Функция для получения стилей типа заказа (пастельные бейджи)
+  const getTypeStyle = (type: string) => {
     switch (type) {
-      case 'Впервые': return '#10b981'
-      case 'Повтор': return '#f59e0b'
-      case 'Гарантия': return '#ef4444'
-      default: return '#6b7280'
+      case 'Впервые': return 'bg-emerald-100 text-emerald-700'
+      case 'Повтор': return 'bg-amber-100 text-amber-700'
+      case 'Гарантия': return 'bg-red-100 text-red-700'
+      default: return 'bg-gray-100 text-gray-600'
     }
   }
   return (
@@ -474,7 +537,7 @@ function OrdersContent() {
             {/* Кнопка открытия фильтров */}
             <div className="mb-4">
               <button
-                onClick={() => setShowFilters(true)}
+                onClick={openFiltersPanel}
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:border-teal-500 hover:text-teal-600 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -522,8 +585,8 @@ function OrdersContent() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">№ заказа</label>
                         <input
                           type="text"
-                          value={searchId}
-                          onChange={(e) => handleSearchIdChange(e.target.value)}
+                          value={draftSearchId}
+                          onChange={(e) => setDraftSearchId(e.target.value)}
                           placeholder="ID заказа..."
                           className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                         />
@@ -533,8 +596,8 @@ function OrdersContent() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
                         <input
                           type="text"
-                          value={searchPhone}
-                          onChange={(e) => handleSearchPhoneChange(e.target.value)}
+                          value={draftSearchPhone}
+                          onChange={(e) => setDraftSearchPhone(e.target.value)}
                           placeholder="Номер телефона..."
                           className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                         />
@@ -544,8 +607,8 @@ function OrdersContent() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Адрес</label>
                         <input
                           type="text"
-                          value={searchAddress}
-                          onChange={(e) => handleSearchAddressChange(e.target.value)}
+                          value={draftSearchAddress}
+                          onChange={(e) => setDraftSearchAddress(e.target.value)}
                           placeholder="Адрес..."
                           className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                         />
@@ -560,7 +623,7 @@ function OrdersContent() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Статус</label>
-                        <Select value={statusFilter || "all"} onValueChange={(value) => handleStatusChange(value === "all" ? "" : value)}>
+                        <Select value={draftStatusFilter || "all"} onValueChange={(value) => setDraftStatusFilter(value === "all" ? "" : value)}>
                           <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
                             <SelectValue placeholder="Все статусы" />
                           </SelectTrigger>
@@ -575,7 +638,7 @@ function OrdersContent() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Город</label>
-                        <Select value={cityFilter || "all"} onValueChange={(value) => handleCityChange(value === "all" ? "" : value)}>
+                        <Select value={draftCityFilter || "all"} onValueChange={(value) => setDraftCityFilter(value === "all" ? "" : value)}>
                           <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
                             <SelectValue placeholder="Все города" />
                           </SelectTrigger>
@@ -590,7 +653,7 @@ function OrdersContent() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Мастер</label>
-                        <Select value={masterFilter || "all"} onValueChange={(value) => handleMasterChange(value === "all" ? "" : value)}>
+                        <Select value={draftMasterFilter || "all"} onValueChange={(value) => setDraftMasterFilter(value === "all" ? "" : value)}>
                           <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
                             <SelectValue placeholder="Все мастера" />
                           </SelectTrigger>
@@ -612,7 +675,7 @@ function OrdersContent() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">РК</label>
-                        <Select value={rkFilter || "all"} onValueChange={(value) => handleRkChange(value === "all" ? "" : value)}>
+                        <Select value={draftRkFilter || "all"} onValueChange={(value) => setDraftRkFilter(value === "all" ? "" : value)}>
                           <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
                             <SelectValue placeholder="Все РК" />
                           </SelectTrigger>
@@ -627,7 +690,7 @@ function OrdersContent() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Направление</label>
-                        <Select value={typeEquipmentFilter || "all"} onValueChange={(value) => handleTypeEquipmentChange(value === "all" ? "" : value)}>
+                        <Select value={draftTypeEquipmentFilter || "all"} onValueChange={(value) => setDraftTypeEquipmentFilter(value === "all" ? "" : value)}>
                           <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
                             <SelectValue placeholder="Все направления" />
                           </SelectTrigger>
@@ -649,7 +712,7 @@ function OrdersContent() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Тип даты</label>
-                        <Select value={dateType} onValueChange={(value: 'create' | 'close' | 'meeting') => handleDateTypeChange(value)}>
+                        <Select value={draftDateType} onValueChange={(value: 'create' | 'close' | 'meeting') => setDraftDateType(value)}>
                           <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
                             <SelectValue placeholder="Тип даты" />
                           </SelectTrigger>
@@ -666,8 +729,8 @@ function OrdersContent() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">С</label>
                           <input
                             type="date"
-                            value={dateFrom}
-                            onChange={(e) => handleDateFromChange(e.target.value)}
+                            value={draftDateFrom}
+                            onChange={(e) => setDraftDateFrom(e.target.value)}
                             className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                           />
                         </div>
@@ -675,8 +738,8 @@ function OrdersContent() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">По</label>
                           <input
                             type="date"
-                            value={dateTo}
-                            onChange={(e) => handleDateToChange(e.target.value)}
+                            value={draftDateTo}
+                            onChange={(e) => setDraftDateTo(e.target.value)}
                             className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                           />
                         </div>
@@ -693,7 +756,7 @@ function OrdersContent() {
                       Сбросить
                     </button>
                     <button
-                      onClick={() => setShowFilters(false)}
+                      onClick={applyFilters}
                       className="flex-1 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors text-sm font-medium"
                     >
                       Применить
@@ -741,7 +804,7 @@ function OrdersContent() {
                     >
                       <td className="py-2 px-2 text-gray-800 font-medium">{order.id}</td>
                       <td className="py-2 px-2">
-                        <span className="px-2 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${getTypeStyle(order.typeOrder)}`}>
                           {order.typeOrder}
                         </span>
                       </td>
@@ -755,7 +818,7 @@ function OrdersContent() {
                       <td className="py-2 px-2 text-gray-800">{order.typeEquipment}</td>
                       <td className="py-2 px-2 text-gray-800">{order.problem}</td>
                       <td className="py-2 px-2 text-center">
-                        <span className="inline-block px-2 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
+                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${getStatusStyle(order.statusOrder)}`}>
                           {order.statusOrder}
                         </span>
                       </td>
@@ -791,7 +854,7 @@ function OrdersContent() {
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-gray-800 font-semibold">#{order.id}</span>
-                      <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(order.typeOrder)}}>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getTypeStyle(order.typeOrder)}`}>
                         {order.typeOrder}
                       </span>
                     </div>
@@ -831,7 +894,7 @@ function OrdersContent() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Статус:</span>
-                      <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getStatusColor(order.statusOrder)}}>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusStyle(order.statusOrder)}`}>
                         {order.statusOrder}
                       </span>
                     </div>
