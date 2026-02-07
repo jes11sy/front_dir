@@ -33,8 +33,8 @@ function LoginForm() {
   const MAX_ATTEMPTS = 10 // Максимум попыток
   const BLOCK_DURATION = 5 * 60 * 1000 // 5 минут в миллисекундах
   
-  // Версия дизайна
-  const { version, toggleVersion } = useDesignStore()
+  // Версия дизайна и тема
+  const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
   
   /**
    * Безопасная валидация redirect URL
@@ -211,53 +211,89 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative" style={{backgroundColor: '#114643'}}>
-      {/* Переключатель версий */}
-      <div className="absolute top-4 right-4 z-10">
-        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-2">
-          <span 
-            className="text-sm font-medium transition-colors"
-            style={{color: version === 'v1' ? '#14b8a6' : 'rgba(255,255,255,0.5)'}}
-          >
-            V1
-          </span>
-          <button
-            onClick={toggleVersion}
-            className="relative w-12 h-6 rounded-full transition-colors duration-300"
-            style={{
-              backgroundColor: version === 'v2' ? '#14b8a6' : 'rgba(255,255,255,0.3)'
-            }}
-            title={`Переключить на ${version === 'v1' ? 'V2' : 'V1'}`}
-          >
-            <span
-              className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300"
-              style={{
-                transform: version === 'v2' ? 'translateX(24px)' : 'translateX(0)'
-              }}
+    <div 
+      className="min-h-screen flex flex-col relative transition-colors duration-300" 
+      style={{backgroundColor: theme === 'dark' ? '#1a2e2c' : '#114643'}}
+    >
+      {/* Верхняя панель с логотипом и переключателями */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          {/* Логотип слева */}
+          <div className="flex-shrink-0">
+            <Image
+              src="/images/logo_light_v2.png"
+              alt="Новые Схемы"
+              width={160}
+              height={45}
+              className="h-10 w-auto object-contain"
+              priority
             />
-          </button>
-          <span 
-            className="text-sm font-medium transition-colors"
-            style={{color: version === 'v2' ? '#14b8a6' : 'rgba(255,255,255,0.5)'}}
-          >
-            V2
-          </span>
+          </div>
+
+          {/* Переключатель версий справа */}
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-2">
+            <span 
+              className="text-sm font-medium transition-colors"
+              style={{color: version === 'v1' ? '#14b8a6' : 'rgba(255,255,255,0.5)'}}
+            >
+              V1
+            </span>
+            <button
+              onClick={toggleVersion}
+              className="relative w-12 h-6 rounded-full transition-colors duration-300"
+              style={{
+                backgroundColor: version === 'v2' ? '#14b8a6' : 'rgba(255,255,255,0.3)'
+              }}
+              title={`Переключить на ${version === 'v1' ? 'V2' : 'V1'}`}
+            >
+              <span
+                className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300"
+                style={{
+                  transform: version === 'v2' ? 'translateX(24px)' : 'translateX(0)'
+                }}
+              />
+            </button>
+            <span 
+              className="text-sm font-medium transition-colors"
+              style={{color: version === 'v2' ? '#14b8a6' : 'rgba(255,255,255,0.5)'}}
+            >
+              V2
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-md w-full space-y-8 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Форма логина по центру */}
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
         <Card className="backdrop-blur-lg shadow-2xl border-0 rounded-2xl bg-white/95 hover:bg-white transition-all duration-500 hover:shadow-3xl transform hover:scale-[1.02] animate-fade-in">
-          <CardHeader className="text-center pb-8">
-            <div className="mx-auto mb-6 animate-bounce-in">
-              <Image
-                src="/images/logo_light_v2.png"
-                alt="Новые Схемы"
-                width={200}
-                height={60}
-                className="object-contain drop-shadow-lg hover:drop-shadow-xl transition-all duration-300 hover:scale-105"
-                priority
-              />
-            </div>
+          {/* Шапка карточки: лого слева, переключатель темы справа */}
+          <div className="flex items-center justify-between px-6 pt-6 pb-2">
+            <Image
+              src="/images/logo_light_v2.png"
+              alt="Новые Схемы"
+              width={120}
+              height={35}
+              className="h-8 w-auto object-contain"
+            />
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-300"
+              title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+            >
+              {theme === 'dark' ? (
+                <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
+            </button>
+          </div>
+          <CardHeader className="text-center pb-4 pt-2">
+            <CardTitle className="text-2xl font-semibold text-gray-800">Авторизация</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -347,11 +383,14 @@ function LoginForm() {
           </CardContent>
         </Card>
         
-        <div className="text-center mt-8 animate-fade-in-delayed">
-          <p className="text-white/80 text-sm hover:text-white/90 transition-colors duration-200">
-            © 2025 Новые Схемы. Все права защищены.
-          </p>
         </div>
+      </div>
+
+      {/* Футер внизу страницы */}
+      <div className="w-full py-4 text-center">
+        <p className="text-white/60 text-xs hover:text-white/80 transition-colors duration-200">
+          © 2026 Новые Схемы. Все права защищены.
+        </p>
       </div>
     </div>
   )
