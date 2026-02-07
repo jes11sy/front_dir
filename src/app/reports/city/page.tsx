@@ -231,46 +231,14 @@ function CityReportContent() {
   const completedPercentColor = completedPercent >= 70 ? 'text-green-600' : completedPercent >= 50 ? 'text-amber-600' : 'text-red-500'
   const completedPercentBg = completedPercent >= 70 ? 'bg-green-100' : completedPercent >= 50 ? 'bg-amber-100' : 'bg-red-100'
 
-  // Функция для получения стиля топ-3 городов по обороту (только для светлой темы)
-  const getTopStyle = (rank: number) => {
-    if (isDark) return '' // Без выделения в темной теме
-    switch (rank) {
-      case 1:
-        return 'bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-400'
-      case 2:
-        return 'bg-gradient-to-r from-gray-50 to-slate-100 border-l-4 border-gray-400'
-      case 3:
-        return 'bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-orange-300'
-      default:
-        return ''
-    }
+  // Функция для получения стиля топ-3 городов (отключено)
+  const getTopStyle = (_rank: number) => {
+    return ''
   }
 
-  // Функция для получения бейджа топ-3 (только для светлой темы)
-  const getTopBadge = (rank: number) => {
-    if (isDark) return null // Без бейджей в темной теме
-    switch (rank) {
-      case 1:
-        return (
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400 text-white text-xs font-bold shadow-sm mr-2">
-            1
-          </span>
-        )
-      case 2:
-        return (
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-400 text-white text-xs font-bold shadow-sm mr-2">
-            2
-          </span>
-        )
-      case 3:
-        return (
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-400 text-white text-xs font-bold shadow-sm mr-2">
-            3
-          </span>
-        )
-      default:
-        return null
-    }
+  // Функция для получения бейджа топ-3 (отключено)
+  const getTopBadge = (_rank: number) => {
+    return null
   }
 
   // Сортируем города по обороту для рейтинга
@@ -593,32 +561,27 @@ function CityReportContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedReports.map((cityReport, index) => {
-                    const rank = index + 1
-                    const isTop3 = rank <= 3
+                  {sortedReports.map((cityReport) => {
                     const turnover = cityReport?.orders?.totalClean || 0
                     const companyIncome = cityReport?.orders?.totalMasterChange || 0
                     
                     return (
                       <tr 
                         key={cityReport.city} 
-                        className={`border-b transition-colors ${isDark ? 'hover:bg-[#3a4451] border-gray-700' : `hover:bg-teal-50 ${getTopStyle(rank)}`}`}
+                        className={`border-b transition-colors ${isDark ? 'hover:bg-[#3a4451] border-gray-700' : 'hover:bg-teal-50'}`}
                       >
-                        <td className={`py-3 px-4 ${isDark ? 'text-gray-200' : 'text-gray-800'} ${isTop3 ? 'font-bold' : 'font-semibold'}`}>
-                          <div className="flex items-center">
-                            {getTopBadge(rank)}
-                            {cityReport.city}
-                          </div>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                          {cityReport.city}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatNumber(cityReport?.orders?.closedOrders || 0)}</td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatNumber(cityReport?.orders?.avgCheck || 0)} ₽</td>
-                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
                           {formatNumber(turnover)} ₽
                         </td>
-                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
                           {formatNumber(companyIncome)} ₽
                         </td>
-                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : isTop3 ? 'text-teal-700' : 'text-teal-600'}`}>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
                           {formatNumber(cityReport?.cash?.totalAmount || 0)} ₽
                         </td>
                       </tr>

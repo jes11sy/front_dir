@@ -22,19 +22,9 @@ const navigationItems = [
 export function CustomNavigation() {
   const pathname = usePathname()
   const router = useRouter()
-  // Начинаем с закрытого меню и флагом что компонент ещё не смонтирован
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
   const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
   const { user } = useAuthStore()
-
-  // Помечаем что компонент смонтирован и гарантированно закрываем меню
-  useEffect(() => {
-    setMobileMenuOpen(false)
-    setIsMounted(true)
-    // Очищаем overflow на body на случай если он застрял
-    document.body.style.overflow = ''
-  }, [])
 
   // Переход на главную страницу заказов (сброс всех фильтров и позиции)
   const handleLogoClick = useCallback(() => {
@@ -50,7 +40,6 @@ export function CustomNavigation() {
   // Закрываем меню при смене маршрута
   useEffect(() => {
     setMobileMenuOpen(false)
-    document.body.style.overflow = ''
   }, [pathname])
 
   // Блокируем скролл body при открытом меню
@@ -305,13 +294,12 @@ export function CustomNavigation() {
         </div>
       </header>
 
-      {/* Mobile Full-screen Menu with slide animation */}
-      {/* Скрываем полностью пока не смонтирован или меню закрыто */}
+      {/* Mobile Full-screen Menu */}
       <aside 
-        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] z-[9998] flex flex-col transition-all duration-300 ease-out ${
+        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] z-[9998] flex flex-col transform transition-transform duration-300 ease-in-out ${
           isDark ? 'bg-[#1e2530]' : 'bg-white'
         } ${
-          isMounted && mobileMenuOpen ? 'translate-x-0 visible' : '-translate-x-full invisible'
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="pt-6 flex flex-col h-full overflow-y-auto">
@@ -320,14 +308,14 @@ export function CustomNavigation() {
       </aside>
 
       {/* Overlay backdrop */}
-      <div 
-        className={`md:hidden fixed inset-0 top-16 z-[9997] transition-opacity duration-300 ${
-          isDark ? 'bg-black/40' : 'bg-black/20'
-        } ${
-          isMounted && mobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
-        }`}
-        onClick={() => setMobileMenuOpen(false)}
-      />
+      {mobileMenuOpen && (
+        <div 
+          className={`md:hidden fixed inset-0 top-16 z-[9997] ${
+            isDark ? 'bg-black/40' : 'bg-black/20'
+          }`}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
 
       {/* Desktop Sidebar */}
       <aside 
