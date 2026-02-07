@@ -71,16 +71,16 @@ function MasterHandoverContent() {
         <div className="w-full">
           {/* Общая сумма к сдаче */}
           {totalAmount > 0 && (
-            <div className={`px-4 py-4 border-b ${
+            <div className={`px-4 py-3 border-b ${
               theme === 'dark' ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'
             }`}>
-              <div className="flex items-center justify-between">
-                <span className={`text-sm font-medium ${
+              <div className="flex items-center gap-2">
+                <span className={`text-sm ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                 }`}>
                   Общая сумма к сдаче:
                 </span>
-                <span className={`text-xl font-bold ${
+                <span className={`text-lg font-bold ${
                   theme === 'dark' ? 'text-teal-400' : 'text-teal-600'
                 }`}>
                   {totalAmount.toLocaleString()} ₽

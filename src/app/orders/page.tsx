@@ -562,13 +562,14 @@ function OrdersContent() {
                 />
                 
                 {/* Панель фильтров */}
-                <div className="fixed top-0 right-0 h-full w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
+                <div className="fixed top-16 right-0 h-[calc(100%-4rem)] w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
                   {/* Заголовок панели */}
                   <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-10">
                     <h2 className="text-lg font-semibold text-gray-800">Фильтры</h2>
                     <button
                       onClick={() => setShowFilters(false)}
-                      className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                      className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                      title="Закрыть"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -845,63 +846,55 @@ function OrdersContent() {
 
             {/* Мобильные карточки */}
             {!loading && !error && safeOrders.length > 0 && (
-            <div className="md:hidden space-y-4 animate-fade-in">
+            <div className="md:hidden space-y-3 animate-fade-in">
               {Array.isArray(safeOrders) && safeOrders.map((order) => (
                 <div 
                   key={order.id}
-                  className="bg-white rounded-lg p-4 border border-gray-200 cursor-pointer hover:bg-teal-50 transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="bg-white rounded-xl overflow-hidden border border-gray-200 cursor-pointer hover:border-teal-300 transition-all duration-200 shadow-sm hover:shadow-md"
                   onClick={() => handleOrderClick(order.id)}
                 >
-                  <div className="flex justify-between items-start mb-3">
+                  {/* Верхняя строка: ID, тип, дата */}
+                  <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-100">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-800 font-semibold">#{order.id}</span>
+                      <span className="text-gray-800 font-bold text-sm">#{order.id}</span>
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${getTypeStyle(order.typeOrder)}`}>
                         {order.typeOrder}
                       </span>
                     </div>
-                    <span className="text-gray-800 font-semibold">
-                      {order.result && typeof order.result === 'number' 
-                        ? (() => {
-                            try {
-                              // Простое форматирование числа без локали (работает на всех устройствах)
-                              return `${order.result.toLocaleString()} ₽`
-                            } catch {
-                              return `${order.result} ₽`
-                            }
-                          })()
-                        : '-'}
-                    </span>
+                    <span className="text-xs text-gray-500">{formatDate(order.dateMeeting)}</span>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Клиент:</span>
-                      <span className="text-gray-800">{order.clientName}</span>
+                  
+                  {/* Основной контент */}
+                  <div className="px-3 py-2.5">
+                    {/* Клиент и город */}
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-gray-800 font-medium text-sm">{order.clientName || 'Без имени'}</span>
+                      <span className="text-gray-500 text-xs">{order.city}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Город:</span>
-                      <span className="text-gray-800">{order.city}</span>
+                    
+                    {/* Адрес */}
+                    <p className="text-gray-600 text-xs mb-2 line-clamp-1">{order.address || '—'}</p>
+                    
+                    {/* Проблема */}
+                    <div className="flex items-start gap-1.5 mb-2">
+                      <span className="text-gray-400 text-xs shrink-0">{order.typeEquipment}</span>
+                      <span className="text-gray-400 text-xs">·</span>
+                      <span className="text-gray-600 text-xs line-clamp-1">{order.problem || '—'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Адрес:</span>
-                      <span className="text-gray-800 text-right max-w-[60%]">{order.address || '-'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Дата встречи:</span>
-                      <span className="text-gray-800">{formatDate(order.dateMeeting)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Мастер:</span>
-                      <span className="text-gray-800">{order.master?.name || '-'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Проблема:</span>
-                      <span className="text-gray-800">{order.problem}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Статус:</span>
+                  </div>
+                  
+                  {/* Нижняя строка: мастер, статус, сумма */}
+                  <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-t border-gray-100">
+                    <span className="text-gray-600 text-xs">{order.master?.name || 'Не назначен'}</span>
+                    <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusStyle(order.statusOrder)}`}>
                         {order.statusOrder}
                       </span>
+                      {order.result && typeof order.result === 'number' && (
+                        <span className="text-teal-600 font-bold text-sm">
+                          {order.result.toLocaleString()} ₽
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

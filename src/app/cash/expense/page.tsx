@@ -95,19 +95,46 @@ function ExpenseContent() {
   // Подсчёт активных фильтров
   const activeFiltersCount = [startDate, endDate, cityFilter, purposeFilter].filter(Boolean).length
 
-  // Сброс всех фильтров
+  // Сброс всех фильтров (в drawer)
   const resetFilters = () => {
+    setDraftStartDate('')
+    setDraftEndDate('')
+    setDraftCityFilter('')
+    setDraftPurposeFilter('')
+  }
+
+  // Применить фильтры из черновика и закрыть drawer
+  const applyFilters = () => {
+    setStartDate(draftStartDate)
+    setEndDate(draftEndDate)
+    setCityFilter(draftCityFilter)
+    setPurposeFilter(draftPurposeFilter)
+    setCurrentPage(1)
+    setShowFilterDrawer(false)
+  }
+
+  // Сброс основных фильтров (при клике на теги)
+  const clearAllFilters = () => {
     setStartDate('')
     setEndDate('')
     setCityFilter('')
     setPurposeFilter('')
+    setCurrentPage(1)
   }
 
-  // Применить фильтры и закрыть drawer
-  const applyFilters = () => {
-    setCurrentPage(1)
-    setShowFilterDrawer(false)
-    loadExpenseData()
+  // Состояния для "черновых" фильтров в drawer
+  const [draftStartDate, setDraftStartDate] = useState('')
+  const [draftEndDate, setDraftEndDate] = useState('')
+  const [draftCityFilter, setDraftCityFilter] = useState('')
+  const [draftPurposeFilter, setDraftPurposeFilter] = useState('')
+
+  // Открытие drawer - копируем текущие фильтры в черновик
+  const openFilterDrawer = () => {
+    setDraftStartDate(startDate)
+    setDraftEndDate(endDate)
+    setDraftCityFilter(cityFilter)
+    setDraftPurposeFilter(purposeFilter)
+    setShowFilterDrawer(true)
   }
 
   // 🔧 FIX: Загрузка данных с серверной пагинацией и агрегацией
@@ -116,6 +143,14 @@ function ExpenseContent() {
       setLoading(true)
       setError(null)
       
+      // Параметры фильтрации
+      const filterParams = {
+        city: cityFilter || undefined,
+        paymentPurpose: purposeFilter || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      }
+      
       // 🔧 FIX: Два легких параллельных запроса вместо одного тяжелого с limit=10000
       const [transactionsResult, statsResult] = await Promise.all([
         // Запрос транзакций с серверной пагинацией
@@ -123,9 +158,10 @@ function ExpenseContent() {
           page: currentPage,
           limit: itemsPerPage,
           type: 'расход',
+          ...filterParams,
         }),
         // Запрос статистики (агрегация на сервере через SQL)
-        apiClient.getCashStats({ type: 'расход' }),
+        apiClient.getCashStats({ type: 'расход', ...filterParams }),
       ])
       
       setExpenseData(transactionsResult.data)
@@ -137,7 +173,7 @@ function ExpenseContent() {
     } finally {
       setLoading(false)
     }
-  }, [currentPage])
+  }, [currentPage, startDate, endDate, cityFilter, purposeFilter])
 
   useEffect(() => {
     loadExpenseData()
@@ -261,7 +297,7 @@ function ExpenseContent() {
                 <div className="flex items-center gap-2">
                   {/* Иконка фильтров */}
                   <button
-                    onClick={() => setShowFilterDrawer(true)}
+                    onClick={openFilterDrawer}
                     className="relative p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 hover:text-red-600 transition-all duration-200"
                     title="Фильтры"
                   >
@@ -302,7 +338,7 @@ function ExpenseContent() {
                         </span>
                       )}
                       <button
-                        onClick={resetFilters}
+                        onClick={clearAllFilters}
                         className="text-xs text-gray-500 hover:text-red-500 transition-colors"
                       >
                         Сбросить
@@ -330,17 +366,31 @@ function ExpenseContent() {
                 />
                 
                 {/* Drawer */}
-                <div className="fixed top-0 right-0 h-full w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
+                <div className="fixed top-16 md:top-0 right-0 h-[calc(100%-4rem)] md:h-full w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
                   {/* Header */}
                   <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-10">
                     <h2 className="text-lg font-semibold text-gray-800">Фильтры</h2>
                     <button
                       onClick={() => setShowFilterDrawer(false)}
-                      className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                      className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                      title="Закрыть"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
+                    </button>
+                  </div>
+
+                  {/* Кнопка скрыть для мобильной версии */}
+                  <div className="md:hidden px-4 pt-3">
+                    <button
+                      onClick={() => setShowFilterDrawer(false)}
+                      className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Скрыть
                     </button>
                   </div>
 
@@ -356,8 +406,8 @@ function ExpenseContent() {
                             key={period.label}
                             onClick={() => {
                               const { start, end } = period.getValue()
-                              setStartDate(start)
-                              setEndDate(end)
+                              setDraftStartDate(start)
+                              setDraftEndDate(end)
                             }}
                             className="px-3 py-2 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300 rounded-lg text-sm font-medium text-gray-700 hover:text-red-700 transition-all duration-200"
                           >
@@ -371,8 +421,8 @@ function ExpenseContent() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">С</label>
                           <input
                             type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
+                            value={draftStartDate}
+                            onChange={(e) => setDraftStartDate(e.target.value)}
                             className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                           />
                         </div>
@@ -380,8 +430,8 @@ function ExpenseContent() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">По</label>
                           <input
                             type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
+                            value={draftEndDate}
+                            onChange={(e) => setDraftEndDate(e.target.value)}
                             className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                           />
                         </div>
@@ -397,8 +447,8 @@ function ExpenseContent() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Город</label>
                         <CustomSelect
-                          value={cityFilter}
-                          onChange={(value) => setCityFilter(value)}
+                          value={draftCityFilter}
+                          onChange={(value) => setDraftCityFilter(value)}
                           options={[{ value: '', label: 'Все города' }, ...cities]}
                           placeholder="Выберите город"
                           selectId="filter-city"
@@ -410,8 +460,8 @@ function ExpenseContent() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Назначение</label>
                         <CustomSelect
-                          value={purposeFilter}
-                          onChange={(value) => setPurposeFilter(value)}
+                          value={draftPurposeFilter}
+                          onChange={(value) => setDraftPurposeFilter(value)}
                           options={[{ value: '', label: 'Все назначения' }, ...purposes]}
                           placeholder="Выберите назначение"
                           selectId="filter-purpose"
