@@ -344,10 +344,10 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-h-screen bg-[#daece2] -m-4 sm:-m-6 p-4 sm:p-6">
       {/* Шапка заказа */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+      <div className="bg-white rounded-b-xl shadow-sm">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 relative">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => router.back()}
@@ -416,7 +416,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
           {activeTab === 'main' && (
             <div className="space-y-4">
               {/* Блок: Заказ */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm">
                 <div className="px-4 py-2 border-b border-gray-100">
                   <h3 className="text-gray-700 font-medium text-sm">Заказ</h3>
                 </div>
@@ -441,7 +441,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
               </div>
 
               {/* Блок: Клиент */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm">
                 <div className="px-4 py-2 border-b border-gray-100">
                   <h3 className="text-gray-700 font-medium text-sm">Клиент</h3>
                 </div>
@@ -466,7 +466,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
               </div>
 
               {/* Блок: Детали */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm">
                 <div className="px-4 py-2 border-b border-gray-100">
                   <h3 className="text-gray-700 font-medium text-sm">Детали</h3>
                 </div>

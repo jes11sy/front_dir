@@ -62,7 +62,7 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
   return (
     <div className="space-y-4">
       {/* Блок: Мастер */}
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="bg-white rounded-xl shadow-sm">
         <div className="px-4 py-2 border-b border-gray-100">
           <h3 className="text-gray-700 font-medium text-sm">Мастер</h3>
         </div>
@@ -85,7 +85,7 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
 
       {orderStatus === 'Модерн' ? (
         // Поля для статуса "Модерн"
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm">
           <div className="px-4 py-2 border-b border-gray-100">
             <h3 className="text-gray-700 font-medium text-sm">Модерн</h3>
           </div>
@@ -133,7 +133,7 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
         <>
           {/* Блок: Финансы */}
           {!shouldHideFinancialFields() && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm">
               <div className="px-4 py-2 border-b border-gray-100">
                 <h3 className="text-gray-700 font-medium text-sm">Финансы</h3>
               </div>
@@ -203,7 +203,7 @@ export const OrderMasterTab: React.FC<OrderMasterTabProps> = ({
 
           {/* Блок: Комментарий */}
           {(orderStatus === 'Готово' || orderStatus === 'В работе') && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm">
               <div className="px-4 py-2 border-b border-gray-100">
                 <h3 className="text-gray-700 font-medium text-sm">Комментарий</h3>
               </div>
