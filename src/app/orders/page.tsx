@@ -469,256 +469,237 @@ function OrdersContent() {
               </div>
             </div>
 
-            {/* Фильтры */}
-            <div className="mb-6 animate-slide-in-left">
-              <div className="mb-4">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 text-left cursor-pointer group"
-                >
-                  <h2 className="text-lg font-semibold text-gray-700 group-hover:text-teal-600 transition-colors duration-200">
-                    Фильтры
-                  </h2>
-                  <svg
-                    className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
-                      showFilters ? 'rotate-180' : ''
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-              </div>
-              
-              {showFilters && (
-                <div className="space-y-4 animate-slide-in-right">
-                  {/* Первая строка: Поиск по ID, Телефону, Адресу */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* Поиск по ID */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        № заказа
-                      </label>
-                      <input
-                        type="text"
-                        value={searchId}
-                        onChange={(e) => handleSearchIdChange(e.target.value)}
-                        placeholder="ID заказа..."
-                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
-                      />
-                    </div>
-                    
-                    {/* Поиск по телефону */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Телефон
-                      </label>
-                      <input
-                        type="text"
-                        value={searchPhone}
-                        onChange={(e) => handleSearchPhoneChange(e.target.value)}
-                        placeholder="Номер телефона..."
-                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
-                      />
-                    </div>
-                    
-                    {/* Поиск по адресу */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Адрес
-                      </label>
-                      <input
-                        type="text"
-                        value={searchAddress}
-                        onChange={(e) => handleSearchAddressChange(e.target.value)}
-                        placeholder="Адрес..."
-                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
-                      />
-                    </div>
+            {/* Кнопка открытия фильтров */}
+            <div className="mb-4">
+              <button
+                onClick={() => setShowFilters(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:border-teal-500 hover:text-teal-600 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Фильтры
+                {/* Индикатор активных фильтров */}
+                {(searchId || searchPhone || searchAddress || statusFilter || cityFilter || masterFilter || rkFilter || typeEquipmentFilter || dateFrom || dateTo) && (
+                  <span className="ml-1 w-2 h-2 bg-teal-500 rounded-full"></span>
+                )}
+              </button>
+            </div>
+
+            {/* Выезжающая панель фильтров справа */}
+            {showFilters && (
+              <>
+                {/* Затемнение фона */}
+                <div 
+                  className="fixed inset-0 bg-black/30 z-40 transition-opacity duration-300"
+                  onClick={() => setShowFilters(false)}
+                />
+                
+                {/* Панель фильтров */}
+                <div className="fixed top-0 right-0 h-full w-full sm:w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
+                  {/* Заголовок панели */}
+                  <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-10">
+                    <h2 className="text-lg font-semibold text-gray-800">Фильтры</h2>
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                  
-                  {/* Вторая строка: Статус, Город, Мастер */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* Статус */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Статус
-                      </label>
-                      <Select value={statusFilter || "all"} onValueChange={(value) => handleStatusChange(value === "all" ? "" : value)}>
-                        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
-                          <SelectValue placeholder="Все статусы" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-300">
-                          <SelectItem value="all" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                            Все статусы
-                          </SelectItem>
-                          {Array.isArray(allStatuses) && allStatuses.map(status => (
-                            <SelectItem key={status} value={status} className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+
+                  {/* Содержимое фильтров */}
+                  <div className="p-4 space-y-4">
+                    {/* Секция: Поиск */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Поиск</h3>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">№ заказа</label>
+                        <input
+                          type="text"
+                          value={searchId}
+                          onChange={(e) => handleSearchIdChange(e.target.value)}
+                          placeholder="ID заказа..."
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
+                        <input
+                          type="text"
+                          value={searchPhone}
+                          onChange={(e) => handleSearchPhoneChange(e.target.value)}
+                          placeholder="Номер телефона..."
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Адрес</label>
+                        <input
+                          type="text"
+                          value={searchAddress}
+                          onChange={(e) => handleSearchAddressChange(e.target.value)}
+                          placeholder="Адрес..."
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                        />
+                      </div>
                     </div>
-                    
-                    {/* Город */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Город
-                      </label>
-                      <Select value={cityFilter || "all"} onValueChange={(value) => handleCityChange(value === "all" ? "" : value)}>
-                        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
-                          <SelectValue placeholder="Все города" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-300">
-                          <SelectItem value="all" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                            Все города
-                          </SelectItem>
-                          {Array.isArray(allCities) && allCities.map(city => (
-                            <SelectItem key={city} value={city} className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                              {city}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+
+                    <hr className="border-gray-200" />
+
+                    {/* Секция: Основные фильтры */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Основные</h3>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Статус</label>
+                        <Select value={statusFilter || "all"} onValueChange={(value) => handleStatusChange(value === "all" ? "" : value)}>
+                          <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
+                            <SelectValue placeholder="Все статусы" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-gray-200">
+                            <SelectItem value="all" className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">Все статусы</SelectItem>
+                            {Array.isArray(allStatuses) && allStatuses.map(status => (
+                              <SelectItem key={status} value={status} className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">{status}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Город</label>
+                        <Select value={cityFilter || "all"} onValueChange={(value) => handleCityChange(value === "all" ? "" : value)}>
+                          <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
+                            <SelectValue placeholder="Все города" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-gray-200">
+                            <SelectItem value="all" className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">Все города</SelectItem>
+                            {Array.isArray(allCities) && allCities.map(city => (
+                              <SelectItem key={city} value={city} className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">{city}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Мастер</label>
+                        <Select value={masterFilter || "all"} onValueChange={(value) => handleMasterChange(value === "all" ? "" : value)}>
+                          <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
+                            <SelectValue placeholder="Все мастера" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-gray-200">
+                            <SelectItem value="all" className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">Все мастера</SelectItem>
+                            {Array.isArray(allMasters) && allMasters.map(master => (
+                              <SelectItem key={master.id} value={master.id.toString()} className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">{master.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    
-                    {/* Мастер */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Мастер
-                      </label>
-                      <Select value={masterFilter || "all"} onValueChange={(value) => handleMasterChange(value === "all" ? "" : value)}>
-                        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
-                          <SelectValue placeholder="Все мастера" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-300">
-                          <SelectItem value="all" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                            Все мастера
-                          </SelectItem>
-                          {Array.isArray(allMasters) && allMasters.map(master => (
-                            <SelectItem key={master.id} value={master.id.toString()} className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                              {master.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+
+                    <hr className="border-gray-200" />
+
+                    {/* Секция: Дополнительные */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Дополнительно</h3>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">РК</label>
+                        <Select value={rkFilter || "all"} onValueChange={(value) => handleRkChange(value === "all" ? "" : value)}>
+                          <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
+                            <SelectValue placeholder="Все РК" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-gray-200">
+                            <SelectItem value="all" className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">Все РК</SelectItem>
+                            {Array.isArray(allRks) && allRks.map(rk => (
+                              <SelectItem key={rk} value={rk} className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">{rk}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Направление</label>
+                        <Select value={typeEquipmentFilter || "all"} onValueChange={(value) => handleTypeEquipmentChange(value === "all" ? "" : value)}>
+                          <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
+                            <SelectValue placeholder="Все направления" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-gray-200">
+                            <SelectItem value="all" className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">Все направления</SelectItem>
+                            {Array.isArray(allTypeEquipments) && allTypeEquipments.map(type => (
+                              <SelectItem key={type} value={type} className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">{type}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Третья строка: РК и Направление */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* РК */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        РК
-                      </label>
-                      <Select value={rkFilter || "all"} onValueChange={(value) => handleRkChange(value === "all" ? "" : value)}>
-                        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
-                          <SelectValue placeholder="Все РК" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-300">
-                          <SelectItem value="all" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                            Все РК
-                          </SelectItem>
-                          {Array.isArray(allRks) && allRks.map(rk => (
-                            <SelectItem key={rk} value={rk} className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                              {rk}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {/* Направление */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Направление
-                      </label>
-                      <Select value={typeEquipmentFilter || "all"} onValueChange={(value) => handleTypeEquipmentChange(value === "all" ? "" : value)}>
-                        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
-                          <SelectValue placeholder="Все направления" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-300">
-                          <SelectItem value="all" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                            Все направления
-                          </SelectItem>
-                          {Array.isArray(allTypeEquipments) && allTypeEquipments.map(type => (
-                            <SelectItem key={type} value={type} className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+
+                    <hr className="border-gray-200" />
+
+                    {/* Секция: Даты */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Период</h3>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Тип даты</label>
+                        <Select value={dateType} onValueChange={(value: 'create' | 'close' | 'meeting') => handleDateTypeChange(value)}>
+                          <SelectTrigger className="w-full bg-gray-50 border-gray-200 text-gray-800">
+                            <SelectValue placeholder="Тип даты" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-gray-200">
+                            <SelectItem value="create" className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">Дата создания</SelectItem>
+                            <SelectItem value="close" className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">Дата закрытия</SelectItem>
+                            <SelectItem value="meeting" className="text-gray-800 focus:bg-teal-50 focus:text-teal-700">Дата встречи</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">С</label>
+                          <input
+                            type="date"
+                            value={dateFrom}
+                            onChange={(e) => handleDateFromChange(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">По</label>
+                          <input
+                            type="date"
+                            value={dateTo}
+                            onChange={(e) => handleDateToChange(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Четвёртая строка: Фильтр по дате */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* Тип даты */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Фильтр по дате
-                      </label>
-                      <Select value={dateType} onValueChange={(value: 'create' | 'close' | 'meeting') => handleDateTypeChange(value)}>
-                        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-800">
-                          <SelectValue placeholder="Тип даты" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-300">
-                          <SelectItem value="create" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                            Дата создания
-                          </SelectItem>
-                          <SelectItem value="close" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                            Дата закрытия
-                          </SelectItem>
-                          <SelectItem value="meeting" className="text-gray-800 focus:text-white focus:bg-teal-600 hover:text-white hover:bg-teal-600">
-                            Дата встречи
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {/* Дата от */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        С даты
-                      </label>
-                      <input
-                        type="date"
-                        value={dateFrom}
-                        onChange={(e) => handleDateFromChange(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
-                      />
-                    </div>
-                    
-                    {/* Дата до */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        По дату
-                      </label>
-                      <input
-                        type="date"
-                        value={dateTo}
-                        onChange={(e) => handleDateToChange(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Кнопки управления фильтрами */}
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Нижняя панель с кнопками */}
+                  <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-2">
                     <button
                       onClick={resetFilters}
-                      className="px-4 py-2 text-white rounded-lg transition-all duration-200 hover:shadow-md text-sm font-medium bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700"
+                      className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
                     >
                       Сбросить
                     </button>
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className="flex-1 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors text-sm font-medium"
+                    >
+                      Применить
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
+              </>
+            )}
 
             {/* Десктопная таблица */}
             {!loading && !error && safeOrders.length === 0 && (

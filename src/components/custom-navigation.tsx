@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { Sun, Moon, Bell, User, Menu, X } from 'lucide-react'
@@ -36,6 +36,23 @@ export function CustomNavigation() {
     router.push('/orders')
   }, [router])
 
+  // Закрываем меню при смене маршрута
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
+
+  // Блокируем скролл body при открытом меню
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileMenuOpen])
+
   // Проверяем активность с учетом подстраниц
   const isActive = (href: string) => {
     if (pathname === href) return true
@@ -44,344 +61,230 @@ export function CustomNavigation() {
     return false
   }
 
-  return (
+  // Контент меню (переиспользуется для десктопа и мобильной версии)
+  const MenuContent = ({ isMobile = false }: { isMobile?: boolean }) => (
     <>
-      {/* Мобильная навигация сверху */}
-      <nav 
-        className="md:hidden fixed top-0 left-0 right-0 shadow-lg backdrop-blur-lg border-b"
-        style={{
-          backgroundColor: 'white',
-          borderColor: '#e5e7eb',
-          borderBottomWidth: '1px',
-          zIndex: 9999,
-          transform: 'translateZ(0)',
-          willChange: 'transform'
-        }}
-      >
-        <div className="flex items-center justify-between px-4 py-3">
-          <button 
-            onClick={handleLogoClick}
-            className="bg-transparent border-none cursor-pointer p-0"
-          >
-            <Image
-              src="/images/logo_light_v2.png"
-              alt="Новые Схемы"
-              width={140}
-              height={40}
-              className="h-9 w-auto object-contain"
-              priority
-            />
-          </button>
-          
-          <div className="flex items-center gap-2">
-            {/* Мобильный колокольчик уведомлений */}
-            <button
-              className="p-2 text-gray-600 hover:text-teal-600 transition-colors relative"
+      {/* Navigation */}
+      <nav className={`flex-1 px-5 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
+        {navigationItems.map((item) => {
+          const active = isActive(item.href)
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`relative flex items-center gap-3 px-3 font-normal transition-colors group ${
+                isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
+              }`}
+              onClick={() => setMobileMenuOpen(false)}
             >
-              <Bell className="h-6 w-6" />
-              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                3
+              {/* Индикатор активной вкладки - тонкая скобка */}
+              <span 
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] transition-all ${
+                  active ? 'opacity-100' : 'opacity-0'
+                } ${isMobile ? 'h-12' : 'h-10'}`}
+              >
+                <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
+                  <path 
+                    d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
+                    stroke="#14b8a6" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                </svg>
               </span>
-            </button>
-            
-            <button
-              className="p-2 rounded-lg transition-all duration-200 text-gray-700 hover:text-teal-600 hover:bg-teal-50"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-7 w-7" />
-              ) : (
-                <Menu className="h-7 w-7" />
+              {item.icon && (
+                <Image 
+                  src={item.icon} 
+                  alt={item.name} 
+                  width={isMobile ? 24 : 20} 
+                  height={isMobile ? 24 : 20} 
+                  className={`transition-all ${isMobile ? 'w-6 h-6' : 'w-5 h-5'} ${
+                    active 
+                      ? 'brightness-0 saturate-100 [filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]' 
+                      : 'brightness-0 group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]'
+                  }`}
+                />
               )}
-            </button>
-          </div>
-        </div>
-
-        {/* Мобильное меню */}
-        {mobileMenuOpen && (
-          <div 
-            className="border-t bg-white max-h-[calc(100vh-64px)] overflow-y-auto"
-            style={{
-              borderColor: '#e5e7eb',
-              borderTopWidth: '1px'
-            }}
-          >
-            <div className="px-4 py-4 space-y-1">
-              {navigationItems.map((item) => {
-                const active = isActive(item.href)
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
-                    style={{
-                      color: active ? 'white' : '#374151',
-                      backgroundColor: active ? '#14b8a6' : 'transparent',
-                      textDecoration: 'none',
-                      boxShadow: active ? '0 2px 4px rgba(20, 184, 166, 0.3)' : 'none'
-                    }}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <span className="flex-1 text-left">{item.name}</span>
-                  </Link>
-                )
-              })}
-              
-              {/* Переключатель версий для мобильной версии - только для v1 */}
-              {version === 'v1' && (
-                <div className="pt-4 mt-4">
-                  <div className="flex items-center justify-between px-4 py-3">
-                    <span className="text-sm font-medium text-gray-700">Версия дизайна</span>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-medium transition-colors ${version === 'v1' ? 'text-teal-500' : 'text-gray-400'}`}>
-                        V1
-                      </span>
-                      <button
-                        onClick={toggleVersion}
-                        className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                          version === 'v2' ? 'bg-teal-500' : 'bg-gray-300'
-                        }`}
-                      >
-                        <span
-                          className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
-                            version === 'v2' ? 'translate-x-6' : 'translate-x-0'
-                          }`}
-                        />
-                      </button>
-                      <span className={`text-sm font-medium transition-colors ${version === 'v2' ? 'text-teal-500' : 'text-gray-400'}`}>
-                        V2
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Переключатель темы для мобильной версии v2 */}
-              {version === 'v2' && (
-                <div className="pt-4 mt-4">
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    <Sun className={`h-5 w-5 transition-colors ${theme === 'light' ? 'text-teal-500' : 'text-gray-400'}`} />
-                    <button
-                      onClick={toggleTheme}
-                      className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                        theme === 'dark' ? 'bg-teal-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
-                          theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                    <Moon className={`h-5 w-5 transition-colors ${theme === 'dark' ? 'text-teal-500' : 'text-gray-400'}`} />
-                  </div>
-                </div>
-              )}
-
-              {/* Профиль для мобильной версии - просто ссылка */}
-              <div className="pt-4 mt-4">
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:text-teal-600 transition-colors rounded-lg"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User className="h-5 w-5 text-gray-500" />
-                  <span>{user?.name || user?.login || 'Профиль'}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+              <span className="text-gray-800 group-hover:text-teal-600 transition-colors">
+                {item.name}
+              </span>
+            </Link>
+          )
+        })}
       </nav>
 
-      {/* Десктопная боковая навигация */}
-      <nav 
-        className="hidden md:block fixed top-0 left-0 h-full w-64 z-50 shadow-lg backdrop-blur-lg border-r"
-        style={{
-          backgroundColor: 'white',
-          borderColor: '#e5e7eb',
-          borderRightWidth: '1px'
-        }}
+      {/* Bottom Section */}
+      <div className={`px-5 pb-6 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
+        {/* Version Toggle - только для V1 */}
+        {version === 'v1' && (
+          <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
+            <span className={`transition-colors ${isMobile ? 'text-base' : 'text-sm'} ${version === 'v1' ? 'text-teal-500' : 'text-gray-400'}`}>V1</span>
+            <button
+              onClick={toggleVersion}
+              className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
+                version === 'v2' ? 'bg-teal-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+                  version === 'v2' ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              />
+            </button>
+            <span className={`transition-colors ${isMobile ? 'text-base' : 'text-sm'} ${version === 'v2' ? 'text-teal-500' : 'text-gray-400'}`}>V2</span>
+          </div>
+        )}
+
+        {/* Theme Toggle - только для V2 */}
+        {version === 'v2' && (
+          <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
+            <Sun className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'light' ? 'text-teal-500' : 'text-gray-400'}`} />
+            <button
+              onClick={toggleTheme}
+              className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
+                theme === 'dark' ? 'bg-teal-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+                  theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              />
+            </button>
+            <Moon className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'dark' ? 'text-teal-500' : 'text-gray-400'}`} />
+          </div>
+        )}
+
+        {/* Notifications */}
+        <button
+          className={`relative flex items-center gap-3 px-3 text-gray-800 hover:text-teal-600 transition-colors w-full group ${
+            isMobile ? 'py-3 text-base' : 'py-2.5 text-sm'
+          }`}
+        >
+          <div className="relative">
+            <Bell className={isMobile ? 'h-6 w-6' : 'h-5 w-5'} />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              3
+            </span>
+          </div>
+          <span className="group-hover:text-teal-600 transition-colors">
+            Уведомления
+          </span>
+        </button>
+
+        {/* Profile with user name */}
+        <Link
+          href="/profile"
+          className={`relative flex items-center gap-3 px-3 font-normal transition-colors group ${
+            isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
+          }`}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <span 
+            className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] transition-all ${
+              isActive('/profile') ? 'opacity-100' : 'opacity-0'
+            } ${isMobile ? 'h-12' : 'h-10'}`}
+          >
+            <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
+              <path 
+                d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
+                stroke="#14b8a6" 
+                strokeWidth="1.5" 
+                strokeLinecap="round"
+                fill="none"
+              />
+            </svg>
+          </span>
+          <User className={`${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${isActive('/profile') ? 'text-teal-600' : 'text-gray-500'} group-hover:text-teal-600`} />
+          <span className="text-gray-800 group-hover:text-teal-600 transition-colors">
+            {user?.name || user?.login || 'Профиль'}
+          </span>
+        </Link>
+      </div>
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile Header */}
+      <header 
+        className={`md:hidden fixed top-0 left-0 w-screen z-[9999] h-16 bg-white flex items-center justify-between px-6 transition-all ${
+          mobileMenuOpen ? '' : 'border-b border-gray-200'
+        }`}
       >
-        <div className="flex flex-col h-full">
-        {/* Логотип */}
-        <div className={`p-6 ${version === 'v2' ? 'flex justify-center pb-10' : ''}`}>
+        <button 
+          onClick={handleLogoClick}
+          className="bg-transparent border-none cursor-pointer p-0"
+        >
+          <Image 
+            src={theme === 'dark' ? "/images/logo_dark_v2.png" : "/images/logo_light_v2.png"} 
+            alt="Новые Схемы" 
+            width={130} 
+            height={36} 
+            className="h-9 w-auto" 
+            priority
+          />
+        </button>
+        <div className="flex items-center gap-2">
+          {/* Mobile Notifications Bell */}
+          <button
+            className="p-2 text-gray-600 hover:text-teal-600 transition-colors relative"
+            aria-label="Уведомления"
+          >
+            <Bell className="h-6 w-6" />
+            <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              3
+            </span>
+          </button>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 text-gray-600 hover:text-teal-600 transition-colors"
+            aria-label="Открыть меню"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-7 w-7" />
+            ) : (
+              <Menu className="h-7 w-7" />
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Full-screen Menu */}
+      <aside 
+        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] bg-white z-[9998] transform transition-transform duration-300 ease-in-out flex flex-col ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="pt-6 flex flex-col h-full overflow-y-auto">
+          <MenuContent isMobile={true} />
+        </div>
+      </aside>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-56 bg-white h-screen flex-col border-r border-gray-200 fixed left-0 top-0">
+        {/* Logo */}
+        <div className="p-6 pb-16">
           <button 
             onClick={handleLogoClick}
             className="bg-transparent border-none cursor-pointer p-0"
           >
-            <Image
-              src="/images/logo_light_v2.png"
-              alt="Новые Схемы"
-              width={version === 'v2' ? 200 : 180}
-              height={version === 'v2' ? 56 : 50}
-              className={version === 'v2' ? 'h-12 w-auto object-contain' : 'h-10 w-auto object-contain'}
+            <Image 
+              src={theme === 'dark' ? "/images/logo_dark_v2.png" : "/images/logo_light_v2.png"} 
+              alt="Новые Схемы" 
+              width={160} 
+              height={45} 
+              className="h-10 w-auto cursor-pointer" 
               priority
             />
           </button>
         </div>
 
-        {/* Навигационные элементы */}
-        <div className="flex-1 px-4 py-6">
-          <div className="space-y-2">
-            {navigationItems.map((item) => {
-              const active = isActive(item.href)
-              
-              return (
-                <div key={item.name} className="relative">
-                  {version === 'v2' ? (
-                    // V2: иконка + текст, при выборе иконка зелёная, текст чёрный, при наведении всё зелёное
-                    <Link
-                      href={item.href}
-                      className="group relative flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
-                      style={{ textDecoration: 'none' }}
-                    >
-                      {/* Индикатор активной вкладки - тонкая скобка */}
-                      <span 
-                        className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-all ${
-                          active ? 'opacity-100' : 'opacity-0'
-                        }`}
-                      >
-                        <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
-                          <path 
-                            d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
-                            stroke="#14b8a6" 
-                            strokeWidth="1.5" 
-                            strokeLinecap="round"
-                            fill="none"
-                          />
-                        </svg>
-                      </span>
-                      {item.icon && (
-                        <Image
-                          src={item.icon}
-                          alt=""
-                          width={20}
-                          height={20}
-                          className={`mr-3 transition-all duration-200 ${
-                            active 
-                              ? 'brightness-0 saturate-100 [filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)] group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]' 
-                              : 'brightness-0 group-hover:[filter:invert(52%)_sepia(85%)_saturate(437%)_hue-rotate(127deg)_brightness(95%)_contrast(89%)]'
-                          }`}
-                        />
-                      )}
-                      <span 
-                        className={`flex-1 text-left transition-colors duration-200 ${
-                          active 
-                            ? 'text-gray-700 group-hover:text-teal-600' 
-                            : 'text-gray-700 group-hover:text-teal-600'
-                        }`}
-                      >
-                        {item.name}
-                      </span>
-                    </Link>
-                  ) : (
-                    // V1: старый стиль с зелёным фоном
-                    <Link
-                      href={item.href}
-                      className="flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg hover:bg-teal-50 hover:text-teal-600"
-                      style={{
-                        color: active ? 'white' : '#374151',
-                        backgroundColor: active ? '#14b8a6' : 'transparent',
-                        textDecoration: 'none',
-                        boxShadow: active ? '0 2px 4px rgba(20, 184, 166, 0.3)' : 'none'
-                      }}
-                    >
-                      <span className="flex-1 text-left">{item.name}</span>
-                    </Link>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Нижняя секция */}
-        <div className="px-5 pb-6 space-y-3">
-          {/* Переключатель версий для десктопа - только для v1 */}
-          {version === 'v1' && (
-            <div className="flex items-center gap-3 px-3 py-2">
-              <span className={`text-sm transition-colors ${version === 'v1' ? 'text-teal-500' : 'text-gray-400'}`}>V1</span>
-              <button
-                onClick={toggleVersion}
-                className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                  version === 'v2' ? 'bg-teal-500' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
-                    version === 'v2' ? 'translate-x-6' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-              <span className={`text-sm transition-colors ${version === 'v2' ? 'text-teal-500' : 'text-gray-400'}`}>V2</span>
-            </div>
-          )}
-
-          {/* Переключатель темы для v2 */}
-          {version === 'v2' && (
-            <div className="flex items-center gap-3 px-3 py-2">
-              <Sun className={`h-5 w-5 transition-colors ${theme === 'light' ? 'text-teal-500' : 'text-gray-400'}`} />
-              <button
-                onClick={toggleTheme}
-                className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                  theme === 'dark' ? 'bg-teal-500' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
-                    theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-              <Moon className={`h-5 w-5 transition-colors ${theme === 'dark' ? 'text-teal-500' : 'text-gray-400'}`} />
-            </div>
-          )}
-
-          {/* Уведомления */}
-          <button
-            className="relative flex items-center gap-3 px-3 py-2.5 text-sm font-normal text-gray-800 hover:text-teal-600 transition-colors w-full group"
-          >
-            <div className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                3
-              </span>
-            </div>
-            <span className="group-hover:text-teal-600 transition-colors">
-              Уведомления
-            </span>
-          </button>
-
-          {/* Профиль - просто ссылка как в callcentre */}
-          <Link
-            href="/profile"
-            className="relative flex items-center gap-3 px-3 py-2.5 text-sm font-normal transition-colors group text-gray-800"
-          >
-            {/* Индикатор активной вкладки - тонкая скобка */}
-            <span 
-              className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-all ${
-                isActive('/profile') ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
-                <path 
-                  d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
-                  stroke="#14b8a6" 
-                  strokeWidth="1.5" 
-                  strokeLinecap="round"
-                  fill="none"
-                />
-              </svg>
-            </span>
-            <User className={`h-5 w-5 ${isActive('/profile') ? 'text-teal-600' : 'text-gray-500'} group-hover:text-teal-600`} />
-            <span className={`transition-colors ${isActive('/profile') ? 'text-gray-800' : 'text-gray-800'} group-hover:text-teal-600`}>
-              {user?.name || user?.login || 'Профиль'}
-            </span>
-          </Link>
-        </div>
-      </div>
-    </nav>
+        <MenuContent isMobile={false} />
+      </aside>
     </>
   )
 }
