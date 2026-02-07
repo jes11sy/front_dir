@@ -250,10 +250,10 @@ function LoginForm() {
           <CardHeader className="text-center pb-8">
             <div className="mx-auto mb-6 animate-bounce-in">
               <Image
-                src="/images/logo.png"
-                alt="DirCRM Logo"
-                width={128}
-                height={128}
+                src="/images/logo_light_v2.png"
+                alt="Новые Схемы"
+                width={200}
+                height={60}
                 className="object-contain drop-shadow-lg hover:drop-shadow-xl transition-all duration-300 hover:scale-105"
                 priority
               />

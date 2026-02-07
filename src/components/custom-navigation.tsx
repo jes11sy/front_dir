@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useCallback } from 'react'
 import { apiClient } from '@/lib/api'
@@ -80,22 +81,19 @@ export function CustomNavigation() {
           willChange: 'transform'
         }}
       >
-        <div className="flex items-center justify-between px-4 py-4">
+        <div className="flex items-center justify-between px-4 py-3">
           <button 
             onClick={handleLogoClick}
-            className="text-lg font-bold transition-colors duration-200 bg-transparent border-none cursor-pointer"
-            style={{
-              color: '#374151',
-              textDecoration: 'none'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#14b8a6'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#374151'
-            }}
+            className="bg-transparent border-none cursor-pointer p-0"
           >
-            Новые Схемы
+            <Image
+              src="/images/logo_light_v2.png"
+              alt="Новые Схемы"
+              width={140}
+              height={40}
+              className="h-9 w-auto object-contain"
+              priority
+            />
           </button>
           
           <button
@@ -325,19 +323,16 @@ export function CustomNavigation() {
         <div className="p-6 border-b" style={{borderColor: '#e5e7eb'}}>
           <button 
             onClick={handleLogoClick}
-            className="text-xl font-bold transition-colors duration-200 block bg-transparent border-none cursor-pointer text-left w-full"
-            style={{
-              color: '#374151',
-              textDecoration: 'none'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#14b8a6'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#374151'
-            }}
+            className="bg-transparent border-none cursor-pointer p-0 block"
           >
-            Новые Схемы
+            <Image
+              src="/images/logo_light_v2.png"
+              alt="Новые Схемы"
+              width={180}
+              height={50}
+              className="h-10 w-auto object-contain"
+              priority
+            />
           </button>
         </div>
 
