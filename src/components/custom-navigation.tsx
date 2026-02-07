@@ -320,17 +320,20 @@ export function CustomNavigation() {
       >
         <div className="flex flex-col h-full">
         {/* Логотип */}
-        <div className="p-6 border-b" style={{borderColor: '#e5e7eb'}}>
+        <div 
+          className={`p-6 ${version === 'v2' ? 'flex justify-center' : 'border-b'}`}
+          style={version === 'v1' ? {borderColor: '#e5e7eb'} : undefined}
+        >
           <button 
             onClick={handleLogoClick}
-            className="bg-transparent border-none cursor-pointer p-0 block"
+            className="bg-transparent border-none cursor-pointer p-0"
           >
             <Image
               src="/images/logo_light_v2.png"
               alt="Новые Схемы"
-              width={180}
-              height={50}
-              className="h-10 w-auto object-contain"
+              width={version === 'v2' ? 200 : 180}
+              height={version === 'v2' ? 56 : 50}
+              className={version === 'v2' ? 'h-12 w-auto object-contain' : 'h-10 w-auto object-contain'}
               priority
             />
           </button>
