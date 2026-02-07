@@ -20,7 +20,10 @@ function OrdersContent() {
     return page ? parseInt(page, 10) : 1
   })
   const [itemsPerPage, setItemsPerPage] = useState(15)
-  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') || '')
+  // Отдельные поля поиска
+  const [searchId, setSearchId] = useState(() => searchParams.get('searchId') || '')
+  const [searchPhone, setSearchPhone] = useState(() => searchParams.get('searchPhone') || '')
+  const [searchAddress, setSearchAddress] = useState(() => searchParams.get('searchAddress') || '')
   const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') || '')
   const [cityFilter, setCityFilter] = useState(() => searchParams.get('city') || '')
   const [masterFilter, setMasterFilter] = useState(() => searchParams.get('master') || '')
@@ -28,7 +31,8 @@ function OrdersContent() {
     // Показываем фильтры если есть активные фильтры в URL
     return !!(searchParams.get('status') || searchParams.get('city') || searchParams.get('master') || 
               searchParams.get('rk') || searchParams.get('typeEquipment') || 
-              searchParams.get('dateFrom') || searchParams.get('dateTo'))
+              searchParams.get('dateFrom') || searchParams.get('dateTo') ||
+              searchParams.get('searchId') || searchParams.get('searchPhone') || searchParams.get('searchAddress'))
   })
   
   // Новые фильтры
@@ -95,7 +99,9 @@ function OrdersContent() {
     const params = new URLSearchParams()
     
     if (currentPage > 1) params.set('page', currentPage.toString())
-    if (searchTerm) params.set('search', searchTerm)
+    if (searchId) params.set('searchId', searchId)
+    if (searchPhone) params.set('searchPhone', searchPhone)
+    if (searchAddress) params.set('searchAddress', searchAddress)
     if (statusFilter) params.set('status', statusFilter)
     if (cityFilter) params.set('city', cityFilter)
     if (masterFilter) params.set('master', masterFilter)
@@ -110,7 +116,7 @@ function OrdersContent() {
     
     // Используем replaceState чтобы не засорять историю при каждом изменении фильтра
     window.history.replaceState(null, '', newUrl)
-  }, [currentPage, searchTerm, statusFilter, cityFilter, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
+  }, [currentPage, searchId, searchPhone, searchAddress, statusFilter, cityFilter, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
 
   // Сохранение позиции прокрутки перед переходом на страницу заказа
   const saveScrollPosition = useCallback(() => {
@@ -155,7 +161,9 @@ function OrdersContent() {
         limit: itemsPerPage,
         status: statusFilter?.trim() || undefined,
         city: cityFilter?.trim() || undefined,
-        search: (searchValue ?? searchTerm)?.trim() || undefined,
+        searchId: searchId?.trim() || undefined,
+        searchPhone: searchPhone?.trim() || undefined,
+        searchAddress: searchAddress?.trim() || undefined,
         master: masterFilter?.trim() || undefined,
         rk: rkFilter?.trim() || undefined,
         typeEquipment: typeEquipmentFilter?.trim() || undefined,
@@ -222,9 +230,9 @@ function OrdersContent() {
         setLoading(false)
       }
     }
-  }, [currentPage, itemsPerPage, statusFilter, cityFilter, searchTerm, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
+  }, [currentPage, itemsPerPage, statusFilter, cityFilter, searchId, searchPhone, searchAddress, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
 
-  // Загружаем данные при изменении фильтров (кроме searchTerm - у него свой дебаунс)
+  // Загружаем данные при изменении фильтров
   useEffect(() => {
     if (itemsPerPage > 0) {
       loadOrders()
@@ -236,7 +244,7 @@ function OrdersContent() {
         abortControllerRef.current.abort()
       }
     }
-  }, [currentPage, statusFilter, cityFilter, masterFilter, itemsPerPage, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
+  }, [currentPage, statusFilter, cityFilter, masterFilter, itemsPerPage, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo, searchId, searchPhone, searchAddress])
 
   // Обновляем URL при изменении фильтров (кроме первой загрузки)
   useEffect(() => {
@@ -254,22 +262,21 @@ function OrdersContent() {
     }
   }, [loading, orders.length, restoreScrollPosition])
 
-  // Обработчики фильтров
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value)
+  // Обработчики фильтров поиска
+  const handleSearchIdChange = (value: string) => {
+    setSearchId(value)
     setCurrentPage(1)
   }
-
-  // Дебаунс для поиска с защитой от Race Condition
-  useEffect(() => {
-    if (searchTerm === '') return
-    
-    const timeoutId = setTimeout(() => {
-      loadOrders(searchTerm)
-    }, 500)
-
-    return () => clearTimeout(timeoutId)
-  }, [searchTerm])
+  
+  const handleSearchPhoneChange = (value: string) => {
+    setSearchPhone(value)
+    setCurrentPage(1)
+  }
+  
+  const handleSearchAddressChange = (value: string) => {
+    setSearchAddress(value)
+    setCurrentPage(1)
+  }
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value)
@@ -437,22 +444,53 @@ function OrdersContent() {
               
               {showFilters && (
                 <div className="space-y-4 animate-slide-in-right">
-                  {/* Первая строка: Поиск и Статус */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Поиск */}
+                  {/* Первая строка: Поиск по ID, Телефону, Адресу */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Поиск по ID */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Поиск (№, телефон, адрес)
+                        № заказа
                       </label>
                       <input
                         type="text"
-                        value={searchTerm}
-                        onChange={(e) => handleSearchChange(e.target.value)}
-                        placeholder="Введите номер, телефон или адрес..."
+                        value={searchId}
+                        onChange={(e) => handleSearchIdChange(e.target.value)}
+                        placeholder="ID заказа..."
                         className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
                       />
                     </div>
                     
+                    {/* Поиск по телефону */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Телефон
+                      </label>
+                      <input
+                        type="text"
+                        value={searchPhone}
+                        onChange={(e) => handleSearchPhoneChange(e.target.value)}
+                        placeholder="Номер телефона..."
+                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
+                      />
+                    </div>
+                    
+                    {/* Поиск по адресу */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Адрес
+                      </label>
+                      <input
+                        type="text"
+                        value={searchAddress}
+                        onChange={(e) => handleSearchAddressChange(e.target.value)}
+                        placeholder="Адрес..."
+                        className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:border-teal-500 transition-all duration-200 hover:border-gray-300 shadow-sm hover:shadow-md"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Вторая строка: Статус и Город */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Статус */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -474,10 +512,7 @@ function OrdersContent() {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                  
-                  {/* Вторая строка: Город и Мастер */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    
                     {/* Город */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -499,7 +534,10 @@ function OrdersContent() {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+                  </div>
+                  
+                  {/* Третья строка: Мастер, РК и Направление */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Мастер */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -521,10 +559,7 @@ function OrdersContent() {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  {/* Третья строка: РК и Направление */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    
                     {/* РК */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">

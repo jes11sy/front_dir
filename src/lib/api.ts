@@ -867,6 +867,9 @@ export class ApiClient {
     status?: string
     city?: string
     search?: string
+    searchId?: string      // Поиск по ID заказа
+    searchPhone?: string   // Поиск по телефону
+    searchAddress?: string // Поиск по адресу
     master?: string  // ID мастера (для обратной совместимости)
     rk?: string
     typeEquipment?: string
@@ -884,6 +887,9 @@ export class ApiClient {
       if (params.status && params.status.trim()) queryParts.push(`status=${encodeURIComponent(params.status.trim())}`)
       if (params.city && params.city.trim()) queryParts.push(`city=${encodeURIComponent(params.city.trim())}`)
       if (params.search && params.search.trim()) queryParts.push(`search=${encodeURIComponent(params.search.trim())}`)
+      if (params.searchId && params.searchId.trim()) queryParts.push(`searchId=${encodeURIComponent(params.searchId.trim())}`)
+      if (params.searchPhone && params.searchPhone.trim()) queryParts.push(`searchPhone=${encodeURIComponent(params.searchPhone.trim())}`)
+      if (params.searchAddress && params.searchAddress.trim()) queryParts.push(`searchAddress=${encodeURIComponent(params.searchAddress.trim())}`)
       if (params.master && params.master.trim()) queryParts.push(`masterId=${encodeURIComponent(params.master.trim())}`)
       if (params.rk && params.rk.trim()) queryParts.push(`rk=${encodeURIComponent(params.rk.trim())}`)
       if (params.typeEquipment && params.typeEquipment.trim()) queryParts.push(`typeEquipment=${encodeURIComponent(params.typeEquipment.trim())}`)

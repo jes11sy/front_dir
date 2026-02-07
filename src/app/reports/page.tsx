@@ -14,9 +14,6 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="px-6 py-6">
-        {/* Заголовок */}
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Отчеты</h1>
-
         {/* Табы */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="flex gap-8">
