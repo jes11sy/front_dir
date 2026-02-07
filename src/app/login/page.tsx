@@ -15,7 +15,7 @@ import { toast } from "@/components/ui/toast"
 import { validators, validateField } from "@/lib/validation"
 import { LoadingScreen } from "@/components/ui/loading-screen"
 import { useDesignStore } from "@/store/design.store"
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, Eye, EyeOff } from 'lucide-react'
 
 // Компонент формы логина (использует useSearchParams)
 function LoginForm() {
@@ -23,6 +23,7 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ login?: string; password?: string }>({})
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
@@ -238,7 +239,7 @@ function LoginForm() {
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <Image 
-            src="/images/logo_light_v2.png"
+            src={theme === 'dark' ? "/images/logo_dark_v2.png" : "/images/logo_light_v2.png"}
             alt="Новые Схемы" 
             width={180} 
             height={40} 
@@ -293,20 +294,27 @@ function LoginForm() {
             <div className="relative">
               <CustomInput
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Введите пароль"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value)
                   if (errors.password) setErrors(prev => ({ ...prev, password: undefined }))
                 }}
-                className={`h-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                className={`h-12 pr-12 bg-[#f5f5f0] border-0 text-gray-800 placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-teal-500 ${
                   errors.password ? 'ring-2 ring-red-500' : ''
                 }`}
                 required
                 autoComplete="current-password"
                 maxLength={100}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
             {errors.password && (
               <p className="text-red-400 text-sm mt-1">
@@ -348,7 +356,7 @@ function LoginForm() {
 
       {/* Footer */}
       <div className={`absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center text-xs transition-colors ${
-        theme === 'dark' ? 'text-gray-500' : 'text-white/50'
+        theme === 'dark' ? 'text-gray-500' : 'text-[#0d5c4b]/60'
       }`}>
         © 2026 Новые Схемы
       </div>

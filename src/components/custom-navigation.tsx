@@ -68,8 +68,8 @@ export function CustomNavigation() {
         className="md:hidden fixed top-0 left-0 right-0 shadow-lg backdrop-blur-lg border-b"
         style={{
           backgroundColor: 'white',
-          borderColor: '#14b8a6',
-          borderBottomWidth: '2px',
+          borderColor: '#e5e7eb',
+          borderBottomWidth: '1px',
           zIndex: 9999,
           transform: 'translateZ(0)',
           willChange: 'transform'
@@ -119,8 +119,8 @@ export function CustomNavigation() {
           <div 
             className="border-t bg-white max-h-[calc(100vh-64px)] overflow-y-auto"
             style={{
-              borderColor: '#14b8a6',
-              borderTopWidth: '2px'
+              borderColor: '#e5e7eb',
+              borderTopWidth: '1px'
             }}
           >
             <div className="px-4 py-4 space-y-1">
@@ -263,8 +263,8 @@ export function CustomNavigation() {
         className="hidden md:block fixed top-0 left-0 h-full w-64 z-50 shadow-lg backdrop-blur-lg border-r"
         style={{
           backgroundColor: 'white',
-          borderColor: '#14b8a6',
-          borderRightWidth: '2px'
+          borderColor: '#e5e7eb',
+          borderRightWidth: '1px'
         }}
       >
         <div className="flex flex-col h-full">
@@ -302,9 +302,25 @@ export function CustomNavigation() {
                       // V2: иконка + текст, при выборе иконка зелёная, текст чёрный, при наведении всё зелёное
                       <Link
                         href={item.href}
-                        className="group flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
+                        className="group relative flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg"
                         style={{ textDecoration: 'none' }}
                       >
+                        {/* Индикатор активной вкладки - тонкая скобка */}
+                        <span 
+                          className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-all ${
+                            active ? 'opacity-100' : 'opacity-0'
+                          }`}
+                        >
+                          <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
+                            <path 
+                              d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
+                              stroke="#14b8a6" 
+                              strokeWidth="1.5" 
+                              strokeLinecap="round"
+                              fill="none"
+                            />
+                          </svg>
+                        </span>
                         {item.icon && (
                           <Image
                             src={item.icon}
@@ -348,11 +364,27 @@ export function CustomNavigation() {
                       {version === 'v2' ? (
                         // V2: кнопка с иконкой
                         <button
-                          className="group flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer rounded-lg"
+                          className="group relative flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer rounded-lg"
                           onClick={() => {
                             setExpandedDropdown(isExpanded ? null : item.name)
                           }}
                         >
+                          {/* Индикатор активной вкладки - тонкая скобка */}
+                          <span 
+                            className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-all ${
+                              isExpanded ? 'opacity-100' : 'opacity-0'
+                            }`}
+                          >
+                            <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
+                              <path 
+                                d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
+                                stroke="#14b8a6" 
+                                strokeWidth="1.5" 
+                                strokeLinecap="round"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
                           {item.icon && (
                             <Image
                               src={item.icon}
@@ -523,12 +555,26 @@ export function CustomNavigation() {
           {/* Профиль - просто ссылка как в callcentre */}
           <Link
             href="/profile"
-            className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-normal transition-colors group ${
-              isActive('/profile') ? 'text-teal-600' : 'text-gray-800'
-            }`}
+            className="relative flex items-center gap-3 px-3 py-2.5 text-sm font-normal transition-colors group text-gray-800"
           >
+            {/* Индикатор активной вкладки - тонкая скобка */}
+            <span 
+              className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-all ${
+                isActive('/profile') ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
+                <path 
+                  d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
+                  stroke="#14b8a6" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </svg>
+            </span>
             <User className={`h-5 w-5 ${isActive('/profile') ? 'text-teal-600' : 'text-gray-500'} group-hover:text-teal-600`} />
-            <span className="group-hover:text-teal-600 transition-colors">
+            <span className={`transition-colors ${isActive('/profile') ? 'text-gray-800' : 'text-gray-800'} group-hover:text-teal-600`}>
               {user?.name || user?.login || 'Профиль'}
             </span>
           </Link>
