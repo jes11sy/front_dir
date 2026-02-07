@@ -176,10 +176,8 @@ function MasterHandoverDetailContent() {
         </div>
       ) : (
         <div className="w-full overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead className={`sticky top-[57px] z-10 ${
-              theme === 'dark' ? 'bg-[#2a3441]' : 'bg-white'
-            }`}>
+          <table className="w-full border-collapse text-sm min-w-[800px]">
+            <thead className={theme === 'dark' ? 'bg-[#2a3441]' : 'bg-white'}>
               <tr className={theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}>
                 <th className={`text-left py-3 px-4 font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>ID</th>
                 <th className={`text-left py-3 px-4 font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Адрес</th>
