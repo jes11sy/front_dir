@@ -24,6 +24,9 @@ function OrdersContent() {
   const [searchId, setSearchId] = useState(() => searchParams.get('searchId') || '')
   const [searchPhone, setSearchPhone] = useState(() => searchParams.get('searchPhone') || '')
   const [searchAddress, setSearchAddress] = useState(() => searchParams.get('searchAddress') || '')
+  
+  // Табы статусов: all, Ожидает, Принял, В работе, completed (Готово+Отказ+Незаказ)
+  const [statusTab, setStatusTab] = useState<string>(() => searchParams.get('tab') || 'all')
   const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') || '')
   const [cityFilter, setCityFilter] = useState(() => searchParams.get('city') || '')
   const [masterFilter, setMasterFilter] = useState(() => searchParams.get('master') || '')
@@ -99,6 +102,7 @@ function OrdersContent() {
     const params = new URLSearchParams()
     
     if (currentPage > 1) params.set('page', currentPage.toString())
+    if (statusTab !== 'all') params.set('tab', statusTab)
     if (searchId) params.set('searchId', searchId)
     if (searchPhone) params.set('searchPhone', searchPhone)
     if (searchAddress) params.set('searchAddress', searchAddress)
@@ -116,7 +120,7 @@ function OrdersContent() {
     
     // Используем replaceState чтобы не засорять историю при каждом изменении фильтра
     window.history.replaceState(null, '', newUrl)
-  }, [currentPage, searchId, searchPhone, searchAddress, statusFilter, cityFilter, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
+  }, [currentPage, statusTab, searchId, searchPhone, searchAddress, statusFilter, cityFilter, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
 
   // Сохранение позиции прокрутки перед переходом на страницу заказа
   const saveScrollPosition = useCallback(() => {
@@ -156,10 +160,22 @@ function OrdersContent() {
       setLoading(true)
       setError(null)
       
+      // Определяем статус на основе таба
+      let effectiveStatus = statusFilter?.trim() || undefined
+      if (!effectiveStatus && statusTab !== 'all') {
+        if (statusTab === 'completed') {
+          // Завершённые: Готово, Отказ, Незаказ
+          effectiveStatus = 'Готово,Отказ,Незаказ'
+        } else {
+          // Конкретный статус
+          effectiveStatus = statusTab
+        }
+      }
+      
       const response = await apiClient.getOrders({
         page: currentPage,
         limit: itemsPerPage,
-        status: statusFilter?.trim() || undefined,
+        status: effectiveStatus,
         city: cityFilter?.trim() || undefined,
         searchId: searchId?.trim() || undefined,
         searchPhone: searchPhone?.trim() || undefined,
@@ -230,7 +246,7 @@ function OrdersContent() {
         setLoading(false)
       }
     }
-  }, [currentPage, itemsPerPage, statusFilter, cityFilter, searchId, searchPhone, searchAddress, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
+  }, [currentPage, itemsPerPage, statusTab, statusFilter, cityFilter, searchId, searchPhone, searchAddress, masterFilter, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo])
 
   // Загружаем данные при изменении фильтров
   useEffect(() => {
@@ -244,7 +260,7 @@ function OrdersContent() {
         abortControllerRef.current.abort()
       }
     }
-  }, [currentPage, statusFilter, cityFilter, masterFilter, itemsPerPage, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo, searchId, searchPhone, searchAddress])
+  }, [currentPage, statusTab, statusFilter, cityFilter, masterFilter, itemsPerPage, rkFilter, typeEquipmentFilter, dateType, dateFrom, dateTo, searchId, searchPhone, searchAddress])
 
   // Обновляем URL при изменении фильтров (кроме первой загрузки)
   useEffect(() => {
@@ -261,6 +277,13 @@ function OrdersContent() {
       restoreScrollPosition()
     }
   }, [loading, orders.length, restoreScrollPosition])
+
+  // Обработчик смены таба статусов
+  const handleStatusTabChange = (tab: string) => {
+    setStatusTab(tab)
+    setStatusFilter('') // Сбрасываем фильтр статуса при смене таба
+    setCurrentPage(1)
+  }
 
   // Обработчики фильтров поиска
   const handleSearchIdChange = (value: string) => {
@@ -419,6 +442,32 @@ function OrdersContent() {
               </div>
             )}
 
+            {/* Табы статусов */}
+            <div className="mb-4 animate-slide-in-left">
+              <div className="flex flex-wrap gap-1 p-1 bg-gray-100 rounded-lg">
+                {[
+                  { id: 'all', label: 'Все' },
+                  { id: 'Ожидает', label: 'Ожидает' },
+                  { id: 'Принял', label: 'Принял' },
+                  { id: 'В работе', label: 'В работе' },
+                  { id: 'Модерн', label: 'Модерн' },
+                  { id: 'completed', label: 'Завершённые' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleStatusTabChange(tab.id)}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                      statusTab === tab.id
+                        ? 'bg-white text-teal-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Фильтры */}
             <div className="mb-6 animate-slide-in-left">
               <div className="mb-4">
@@ -427,7 +476,7 @@ function OrdersContent() {
                   className="flex items-center gap-2 text-left cursor-pointer group"
                 >
                   <h2 className="text-lg font-semibold text-gray-700 group-hover:text-teal-600 transition-colors duration-200">
-                    Фильтр
+                    Фильтры
                   </h2>
                   <svg
                     className={`w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-all duration-200 ${
@@ -489,8 +538,8 @@ function OrdersContent() {
                     </div>
                   </div>
                   
-                  {/* Вторая строка: Статус и Город */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Вторая строка: Статус, Город, Мастер */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Статус */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -534,10 +583,7 @@ function OrdersContent() {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                  
-                  {/* Третья строка: Мастер, РК и Направление */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    
                     {/* Мастер */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -559,7 +605,10 @@ function OrdersContent() {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+                  </div>
+                  
+                  {/* Третья строка: РК и Направление */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* РК */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
