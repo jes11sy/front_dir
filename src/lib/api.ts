@@ -137,7 +137,7 @@ export interface Call {
   avitoName?: string
   phoneClient: string
   phoneAts: string
-  dateCreate: string
+  createdAt: string
   operatorId: number
   status: string
   mangoCallId?: number

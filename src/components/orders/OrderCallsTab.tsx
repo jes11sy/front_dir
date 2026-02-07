@@ -2,7 +2,7 @@
 
 /**
  * Компонент таба "Запись/История"
- * Показывает записи звонков и историю заказов по номеру телефона клиента
+ * Показывает записи звонков, историю действий и историю заказов
  */
 
 import React, { useState, useEffect } from 'react';
@@ -27,6 +27,32 @@ interface OrderHistory {
   master: { id: number; name: string } | null;
 }
 
+// История действий заказа (локальное хранение на основе данных заказа)
+interface OrderAction {
+  id: number;
+  action: string;
+  details: string;
+  timestamp: string;
+}
+
+// Функция для безопасного форматирования даты
+const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return '-';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch {
+    return '-';
+  }
+}
+
 interface OrderCallsTabProps {
   order: Order;
   calls: Call[];
@@ -45,6 +71,80 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
   const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  
+  // Формируем историю действий на основе данных заказа
+  const getOrderActions = (): OrderAction[] => {
+    const actions: OrderAction[] = [];
+    let actionId = 1;
+    
+    // Создание заказа
+    if (order?.createdAt) {
+      actions.push({
+        id: actionId++,
+        action: 'Создан заказ',
+        details: `Заказ #${order.id} создан`,
+        timestamp: order.createdAt
+      });
+    }
+    
+    // Назначение мастера
+    if (order?.masterId && order?.masterName) {
+      actions.push({
+        id: actionId++,
+        action: 'Назначен мастер',
+        details: `Мастер: ${order.masterName}`,
+        timestamp: order.updatedAt || order.createdAt || ''
+      });
+    }
+    
+    // Статус заказа
+    if (order?.statusOrder) {
+      const statusMessages: Record<string, string> = {
+        'Ожидает': 'Заказ ожидает обработки',
+        'Принял': 'Мастер принял заказ',
+        'В пути': 'Мастер выехал к клиенту',
+        'В работе': 'Мастер приступил к работе',
+        'Модерн': 'Заказ на модерации',
+        'Готово': 'Заказ успешно выполнен',
+        'Отказ': 'Клиент отказался от заказа',
+        'Незаказ': 'Заказ не состоялся'
+      };
+      
+      actions.push({
+        id: actionId++,
+        action: `Статус: ${order.statusOrder}`,
+        details: statusMessages[order.statusOrder] || '',
+        timestamp: order.updatedAt || ''
+      });
+    }
+    
+    // Финансовые данные (если есть итог)
+    if (order?.result && order.result > 0) {
+      actions.push({
+        id: actionId++,
+        action: 'Финансы заполнены',
+        details: `Итог: ${order.result.toLocaleString('ru-RU')} ₽${order.expenditure ? `, Расход: ${order.expenditure.toLocaleString('ru-RU')} ₽` : ''}`,
+        timestamp: order.dateClosmod || order.updatedAt || ''
+      });
+    }
+    
+    // Дата закрытия/модерации
+    if (order?.dateClosmod) {
+      actions.push({
+        id: actionId++,
+        action: 'Дата закрытия установлена',
+        details: formatDate(order.dateClosmod),
+        timestamp: order.dateClosmod
+      });
+    }
+    
+    // Сортируем по дате (новые сверху)
+    return actions.sort((a, b) => {
+      if (!a.timestamp) return 1;
+      if (!b.timestamp) return -1;
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
+  };
 
   // Получаем прямые S3 URL для записей
   useEffect(() => {
@@ -114,7 +214,7 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-500 text-xs">
-                    {new Date(call.dateCreate).toLocaleString('ru-RU')}
+                    {formatDate(call.createdAt || call.recordingProcessedAt)}
                   </span>
                 </div>
               </div>
@@ -151,16 +251,60 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
         </div>
       )}
 
+      {/* История действий */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">История действий</h3>
+        
+        {(() => {
+          const actions = getOrderActions();
+          
+          if (actions.length === 0) {
+            return (
+              <div className="text-center py-6 bg-gray-50 rounded-lg">
+                <p className="text-gray-500 text-sm">Нет записей о действиях</p>
+              </div>
+            );
+          }
+          
+          return (
+            <div className="relative">
+              {/* Вертикальная линия */}
+              <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-gray-200"></div>
+              
+              <div className="space-y-4">
+                {actions.map((action) => (
+                  <div key={action.id} className="relative flex gap-4 pl-10">
+                    {/* Точка на линии */}
+                    <div className={`absolute left-2.5 w-3 h-3 rounded-full border-2 border-white ${
+                      action.action.includes('Готово') ? 'bg-green-500' :
+                      action.action.includes('Отказ') || action.action.includes('Незаказ') ? 'bg-red-500' :
+                      action.action.includes('Создан') ? 'bg-blue-500' :
+                      action.action.includes('мастер') ? 'bg-purple-500' :
+                      'bg-gray-400'
+                    }`}></div>
+                    
+                    <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-gray-800 text-sm">{action.action}</span>
+                        <span className="text-gray-400 text-xs whitespace-nowrap">
+                          {formatDate(action.timestamp)}
+                        </span>
+                      </div>
+                      {action.details && (
+                        <p className="text-gray-600 text-sm mt-1">{action.details}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
       {/* История заказов по номеру телефона */}
       <div className="mt-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          История заказов клиента
-          {order?.phone && (
-            <span className="ml-2 text-sm font-normal text-gray-500">
-              ({order.phone})
-            </span>
-          )}
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">История заказов</h3>
         
         {historyLoading ? (
           <div className="text-center py-8">
@@ -197,7 +341,7 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
                     )}
                   </div>
                   <span className="text-gray-500 text-xs">
-                    {new Date(historyOrder.createdAt).toLocaleDateString('ru-RU')}
+                    {formatDate(historyOrder.createdAt)}
                   </span>
                 </div>
                 
