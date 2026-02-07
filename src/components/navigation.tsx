@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { useDesignStore } from '@/store/design.store'
+import { Sun, Moon } from 'lucide-react'
 
 const navigationItems = [
   { name: 'Заказы', href: '/orders' },
@@ -44,13 +46,21 @@ export function Navigation() {
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null)
+  
+  // Тема из store
+  const { theme, toggleTheme } = useDesignStore()
+  const isDark = theme === 'dark'
 
   return (
-        <nav className="fixed top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-lg border-b bg-white" style={{borderColor: '#14b8a6'}}>
+        <nav className={`fixed top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-lg border-b transition-colors duration-300 ${
+          isDark ? 'bg-[#2a3441] border-teal-600' : 'bg-white border-teal-500'
+        }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Логотип */}
-          <Link href="/orders" className="text-xl font-bold text-gray-800 nav-item-hover hover:text-teal-600 transition-colors duration-200">
+          <Link href="/orders" className={`text-xl font-bold nav-item-hover hover:text-teal-500 transition-colors duration-200 ${
+            isDark ? 'text-gray-100' : 'text-gray-800'
+          }`}>
             Новые Схемы
           </Link>
 
@@ -80,7 +90,9 @@ export function Navigation() {
                           className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-lg ${
                             pathname === item.href
                               ? 'text-white bg-gradient-to-r from-teal-600 to-emerald-600 border border-teal-500/30 shadow-md'
-                              : 'text-gray-700 hover:text-teal-600 hover:bg-teal-50'
+                              : isDark 
+                                ? 'text-gray-300 hover:text-teal-400 hover:bg-[#3a4451]'
+                                : 'text-gray-700 hover:text-teal-600 hover:bg-teal-50'
                           }`}
                         >
                     {item.name}
@@ -91,7 +103,11 @@ export function Navigation() {
                     )}
                   </Link>
                 ) : (
-                        <div className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 text-gray-700 hover:text-teal-600 hover:bg-teal-50 cursor-pointer rounded-lg`}>
+                        <div className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 cursor-pointer rounded-lg ${
+                          isDark 
+                            ? 'text-gray-300 hover:text-teal-400 hover:bg-[#3a4451]'
+                            : 'text-gray-700 hover:text-teal-600 hover:bg-teal-50'
+                        }`}>
                     {item.name}
                     {item.dropdown && (
                       <svg className="ml-1 h-4 w-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,7 +120,11 @@ export function Navigation() {
                 {/* Выпадающий список для десктопа */}
                 {item.dropdown && hoveredItem === item.name && (
                         <div 
-                          className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white rounded-lg shadow-xl border border-teal-200 z-50"
+                          className={`absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-48 rounded-lg shadow-xl z-50 ${
+                            isDark 
+                              ? 'bg-[#2a3441] border border-teal-600'
+                              : 'bg-white border border-teal-200'
+                          }`}
                     onMouseEnter={() => {
                       if (hoverTimeout) {
                         clearTimeout(hoverTimeout)
@@ -126,7 +146,9 @@ export function Navigation() {
                                   className={`block px-4 py-2 text-sm transition-colors duration-150 rounded mx-2 ${
                                     pathname === dropdownItem.href
                                       ? 'text-white bg-gradient-to-r from-teal-600 to-emerald-600 border border-teal-500 shadow-sm'
-                                      : 'text-gray-700 hover:bg-teal-50 hover:text-teal-700'
+                                      : isDark
+                                        ? 'text-gray-300 hover:bg-[#3a4451] hover:text-teal-400'
+                                        : 'text-gray-700 hover:bg-teal-50 hover:text-teal-700'
                                   }`}
                                 >
                           {dropdownItem.name}
@@ -139,9 +161,30 @@ export function Navigation() {
             ))}
           </div>
 
+          {/* Переключатель темы */}
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-lg transition-colors duration-200 ${
+              isDark 
+                ? 'text-gray-300 hover:text-teal-400 hover:bg-[#3a4451]'
+                : 'text-gray-700 hover:text-teal-600 hover:bg-teal-50'
+            }`}
+            title={isDark ? 'Светлая тема' : 'Тёмная тема'}
+          >
+            {isDark ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+
           {/* Кнопка гамбургер-меню для мобильных */}
                 <button
-                  className="md:hidden text-gray-700 hover:text-teal-600 hover:bg-teal-50 transition-colors duration-200 p-2 rounded-lg"
+                  className={`md:hidden transition-colors duration-200 p-2 rounded-lg ${
+                    isDark 
+                      ? 'text-gray-300 hover:text-teal-400 hover:bg-[#3a4451]'
+                      : 'text-gray-700 hover:text-teal-600 hover:bg-teal-50'
+                  }`}
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 >
             <svg className="h-6 w-6 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,7 +199,9 @@ export function Navigation() {
 
             {/* Мобильное меню */}
             {mobileMenuOpen && (
-              <div className="md:hidden border-t bg-white/95" style={{borderColor: '#14b8a6'}}>
+              <div className={`md:hidden border-t ${
+                isDark ? 'bg-[#2a3441]/95 border-teal-600' : 'bg-white/95 border-teal-500'
+              }`}>
                 <div className="px-2 pt-2 pb-3 space-y-1">
               {navigationItems.map((item, index) => (
                 <div key={item.name}>
@@ -166,7 +211,9 @@ export function Navigation() {
                         className={`block px-3 py-2 text-base font-medium transition-colors duration-200 rounded-lg ${
                           pathname === item.href
                             ? 'text-white bg-gradient-to-r from-teal-600 to-emerald-600 border border-teal-500/30 shadow-md'
-                            : 'text-gray-700 hover:text-teal-600 hover:bg-teal-50'
+                            : isDark
+                              ? 'text-gray-300 hover:text-teal-400 hover:bg-[#3a4451]'
+                              : 'text-gray-700 hover:text-teal-600 hover:bg-teal-50'
                         }`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -178,7 +225,9 @@ export function Navigation() {
                           className={`w-full text-left px-3 py-2 text-base font-medium transition-colors duration-200 flex items-center justify-between rounded-lg ${
                             expandedDropdown === item.name
                               ? 'text-white bg-gradient-to-r from-teal-600 to-emerald-600 border border-teal-500/30 shadow-md'
-                              : 'text-gray-700 hover:text-teal-600 hover:bg-teal-50'
+                              : isDark
+                                ? 'text-gray-300 hover:text-teal-400 hover:bg-[#3a4451]'
+                                : 'text-gray-700 hover:text-teal-600 hover:bg-teal-50'
                           }`}
                           onClick={() => setExpandedDropdown(expandedDropdown === item.name ? null : item.name)}
                         >
@@ -207,7 +256,9 @@ export function Navigation() {
                                     className={`block px-3 py-2 text-sm transition-colors duration-150 rounded-lg ${
                                       pathname === dropdownItem.href
                                         ? 'text-white bg-gradient-to-r from-teal-600 to-emerald-600 border border-teal-500 shadow-sm'
-                                        : 'text-gray-600 hover:text-teal-700 hover:bg-teal-50'
+                                        : isDark
+                                          ? 'text-gray-400 hover:text-teal-400 hover:bg-[#3a4451]'
+                                          : 'text-gray-600 hover:text-teal-700 hover:bg-teal-50'
                                     }`}
                                     onClick={() => setMobileMenuOpen(false)}
                                   >
