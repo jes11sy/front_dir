@@ -507,46 +507,49 @@ function OrdersContent() {
             )}
 
             {/* Табы статусов + иконка фильтров */}
-            <div className="mb-4 animate-slide-in-left flex items-center gap-2">
-              <div className="flex-1 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
-                <div className="flex gap-1 p-1 bg-gray-100 rounded-lg w-max md:w-auto">
-                  {[
-                    { id: 'all', label: 'Все' },
-                    { id: 'Ожидает', label: 'Ожидает' },
-                    { id: 'Принял', label: 'Принял' },
-                    { id: 'В работе', label: 'В работе' },
-                    { id: 'Модерн', label: 'Модерн' },
-                    { id: 'completed', label: 'Завершённые' },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => handleStatusTabChange(tab.id)}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
-                        statusTab === tab.id
-                          ? 'bg-white text-teal-600 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
+            <div className="mb-4 animate-slide-in-left">
+              <div className="flex items-center gap-2">
+                {/* Табы с прокруткой */}
+                <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+                  <div className="flex gap-1 p-1 bg-gray-100 rounded-lg w-max">
+                    {[
+                      { id: 'all', label: 'Все' },
+                      { id: 'Ожидает', label: 'Ожидает' },
+                      { id: 'Принял', label: 'Принял' },
+                      { id: 'В работе', label: 'В работе' },
+                      { id: 'Модерн', label: 'Модерн' },
+                      { id: 'completed', label: 'Завершённые' },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => handleStatusTabChange(tab.id)}
+                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
+                          statusTab === tab.id
+                            ? 'bg-white text-teal-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Иконка фильтров */}
-              <button
-                onClick={openFiltersPanel}
-                className="relative flex-shrink-0 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 hover:text-teal-600 transition-all duration-200"
-                title="Фильтры"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                {/* Индикатор активных фильтров */}
-                {(searchId || searchPhone || searchAddress || statusFilter || cityFilter || masterFilter || rkFilter || typeEquipmentFilter || dateFrom || dateTo) && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 border-white"></span>
-                )}
-              </button>
+                {/* Иконка фильтров */}
+                <button
+                  onClick={openFiltersPanel}
+                  className="relative flex-shrink-0 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 hover:text-teal-600 transition-all duration-200"
+                  title="Фильтры"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  {/* Индикатор активных фильтров */}
+                  {(searchId || searchPhone || searchAddress || statusFilter || cityFilter || masterFilter || rkFilter || typeEquipmentFilter || dateFrom || dateTo) && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 border-white"></span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Выезжающая панель фильтров справа */}
