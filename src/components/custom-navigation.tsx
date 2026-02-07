@@ -254,15 +254,15 @@ export function CustomNavigation() {
       </header>
 
       {/* Mobile Full-screen Menu */}
+      {mobileMenuOpen && (
       <aside 
-        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] bg-white z-[9998] transform transition-transform duration-300 ease-in-out flex flex-col ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className="md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] bg-white z-[9998] transform transition-transform duration-300 ease-in-out flex flex-col translate-x-0"
       >
         <div className="pt-6 flex flex-col h-full overflow-y-auto">
           <MenuContent isMobile={true} />
         </div>
       </aside>
+      )}
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-56 bg-white h-screen flex-col border-r border-gray-200 fixed left-0 top-0">
