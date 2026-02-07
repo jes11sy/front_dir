@@ -155,7 +155,6 @@ export default function MastersPage() {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            maxVisiblePages={7}
           />
         </div>
       )}

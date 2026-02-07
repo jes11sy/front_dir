@@ -1,13 +1,12 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface PaginationProps {
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
-  maxVisiblePages?: number
   className?: string
   disabled?: boolean
 }
@@ -16,10 +15,22 @@ export function OptimizedPagination({
   currentPage,
   totalPages,
   onPageChange,
-  maxVisiblePages = 5,
   className = '',
   disabled = false
 }: PaginationProps) {
+  
+  // Определяем мобильный или десктоп
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  
+  // 3 страницы на мобильных, 5 на десктопе
+  const maxVisiblePages = isMobile ? 3 : 5
   
   const visiblePages = useMemo(() => {
     if (totalPages <= maxVisiblePages) {
@@ -63,82 +74,74 @@ export function OptimizedPagination({
   }
 
   return (
-    <div className={`flex items-center justify-between ${className}`}>
-      {/* Информация о странице */}
-      <span className="text-sm text-gray-500">
-        Страница {currentPage} из {totalPages}
-      </span>
+    <div className={`flex items-center justify-center gap-1 ${className}`}>
+      {/* Previous button */}
+      <button
+        onClick={handlePrevClick}
+        disabled={disabled || currentPage === 1}
+        className="p-1.5 rounded-md text-gray-500 hover:text-teal-600 hover:bg-teal-50 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+        aria-label="Предыдущая страница"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
 
-      {/* Кнопки пагинации */}
-      <div className="flex items-center gap-1">
-        {/* Previous button */}
-        <button
-          onClick={handlePrevClick}
-          disabled={disabled || currentPage === 1}
-          className="p-1.5 rounded-md text-gray-500 hover:text-teal-600 hover:bg-teal-50 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
-          aria-label="Предыдущая страница"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-
-        {/* First page */}
-        {visiblePages[0] > 1 && (
-          <>
-            <button
-              onClick={() => handlePageClick(1)}
-              disabled={disabled}
-              className="min-w-[32px] h-8 px-2 rounded-md text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 transition-colors"
-            >
-              1
-            </button>
-            {showStartEllipsis && (
-              <span className="px-1 text-gray-400 text-sm">...</span>
-            )}
-          </>
-        )}
-
-        {/* Page numbers */}
-        {visiblePages.map((page) => (
+      {/* First page */}
+      {visiblePages[0] > 1 && (
+        <>
           <button
-            key={page}
-            onClick={() => handlePageClick(page)}
+            onClick={() => handlePageClick(1)}
             disabled={disabled}
-            className={`min-w-[32px] h-8 px-2 rounded-md text-sm font-medium transition-colors ${
-              currentPage === page
-                ? 'bg-teal-500 text-white'
-                : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50'
-            }`}
+            className="min-w-[32px] h-8 px-2 rounded-md text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 transition-colors"
           >
-            {page}
+            1
           </button>
-        ))}
+          {showStartEllipsis && (
+            <span className="px-1 text-gray-400 text-sm">...</span>
+          )}
+        </>
+      )}
 
-        {/* Last page */}
-        {visiblePages[visiblePages.length - 1] < totalPages && (
-          <>
-            {showEndEllipsis && (
-              <span className="px-1 text-gray-400 text-sm">...</span>
-            )}
-            <button
-              onClick={() => handlePageClick(totalPages)}
-              disabled={disabled}
-              className="min-w-[32px] h-8 px-2 rounded-md text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 transition-colors"
-            >
-              {totalPages}
-            </button>
-          </>
-        )}
-
-        {/* Next button */}
+      {/* Page numbers */}
+      {visiblePages.map((page) => (
         <button
-          onClick={handleNextClick}
-          disabled={disabled || currentPage === totalPages}
-          className="p-1.5 rounded-md text-gray-500 hover:text-teal-600 hover:bg-teal-50 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
-          aria-label="Следующая страница"
+          key={page}
+          onClick={() => handlePageClick(page)}
+          disabled={disabled}
+          className={`min-w-[32px] h-8 px-2 rounded-md text-sm font-medium transition-colors ${
+            currentPage === page
+              ? 'bg-teal-500 text-white'
+              : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50'
+          }`}
         >
-          <ChevronRight className="w-5 h-5" />
+          {page}
         </button>
-      </div>
+      ))}
+
+      {/* Last page */}
+      {visiblePages[visiblePages.length - 1] < totalPages && (
+        <>
+          {showEndEllipsis && (
+            <span className="px-1 text-gray-400 text-sm">...</span>
+          )}
+          <button
+            onClick={() => handlePageClick(totalPages)}
+            disabled={disabled}
+            className="min-w-[32px] h-8 px-2 rounded-md text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+          >
+            {totalPages}
+          </button>
+        </>
+      )}
+
+      {/* Next button */}
+      <button
+        onClick={handleNextClick}
+        disabled={disabled || currentPage === totalPages}
+        className="p-1.5 rounded-md text-gray-500 hover:text-teal-600 hover:bg-teal-50 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+        aria-label="Следующая страница"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
     </div>
   )
 }
