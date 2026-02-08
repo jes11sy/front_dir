@@ -1,16 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback, memo } from 'react'
+import { useState, useEffect, useCallback, memo, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
-import { Sun, Moon, Bell, User, Menu, X } from 'lucide-react'
-import { NotificationsModal } from './push/NotificationsModal'
+import { Sun, Moon, Bell, User, Menu, X, Check, FileText, Info, GripHorizontal } from 'lucide-react'
 
 // Ключ для сохранения позиции прокрутки
 const SCROLL_POSITION_KEY = 'orders_scroll_position'
+// Ключ для позиции панели уведомлений
+const NOTIFICATIONS_POSITION_KEY = 'notifications-panel-position-dir'
+// Дефолтная позиция
+const DEFAULT_POSITION = { x: 240, y: 100 }
 
 const navigationItems = [
   { name: 'Заказы', href: '/orders', icon: '/images/navigate/orders.svg' },
@@ -20,27 +23,147 @@ const navigationItems = [
   { name: 'Сотрудники', href: '/employees', icon: '/images/navigate/employees.svg' },
 ]
 
-// Вынесено за пределы CustomNavigation, чтобы React не пересоздавал компонент при каждом рендере
-// (иначе иконки мерцают при смене страницы)
-interface MenuContentProps {
-  isMobile?: boolean
-  pathname: string
-  theme: string
-  toggleTheme: () => void
-  userName: string | undefined
-  onCloseMobileMenu: () => void
-  onOpenNotifications: () => void
-}
+// Моковые уведомления (пока без функционала)
+const mockNotifications: {
+  id: string
+  title: string
+  message: string
+  type: string
+  read: boolean
+  createdAt: string
+  orderId?: number
+}[] = []
 
-const MenuContent = memo(function MenuContent({
-  isMobile = false,
-  pathname,
-  theme,
-  toggleTheme,
-  userName,
-  onCloseMobileMenu,
-  onOpenNotifications,
-}: MenuContentProps) {
+export function CustomNavigation() {
+  const { user } = useAuthStore()
+  const { theme, toggleTheme } = useDesignStore()
+  const pathname = usePathname()
+  const router = useRouter()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  
+  // Refs для панелей уведомлений
+  const notificationsRef = useRef<HTMLDivElement>(null)
+  const notificationsPanelRef = useRef<HTMLDivElement>(null)
+  const mobileNotificationsPanelRef = useRef<HTMLDivElement>(null)
+  
+  // Состояние уведомлений
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [notifications] = useState(mockNotifications)
+  const unreadCount = notifications.filter(n => !n.read).length
+  
+  // Позиция окна уведомлений (для desktop drag)
+  const [panelPosition, setPanelPosition] = useState(DEFAULT_POSITION)
+  const [isDragging, setIsDragging] = useState(false)
+  const dragOffset = useRef({ x: 0, y: 0 })
+  
+  // Загружаем позицию из localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(NOTIFICATIONS_POSITION_KEY)
+    if (saved) {
+      try {
+        const pos = JSON.parse(saved)
+        setPanelPosition(pos)
+      } catch {
+        // ignore
+      }
+    }
+  }, [])
+
+  // Сохраняем позицию в localStorage
+  const savePosition = useCallback((pos: { x: number; y: number }) => {
+    localStorage.setItem(NOTIFICATIONS_POSITION_KEY, JSON.stringify(pos))
+  }, [])
+
+  // Обработчики drag
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    const panel = notificationsPanelRef.current
+    if (panel) {
+      const rect = panel.getBoundingClientRect()
+      dragOffset.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isDragging) return
+
+    let lastPos = panelPosition
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newX = Math.max(-300, Math.min(window.innerWidth - 100, e.clientX - dragOffset.current.x))
+      const newY = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragOffset.current.y))
+      lastPos = { x: newX, y: newY }
+      setPanelPosition(lastPos)
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+      savePosition(lastPos)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, panelPosition, savePosition])
+
+  // Toggle dropdown
+  const toggleDropdown = useCallback(() => {
+    setIsDropdownOpen(prev => !prev)
+  }, [])
+
+  const closeDropdown = useCallback(() => {
+    setIsDropdownOpen(false)
+  }, [])
+
+  // Закрываем меню при смене маршрута
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+    closeDropdown()
+  }, [pathname, closeDropdown])
+
+  // Блокируем скролл body при открытом меню
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileMenuOpen])
+
+  // Закрываем dropdown при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isDragging) return
+      
+      const target = event.target as Node
+      const isInsideButton = notificationsRef.current?.contains(target)
+      const isInsideDesktopPanel = notificationsPanelRef.current?.contains(target)
+      const isInsideMobilePanel = mobileNotificationsPanelRef.current?.contains(target)
+      
+      if (!isInsideButton && !isInsideDesktopPanel && !isInsideMobilePanel) {
+        closeDropdown()
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen, closeDropdown, isDragging])
+
   // Проверка активности с учетом подстраниц
   const isActive = (href: string) => {
     if (pathname === href) return true
@@ -48,7 +171,58 @@ const MenuContent = memo(function MenuContent({
     return false
   }
 
-  return (
+  // Переход на главную страницу заказов
+  const handleLogoClick = () => {
+    setIsMobileMenuOpen(false)
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(SCROLL_POSITION_KEY)
+    }
+    router.push('/orders')
+  }
+
+  // Форматирование времени уведомления
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'только что'
+    if (diffMins < 60) return `${diffMins} мин назад`
+    if (diffHours < 24) return `${diffHours} ч назад`
+    return `${diffDays} дн назад`
+  }
+
+  // Иконка для типа уведомления
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'order_created':
+      case 'order_edited':
+        return FileText
+      default:
+        return Info
+    }
+  }
+
+  // Обработка клика на уведомление (пока заглушка)
+  const handleNotificationClick = (notification: typeof notifications[0]) => {
+    if (notification.orderId) {
+      router.push(`/orders/${notification.orderId}`)
+      closeDropdown()
+    }
+  }
+
+  // Пометить все как прочитанные (заглушка)
+  const markAllAsRead = () => {
+    console.log('markAllAsRead - пока без функционала')
+  }
+
+  const userName = user?.name || user?.login
+
+  // Контент меню
+  const MenuContent = ({ isMobile = false }: { isMobile?: boolean }) => (
     <>
       {/* Navigation */}
       <nav className={`flex-1 px-5 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
@@ -61,7 +235,7 @@ const MenuContent = memo(function MenuContent({
               className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
                 isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
               }`}
-              onClick={onCloseMobileMenu}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               {/* Индикатор активной вкладки - тонкая скобка */}
               <span 
@@ -97,39 +271,118 @@ const MenuContent = memo(function MenuContent({
       {/* Bottom Section */}
       <div className={`px-5 pb-6 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
         {/* Theme Toggle */}
-        {(
-          <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
-            <Sun className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'light' ? 'text-[#0d5c4b]' : 'text-gray-400'}`} />
-            <button
-              onClick={toggleTheme}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                theme === 'dark' ? 'bg-[#0d5c4b]' : 'bg-gray-300'
+        <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
+          <Sun className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'light' ? 'text-[#0d5c4b]' : 'text-gray-400'}`} />
+          <button
+            onClick={toggleTheme}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
+              theme === 'dark' ? 'bg-[#0d5c4b]' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+                theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
               }`}
+            />
+          </button>
+          <Moon className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'dark' ? 'text-[#0d5c4b]' : 'text-gray-400'}`} />
+        </div>
+
+        {/* Notifications - только для десктопа */}
+        {!isMobile && (
+          <div className="relative" ref={notificationsRef}>
+            <button
+              onClick={toggleDropdown}
+              className="relative flex items-center gap-3 px-3 py-2.5 text-sm font-normal text-gray-800 dark:text-gray-200 hover:text-[#0d5c4b] transition-colors w-full group"
             >
-              <span
-                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
-                  theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
+              <div className="relative">
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              <span className="group-hover:text-[#0d5c4b] transition-colors">
+                Уведомления
+              </span>
             </button>
-            <Moon className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'dark' ? 'text-[#0d5c4b]' : 'text-gray-400'}`} />
+
+            {/* Notifications Dropdown - Desktop */}
+            {isDropdownOpen && (
+              <div 
+                ref={notificationsPanelRef}
+                className="fixed w-96 max-h-96 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-[9999] flex flex-col bg-white dark:bg-[#1e2736]"
+                style={{ left: panelPosition.x, top: panelPosition.y }}
+              >
+                <div 
+                  className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0 cursor-move select-none"
+                  onMouseDown={handleDragStart}
+                >
+                  <div className="flex items-center gap-2">
+                    <GripHorizontal className="h-4 w-4 text-gray-400" />
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Уведомления</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {unreadCount > 0 && (
+                      <button
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => { e.stopPropagation(); markAllAsRead(); }}
+                        className="text-xs text-[#0d5c4b] hover:underline flex items-center gap-1"
+                      >
+                        <Check className="h-3 w-3" />
+                        Прочитать все
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto bg-white dark:bg-[#1a1f2e]">
+                  {notifications.length > 0 ? (
+                    notifications.map((notification) => {
+                      const Icon = getNotificationIcon(notification.type)
+                      return (
+                        <div
+                          key={notification.id}
+                          onClick={() => handleNotificationClick(notification)}
+                          className={`px-4 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0 cursor-pointer ${
+                            !notification.read 
+                              ? 'bg-[#0d5c4b]/10 hover:bg-[#0d5c4b]/20' 
+                              : 'bg-white dark:bg-[#1a1f2e] hover:bg-gray-50 dark:hover:bg-[#252d3a]'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-0.5 text-gray-400 dark:text-gray-500">
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${notification.read ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 font-medium'}`}>
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                                {notification.message}
+                              </p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                {formatTime(notification.createdAt)}
+                              </p>
+                            </div>
+                            {!notification.read && (
+                              <span className="w-2 h-2 bg-[#0d5c4b] rounded-full flex-shrink-0 mt-1.5" />
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
+                      <Bell className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">Нет уведомлений</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
-
-        {/* Notifications */}
-        <button
-          onClick={onOpenNotifications}
-          className={`relative flex items-center gap-3 px-3 text-gray-800 dark:text-gray-200 hover:text-[#0d5c4b] w-full group ${
-            isMobile ? 'py-3 text-base' : 'py-2.5 text-sm'
-          }`}
-        >
-          <div className="relative">
-            <Bell className={isMobile ? 'h-6 w-6' : 'h-5 w-5'} />
-          </div>
-          <span className="group-hover:text-[#0d5c4b]">
-            Уведомления
-          </span>
-        </button>
 
         {/* Profile with user name */}
         <Link
@@ -137,7 +390,7 @@ const MenuContent = memo(function MenuContent({
           className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
             isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
           }`}
-          onClick={onCloseMobileMenu}
+          onClick={() => setIsMobileMenuOpen(false)}
         >
           <span 
             className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] ${
@@ -162,59 +415,6 @@ const MenuContent = memo(function MenuContent({
       </div>
     </>
   )
-})
-
-export function CustomNavigation() {
-  const { user } = useAuthStore()
-  const { theme, toggleTheme } = useDesignStore()
-  const pathname = usePathname()
-  const router = useRouter()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [notificationsModalOpen, setNotificationsModalOpen] = useState(false)
-
-  // Стабильная ссылка на колбэк закрытия мобильного меню
-  const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), [])
-  
-  // Открытие модалки уведомлений
-  const openNotifications = useCallback(() => {
-    setIsMobileMenuOpen(false)
-    setNotificationsModalOpen(true)
-  }, [])
-
-  // Закрываем меню при смене маршрута
-  useEffect(() => {
-    setIsMobileMenuOpen(false)
-  }, [pathname])
-
-  // Блокируем скролл body при открытом меню
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isMobileMenuOpen])
-
-  // Проверка активности с учетом подстраниц
-  const isActive = (href: string) => {
-    if (pathname === href) return true
-    if (href !== '/orders' && pathname.startsWith(href + '/')) return true
-    return false
-  }
-
-  // Переход на главную страницу заказов
-  const handleLogoClick = () => {
-    setIsMobileMenuOpen(false)
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem(SCROLL_POSITION_KEY)
-    }
-    router.push('/orders')
-  }
-
-  const userName = user?.name || user?.login
 
   return (
     <>
@@ -234,13 +434,88 @@ export function CustomNavigation() {
         </button>
         <div className="flex items-center gap-2">
           {/* Mobile Notifications Bell */}
-          <button
-            onClick={() => setNotificationsModalOpen(true)}
-            className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#0d5c4b] transition-colors relative"
-            aria-label="Уведомления"
-          >
-            <Bell className="h-6 w-6" />
-          </button>
+          <div className="relative" ref={notificationsRef}>
+            <button
+              onClick={toggleDropdown}
+              className={`p-2 transition-colors relative ${
+                isDropdownOpen 
+                  ? 'text-[#0d5c4b]' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-[#0d5c4b]'
+              }`}
+              aria-label="Уведомления"
+            >
+              <Bell className="h-6 w-6" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile Notifications Dropdown */}
+            {isDropdownOpen && (
+              <div 
+                ref={mobileNotificationsPanelRef}
+                className="fixed left-4 right-4 top-20 bg-white dark:bg-[#252d3a] rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-[10000]"
+              >
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Уведомления</h3>
+                  <div className="flex items-center gap-3">
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-xs text-[#0d5c4b] hover:underline flex items-center gap-1"
+                      >
+                        <Check className="h-3 w-3" />
+                        Прочитать все
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length > 0 ? (
+                    notifications.map((notification) => {
+                      const Icon = getNotificationIcon(notification.type)
+                      return (
+                        <div
+                          key={notification.id}
+                          onClick={() => handleNotificationClick(notification)}
+                          className={`px-4 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer ${
+                            !notification.read ? 'bg-[#0d5c4b]/5' : ''
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-0.5 text-gray-400 dark:text-gray-500">
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${notification.read ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 font-medium'}`}>
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                                {notification.message}
+                              </p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                {formatTime(notification.createdAt)}
+                              </p>
+                            </div>
+                            {!notification.read && (
+                              <span className="w-2 h-2 bg-[#0d5c4b] rounded-full flex-shrink-0 mt-1.5" />
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                      <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>Нет уведомлений</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -264,15 +539,7 @@ export function CustomNavigation() {
         }`}
       >
         <div className="pt-6 flex flex-col h-full overflow-y-auto">
-          <MenuContent
-            isMobile={true}
-            pathname={pathname}
-            theme={theme}
-            toggleTheme={toggleTheme}
-            userName={userName}
-            onCloseMobileMenu={closeMobileMenu}
-            onOpenNotifications={openNotifications}
-          />
+          <MenuContent isMobile={true} />
         </div>
       </aside>
 
@@ -292,22 +559,8 @@ export function CustomNavigation() {
           </button>
         </div>
 
-        <MenuContent
-          isMobile={false}
-          pathname={pathname}
-          theme={theme}
-          toggleTheme={toggleTheme}
-          userName={userName}
-          onCloseMobileMenu={closeMobileMenu}
-          onOpenNotifications={openNotifications}
-        />
+        <MenuContent isMobile={false} />
       </aside>
-
-      {/* Notifications Modal */}
-      <NotificationsModal 
-        isOpen={notificationsModalOpen} 
-        onClose={() => setNotificationsModalOpen(false)} 
-      />
     </>
   )
 }
