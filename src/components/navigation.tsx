@@ -52,19 +52,11 @@ export function Navigation() {
   const isDark = theme === 'dark'
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-md border-b transition-colors duration-300 ${
-      isDark 
-        ? 'bg-[#1e2530]/95 border-[#0d5c4b]/40' 
-        : 'bg-white/95 border-[#0d5c4b]/20'
-    }`}>
+    <nav className="nav-main fixed top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-md border-b transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Логотип */}
-          <Link href="/orders" className={`text-xl font-bold transition-colors duration-200 ${
-            isDark 
-              ? 'text-gray-100 hover:text-[#0d5c4b]' 
-              : 'text-gray-800 hover:text-[#0d5c4b]'
-          }`}>
+          <Link href="/orders" className={`nav-logo text-xl font-bold transition-colors duration-200 hover:text-[#0d5c4b]`}>
             Новые Схемы
           </Link>
 
@@ -91,12 +83,12 @@ export function Navigation() {
                 {item.href ? (
                   <Link
                     href={item.href}
-                    className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                    className={`nav-item inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
                       pathname === item.href
-                        ? 'text-white bg-[#0d5c4b] shadow-md shadow-[#0d5c4b]/20'
+                        ? 'nav-item-active shadow-md shadow-[#0d5c4b]/20'
                         : isDark 
-                          ? 'text-gray-300 hover:text-white hover:bg-[#2a3441]'
-                          : 'text-gray-700 hover:text-[#0d5c4b] hover:bg-[#daece2]/50'
+                          ? 'hover:text-white hover:bg-[#2a3441]'
+                          : 'hover:text-[#0d5c4b] hover:bg-[#daece2]/50'
                     }`}
                   >
                     {item.name}
@@ -107,10 +99,10 @@ export function Navigation() {
                     )}
                   </Link>
                 ) : (
-                  <div className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer rounded-lg ${
+                  <div className={`nav-item inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer rounded-lg ${
                     isDark 
-                      ? 'text-gray-300 hover:text-white hover:bg-[#2a3441]'
-                      : 'text-gray-700 hover:text-[#0d5c4b] hover:bg-[#daece2]/50'
+                      ? 'hover:text-white hover:bg-[#2a3441]'
+                      : 'hover:text-[#0d5c4b] hover:bg-[#daece2]/50'
                   }`}>
                     {item.name}
                     {item.dropdown && (
