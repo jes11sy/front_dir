@@ -70,14 +70,14 @@ export function CustomNavigation() {
             <Link
               key={item.name}
               href={item.href}
-              className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal transition-colors group ${
+              className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
                 isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
               }`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {/* Индикатор активной вкладки - тонкая скобка */}
               <span 
-                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] transition-all ${
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] ${
                   active ? 'opacity-100' : 'opacity-0'
                 } ${isMobile ? 'h-12' : 'h-10'}`}
               >
@@ -96,9 +96,9 @@ export function CustomNavigation() {
                 alt={item.name} 
                 width={isMobile ? 24 : 20} 
                 height={isMobile ? 24 : 20} 
-                className={`nav-icon transition-all ${active ? 'nav-icon-active' : ''} ${isMobile ? 'w-6 h-6' : 'w-5 h-5'}`}
+                className={`nav-icon ${active ? 'nav-icon-active' : ''} ${isMobile ? 'w-6 h-6' : 'w-5 h-5'}`}
               />
-              <span className="text-gray-800 dark:text-gray-200 group-hover:text-[#0d5c4b] transition-colors">
+              <span className="text-gray-800 dark:text-gray-200 group-hover:text-[#0d5c4b]">
                 {item.name}
               </span>
             </Link>
@@ -150,7 +150,7 @@ export function CustomNavigation() {
 
         {/* Notifications */}
         <button
-          className={`relative flex items-center gap-3 px-3 text-gray-800 dark:text-gray-200 hover:text-[#0d5c4b] transition-colors w-full group ${
+          className={`relative flex items-center gap-3 px-3 text-gray-800 dark:text-gray-200 hover:text-[#0d5c4b] w-full group ${
             isMobile ? 'py-3 text-base' : 'py-2.5 text-sm'
           }`}
         >
@@ -160,7 +160,7 @@ export function CustomNavigation() {
               3
             </span>
           </div>
-          <span className="group-hover:text-[#0d5c4b] transition-colors">
+          <span className="group-hover:text-[#0d5c4b]">
             Уведомления
           </span>
         </button>
@@ -168,13 +168,13 @@ export function CustomNavigation() {
         {/* Profile with user name */}
         <Link
           href="/profile"
-          className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal transition-colors group ${
+          className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
             isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
           }`}
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <span 
-            className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] transition-all ${
+            className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] ${
               isActive('/profile') ? 'opacity-100' : 'opacity-0'
             } ${isMobile ? 'h-12' : 'h-10'}`}
           >
@@ -189,7 +189,7 @@ export function CustomNavigation() {
             </svg>
           </span>
           <User className={`text-gray-600 dark:text-gray-400 ${isMobile ? 'h-6 w-6' : 'h-5 w-5'}`} />
-          <span className="text-gray-800 dark:text-gray-200 group-hover:text-[#0d5c4b] transition-colors">
+          <span className="text-gray-800 dark:text-gray-200 group-hover:text-[#0d5c4b]">
             {user?.name || user?.login || 'Профиль'}
           </span>
         </Link>

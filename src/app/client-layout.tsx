@@ -11,7 +11,7 @@ interface ClientLayoutProps {
   children: React.ReactNode
 }
 
-const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
+const ClientLayout = ({ children }: ClientLayoutProps) => {
   const pathname = usePathname()
   const prevPathname = useRef(pathname)
   
@@ -69,8 +69,6 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
       </AuthGuard>
     </ErrorBoundary>
   )
-})
-
-ClientLayout.displayName = 'ClientLayout'
+}
 
 export default ClientLayout
