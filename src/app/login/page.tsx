@@ -35,8 +35,8 @@ function LoginForm() {
   const MAX_ATTEMPTS = 10 // Максимум попыток
   const BLOCK_DURATION = 5 * 60 * 1000 // 5 минут в миллисекундах
   
-  // Версия дизайна и тема
-  const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
+  // Тема дизайна
+  const { theme, toggleTheme } = useDesignStore()
   
   /**
    * Безопасная валидация redirect URL

@@ -24,9 +24,7 @@ const navigationItems = [
 interface MenuContentProps {
   isMobile?: boolean
   pathname: string
-  version: string
   theme: string
-  toggleVersion: () => void
   toggleTheme: () => void
   userName: string | undefined
   onCloseMobileMenu: () => void
@@ -35,9 +33,7 @@ interface MenuContentProps {
 const MenuContent = memo(function MenuContent({
   isMobile = false,
   pathname,
-  version,
   theme,
-  toggleVersion,
   toggleTheme,
   userName,
   onCloseMobileMenu,
@@ -97,28 +93,8 @@ const MenuContent = memo(function MenuContent({
 
       {/* Bottom Section */}
       <div className={`px-5 pb-6 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
-        {/* Version Toggle - только для V1 */}
-        {version === 'v1' && (
-          <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
-            <span className={`transition-colors ${isMobile ? 'text-base' : 'text-sm'} ${version === 'v1' ? 'text-[#0d5c4b]' : 'text-gray-400'}`}>V1</span>
-            <button
-              onClick={toggleVersion}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                version === 'v2' ? 'bg-[#0d5c4b]' : 'bg-gray-300 dark:bg-gray-600'
-              }`}
-            >
-              <span
-                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
-                  version === 'v2' ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
-            <span className={`transition-colors ${isMobile ? 'text-base' : 'text-sm'} ${version === 'v2' ? 'text-[#0d5c4b]' : 'text-gray-400'}`}>V2</span>
-          </div>
-        )}
-
-        {/* Theme Toggle - только для V2 */}
-        {version === 'v2' && (
+        {/* Theme Toggle */}
+        {(
           <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
             <Sun className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'light' ? 'text-[#0d5c4b]' : 'text-gray-400'}`} />
             <button
@@ -189,7 +165,7 @@ const MenuContent = memo(function MenuContent({
 
 export function CustomNavigation() {
   const { user } = useAuthStore()
-  const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
+  const { theme, toggleTheme } = useDesignStore()
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -285,9 +261,7 @@ export function CustomNavigation() {
           <MenuContent
             isMobile={true}
             pathname={pathname}
-            version={version}
             theme={theme}
-            toggleVersion={toggleVersion}
             toggleTheme={toggleTheme}
             userName={userName}
             onCloseMobileMenu={closeMobileMenu}
@@ -314,9 +288,7 @@ export function CustomNavigation() {
         <MenuContent
           isMobile={false}
           pathname={pathname}
-          version={version}
           theme={theme}
-          toggleVersion={toggleVersion}
           toggleTheme={toggleTheme}
           userName={userName}
           onCloseMobileMenu={closeMobileMenu}
