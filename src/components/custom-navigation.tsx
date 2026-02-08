@@ -125,14 +125,8 @@ export const CustomNavigation = memo(function CustomNavigation() {
                   alt={item.name} 
                   width={isMobile ? 24 : 20} 
                   height={isMobile ? 24 : 20} 
-                  className={`transition-all ${isMobile ? 'w-6 h-6' : 'w-5 h-5'} ${
-                    active 
-                      ? isDark
-                        ? '[filter:invert(27%)_sepia(51%)_saturate(1095%)_hue-rotate(140deg)_brightness(92%)_contrast(92%)]'
-                        : '[filter:invert(27%)_sepia(51%)_saturate(1095%)_hue-rotate(140deg)_brightness(92%)_contrast(92%)]'
-                      : isDark
-                        ? 'invert group-hover:[filter:invert(27%)_sepia(51%)_saturate(1095%)_hue-rotate(140deg)_brightness(92%)_contrast(92%)]'
-                        : 'brightness-0 group-hover:[filter:invert(27%)_sepia(51%)_saturate(1095%)_hue-rotate(140deg)_brightness(92%)_contrast(92%)]'
+                  className={`nav-icon ${isMobile ? 'w-6 h-6' : 'w-5 h-5'} ${
+                    active ? 'nav-icon-active' : ''
                   }`}
                 />
               )}

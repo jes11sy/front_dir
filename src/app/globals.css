@@ -180,6 +180,28 @@ html.dark main.main-content {
   background-color: #1e2530 !important;
 }
 
+/* Иконки навигации - без transition чтобы не мерцали */
+.nav-icon {
+  filter: brightness(0);
+}
+
+.nav-icon-active {
+  filter: invert(27%) sepia(51%) saturate(1095%) hue-rotate(140deg) brightness(92%) contrast(92%);
+}
+
+.group:hover .nav-icon:not(.nav-icon-active) {
+  filter: invert(27%) sepia(51%) saturate(1095%) hue-rotate(140deg) brightness(92%) contrast(92%);
+}
+
+/* Тёмная тема - иконки белые */
+html.dark .nav-icon:not(.nav-icon-active) {
+  filter: invert(1);
+}
+
+html.dark .group:hover .nav-icon:not(.nav-icon-active) {
+  filter: invert(27%) sepia(51%) saturate(1095%) hue-rotate(140deg) brightness(92%) contrast(92%);
+}
+
 /* iOS Safari: GPU ускорение для фиксированных элементов (кроме тех что используют translate) */
 @supports (-webkit-touch-callout: none) {
   /* iOS specific - не применяем к элементам с transform анимацией */
