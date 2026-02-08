@@ -3,11 +3,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useCallback, useEffect, memo, useMemo } from 'react'
+import { useState, useCallback, useEffect, memo } from 'react'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { Sun, Moon, Bell, User, Menu, X } from 'lucide-react'
-import { shallow } from 'zustand/shallow'
 
 // Ключ для сохранения позиции прокрутки (должен совпадать с orders/page.tsx)
 const SCROLL_POSITION_KEY = 'orders_scroll_position'
@@ -20,25 +19,21 @@ const navigationItems = [
   { name: 'Сотрудники', href: '/employees', icon: '/images/navigate/employees.svg' },
 ]
 
-// ✅ FIX: Мемоизированный компонент навигации для предотвращения лишних re-render
+// Мемоизированный компонент навигации
 export const CustomNavigation = memo(function CustomNavigation() {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
-  // ✅ FIX: Селекторы с shallow comparison для предотвращения лишних re-render
-  const { version, toggleVersion, theme, toggleTheme } = useDesignStore(
-    (state) => ({
-      version: state.version,
-      toggleVersion: state.toggleVersion,
-      theme: state.theme,
-      toggleTheme: state.toggleTheme,
-    }),
-    shallow
-  )
+  // Используем индивидуальные селекторы для оптимизации
+  const version = useDesignStore((state) => state.version)
+  const toggleVersion = useDesignStore((state) => state.toggleVersion)
+  const theme = useDesignStore((state) => state.theme)
+  const toggleTheme = useDesignStore((state) => state.toggleTheme)
   
-  // ✅ FIX: Только нужные поля из auth store
-  const userName = useAuthStore((state) => state.user?.name || state.user?.login || 'Профиль')
+  // Данные пользователя из auth store
+  const user = useAuthStore((state) => state.user)
+  const userName = user?.name || user?.login || 'Профиль'
 
   // Переход на главную страницу заказов (сброс всех фильтров и позиции)
   const handleLogoClick = useCallback(() => {
