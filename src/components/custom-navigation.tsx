@@ -3,10 +3,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, memo, useMemo } from 'react'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { Sun, Moon, Bell, User, Menu, X } from 'lucide-react'
+import { shallow } from 'zustand/shallow'
 
 // Ключ для сохранения позиции прокрутки (должен совпадать с orders/page.tsx)
 const SCROLL_POSITION_KEY = 'orders_scroll_position'
@@ -19,12 +20,25 @@ const navigationItems = [
   { name: 'Сотрудники', href: '/employees', icon: '/images/navigate/employees.svg' },
 ]
 
-export function CustomNavigation() {
+// ✅ FIX: Мемоизированный компонент навигации для предотвращения лишних re-render
+export const CustomNavigation = memo(function CustomNavigation() {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
-  const { user } = useAuthStore()
+  
+  // ✅ FIX: Селекторы с shallow comparison для предотвращения лишних re-render
+  const { version, toggleVersion, theme, toggleTheme } = useDesignStore(
+    (state) => ({
+      version: state.version,
+      toggleVersion: state.toggleVersion,
+      theme: state.theme,
+      toggleTheme: state.toggleTheme,
+    }),
+    shallow
+  )
+  
+  // ✅ FIX: Только нужные поля из auth store
+  const userName = useAuthStore((state) => state.user?.name || state.user?.login || 'Профиль')
 
   // Переход на главную страницу заказов (сброс всех фильтров и позиции)
   const handleLogoClick = useCallback(() => {
@@ -227,7 +241,7 @@ export function CustomNavigation() {
                 ? 'text-gray-300 group-hover:text-[#0d5c4b]'
                 : 'text-gray-800 group-hover:text-[#0d5c4b]'
           }`}>
-            {user?.name || user?.login || 'Профиль'}
+            {userName}
           </span>
         </Link>
       </div>

@@ -5,7 +5,7 @@ import { CustomNavigation } from '@/components/custom-navigation'
 import { ErrorBoundary } from '@/components/error-boundary'
 import AuthGuard from '@/components/auth-guard'
 import { useDesignStore } from '@/store/design.store'
-import React, { useLayoutEffect, useEffect, useMemo, useRef } from 'react'
+import React, { useLayoutEffect, useEffect, useMemo, useRef, useCallback } from 'react'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -14,7 +14,9 @@ interface ClientLayoutProps {
 const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
   const pathname = usePathname()
   const prevPathname = useRef(pathname)
-  const { theme } = useDesignStore()
+  
+  // ✅ FIX: Используем селектор для предотвращения лишних re-render
+  const theme = useDesignStore((state) => state.theme)
   const isDark = theme === 'dark'
   
   const isPublicPage = useMemo(() => {
