@@ -54,24 +54,18 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* Критические стили навигации для предотвращения мерцания */}
+        {/* Критические стили навигации/сайдбара для предотвращения мерцания */}
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              nav.nav-main {
-                background-color: rgba(255, 255, 255, 0.95);
-                border-color: rgba(13, 92, 75, 0.2);
+              nav.nav-main, aside.sidebar-main, header.header-main {
+                background-color: white;
+                border-color: #e5e7eb;
               }
-              nav.nav-main .nav-logo { color: #1f2937; }
-              nav.nav-main .nav-item { color: #374151; }
-              nav.nav-main .nav-item-active { color: white; background-color: #0d5c4b; }
-              html.dark nav.nav-main {
-                background-color: rgba(30, 37, 48, 0.95);
-                border-color: rgba(13, 92, 75, 0.4);
+              html.dark nav.nav-main, html.dark aside.sidebar-main, html.dark header.header-main {
+                background-color: #1e2530;
+                border-color: rgba(255, 255, 255, 0.15);
               }
-              html.dark nav.nav-main .nav-logo { color: #f3f4f6; }
-              html.dark nav.nav-main .nav-item { color: #d1d5db; }
-              html.dark nav.nav-main .nav-item-active { color: white; background-color: #0d5c4b; }
             `,
           }}
         />

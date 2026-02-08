@@ -247,12 +247,8 @@ export const CustomNavigation = memo(function CustomNavigation() {
     <>
       {/* Mobile Header */}
       <header 
-        className={`md:hidden fixed top-0 left-0 w-screen z-[9999] h-16 flex items-center justify-between px-6 transition-all duration-300 ${
-          isDark 
-            ? 'bg-[#1e2530]' 
-            : 'bg-white'
-        } ${
-          mobileMenuOpen ? '' : isDark ? 'border-b border-[#0d5c4b]/30' : 'border-b border-gray-200'
+        className={`header-main md:hidden fixed top-0 left-0 w-screen z-[9999] h-16 flex items-center justify-between px-6 transition-all duration-300 ${
+          mobileMenuOpen ? '' : 'border-b'
         }`}
       >
         <button 
@@ -305,9 +301,7 @@ export const CustomNavigation = memo(function CustomNavigation() {
 
       {/* Mobile Full-screen Menu */}
       <aside 
-        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] z-[9998] flex flex-col transform transition-transform duration-500 ease-out ${
-          isDark ? 'bg-[#1e2530]' : 'bg-white'
-        } ${
+        className={`sidebar-main md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] z-[9998] flex flex-col transform transition-transform duration-500 ease-out ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -328,15 +322,7 @@ export const CustomNavigation = memo(function CustomNavigation() {
 
       {/* Desktop Sidebar */}
       <aside 
-        className={`hidden md:flex w-56 h-screen flex-col fixed left-0 top-0 transition-colors duration-300 ${
-          isDark 
-            ? 'bg-[#1e2530]' 
-            : 'bg-white border-r border-gray-200'
-        }`}
-        style={isDark ? {
-          borderRight: '1px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: '4px 0 20px rgba(255, 255, 255, 0.05), 2px 0 8px rgba(255, 255, 255, 0.03)'
-        } : undefined}
+        className="sidebar-main hidden md:flex w-56 h-screen flex-col fixed left-0 top-0 transition-colors duration-300 border-r"
       >
         {/* Logo */}
         <div className="p-6 pb-16">
