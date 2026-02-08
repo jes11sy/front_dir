@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { Sun, Moon, Bell, User, Menu, X } from 'lucide-react'
+import { NotificationsModal } from './push/NotificationsModal'
 
 // Ключ для сохранения позиции прокрутки
 const SCROLL_POSITION_KEY = 'orders_scroll_position'
@@ -28,6 +29,7 @@ interface MenuContentProps {
   toggleTheme: () => void
   userName: string | undefined
   onCloseMobileMenu: () => void
+  onOpenNotifications: () => void
 }
 
 const MenuContent = memo(function MenuContent({
@@ -37,6 +39,7 @@ const MenuContent = memo(function MenuContent({
   toggleTheme,
   userName,
   onCloseMobileMenu,
+  onOpenNotifications,
 }: MenuContentProps) {
   // Проверка активности с учетом подстраниц
   const isActive = (href: string) => {
@@ -115,15 +118,13 @@ const MenuContent = memo(function MenuContent({
 
         {/* Notifications */}
         <button
+          onClick={onOpenNotifications}
           className={`relative flex items-center gap-3 px-3 text-gray-800 dark:text-gray-200 hover:text-[#0d5c4b] w-full group ${
             isMobile ? 'py-3 text-base' : 'py-2.5 text-sm'
           }`}
         >
           <div className="relative">
             <Bell className={isMobile ? 'h-6 w-6' : 'h-5 w-5'} />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-              3
-            </span>
           </div>
           <span className="group-hover:text-[#0d5c4b]">
             Уведомления
@@ -169,9 +170,16 @@ export function CustomNavigation() {
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [notificationsModalOpen, setNotificationsModalOpen] = useState(false)
 
   // Стабильная ссылка на колбэк закрытия мобильного меню
   const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), [])
+  
+  // Открытие модалки уведомлений
+  const openNotifications = useCallback(() => {
+    setIsMobileMenuOpen(false)
+    setNotificationsModalOpen(true)
+  }, [])
 
   // Закрываем меню при смене маршрута
   useEffect(() => {
@@ -227,13 +235,11 @@ export function CustomNavigation() {
         <div className="flex items-center gap-2">
           {/* Mobile Notifications Bell */}
           <button
+            onClick={() => setNotificationsModalOpen(true)}
             className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#0d5c4b] transition-colors relative"
             aria-label="Уведомления"
           >
             <Bell className="h-6 w-6" />
-            <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-              3
-            </span>
           </button>
 
           {/* Mobile Menu Button */}
@@ -265,6 +271,7 @@ export function CustomNavigation() {
             toggleTheme={toggleTheme}
             userName={userName}
             onCloseMobileMenu={closeMobileMenu}
+            onOpenNotifications={openNotifications}
           />
         </div>
       </aside>
@@ -292,8 +299,15 @@ export function CustomNavigation() {
           toggleTheme={toggleTheme}
           userName={userName}
           onCloseMobileMenu={closeMobileMenu}
+          onOpenNotifications={openNotifications}
         />
       </aside>
+
+      {/* Notifications Modal */}
+      <NotificationsModal 
+        isOpen={notificationsModalOpen} 
+        onClose={() => setNotificationsModalOpen(false)} 
+      />
     </>
   )
 }
