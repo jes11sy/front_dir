@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import { getSignedUrl } from '@/lib/s3-utils'
 import { useDesignStore } from '@/store/design.store'
+import { useAuthStore } from '@/store/auth.store'
 
 // Импортируем оптимизированный CustomSelect
 import CustomSelect from '@/components/optimized/CustomSelect'
@@ -11,6 +12,7 @@ import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 
 function HistoryContent() {
   const { theme } = useDesignStore()
+  const { user } = useAuthStore()
   const isDark = theme === 'dark'
   // Основные фильтры (применяемые)
   const [startDate, setStartDate] = useState('')
@@ -42,9 +44,8 @@ function HistoryContent() {
     expenseCount: 0,
   })
 
-  // Получаем города директора
-  const currentUser = apiClient.getCurrentUser()
-  const directorCities = currentUser?.cities || []
+  // Получаем города директора из Zustand store
+  const directorCities = user?.cities || []
 
   // Данные для выпадающих списков
   const typeOptions = [

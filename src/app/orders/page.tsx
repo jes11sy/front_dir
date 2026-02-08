@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LoadingScreen } from '@/components/ui/loading-screen'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 import { useDesignStore } from '@/store/design.store'
+import { useAuthStore } from '@/store/auth.store'
 
 // Ключ для сохранения позиции прокрутки
 const SCROLL_POSITION_KEY = 'orders_scroll_position'
@@ -16,8 +17,9 @@ function OrdersContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  // Тема из store
+  // Тема и пользователь из store
   const { theme } = useDesignStore()
+  const { user } = useAuthStore()
   const isDark = theme === 'dark'
   
   // Инициализация из URL query params (для сохранения состояния при возврате назад)
@@ -108,13 +110,15 @@ function OrdersContent() {
         isBackNavigation.current = true
       }
       
-      // Загружаем города пользователя из профиля (фиксированный список)
-      const user = apiClient.getCurrentUser()
-      if (user?.cities && Array.isArray(user.cities)) {
-        setAllCities(user.cities)
-      }
     }
   }, [])
+
+  // Загрузка городов из Zustand store (реактивно при изменении user)
+  useEffect(() => {
+    if (user?.cities && Array.isArray(user.cities)) {
+      setAllCities(user.cities)
+    }
+  }, [user])
 
   // Обновление URL с текущими фильтрами (без перезагрузки страницы)
   const updateUrlWithFilters = useCallback(() => {

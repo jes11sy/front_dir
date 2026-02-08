@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button'
 import { apiClient, Employee } from '@/lib/api'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 import { useDesignStore } from '@/store/design.store'
+import { useAuthStore } from '@/store/auth.store'
 
 export default function MastersPage() {
   const router = useRouter()
   const { theme } = useDesignStore()
+  const { user } = useAuthStore()
   const isDark = theme === 'dark'
   const [currentPage, setCurrentPage] = useState(1)
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -28,8 +30,8 @@ export default function MastersPage() {
         setLoading(true)
         const data = await apiClient.getMasters()
         
-        const currentUser = apiClient.getCurrentUser()
-        const directorCities = currentUser?.cities || []
+        // Используем города из Zustand store
+        const directorCities = user?.cities || []
         
         const safeData = Array.isArray(data) ? data : []
         const filteredEmployees = safeData.filter(employee => {
@@ -46,7 +48,7 @@ export default function MastersPage() {
     }
 
     fetchEmployees()
-  }, [])
+  }, [user])
 
   // Проверка статуса работы
   const isWorking = (status: string | undefined) => {

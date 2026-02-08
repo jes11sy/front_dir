@@ -8,12 +8,14 @@ import { CustomInput } from '@/components/ui/custom-input'
 import { apiClient, CreateEmployeeDto } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { useDesignStore } from '@/store/design.store'
+import { useAuthStore } from '@/store/auth.store'
 import { Eye, EyeOff, ChevronDown, X, Upload, Check, ArrowLeft } from 'lucide-react'
 
 
 function AddEmployeeContent() {
   const router = useRouter()
   const { theme } = useDesignStore()
+  const { user } = useAuthStore()
   const isDark = theme === 'dark'
   
   const [activeTab, setActiveTab] = useState('personal')
@@ -35,8 +37,8 @@ function AddEmployeeContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const currentUser = apiClient.getCurrentUser()
-  const availableCities = currentUser?.cities || []
+  // Используем города из Zustand store (надёжный источник)
+  const availableCities = user?.cities || []
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

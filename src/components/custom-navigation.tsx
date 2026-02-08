@@ -296,7 +296,7 @@ export function CustomNavigation() {
 
       {/* Mobile Full-screen Menu */}
       <aside 
-        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] z-[9998] flex flex-col transform transition-transform duration-300 ease-in-out ${
+        className={`md:hidden fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] z-[9998] flex flex-col transform transition-transform duration-500 ease-out ${
           isDark ? 'bg-[#1e2530]' : 'bg-white'
         } ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
@@ -307,15 +307,15 @@ export function CustomNavigation() {
         </div>
       </aside>
 
-      {/* Overlay backdrop */}
-      {mobileMenuOpen && (
-        <div 
-          className={`md:hidden fixed inset-0 top-16 z-[9997] ${
-            isDark ? 'bg-black/40' : 'bg-black/20'
-          }`}
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
+      {/* Overlay backdrop с плавным появлением */}
+      <div 
+        className={`md:hidden fixed inset-0 top-16 z-[9997] transition-opacity duration-500 ease-out ${
+          isDark ? 'bg-black/40' : 'bg-black/20'
+        } ${
+          mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
 
       {/* Desktop Sidebar */}
       <aside 

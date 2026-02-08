@@ -5,9 +5,11 @@ import { apiClient, MasterReport } from '@/lib/api'
 import ExcelJS from 'exceljs'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { useDesignStore } from '@/store/design.store'
+import { useAuthStore } from '@/store/auth.store'
 
 function MastersReportContent() {
   const { theme } = useDesignStore()
+  const { user } = useAuthStore()
   const isDark = theme === 'dark'
   // Основные фильтры (применённые)
   const [startDate, setStartDate] = useState('')
@@ -26,9 +28,8 @@ function MastersReportContent() {
   const [masterReports, setMasterReports] = useState<MasterReport[]>([])
   const [directorCities, setDirectorCities] = useState<string[]>([])
 
-  // Получаем города директора
-  const currentUser = apiClient.getCurrentUser()
-  const userCities = currentUser?.cities || []
+  // Получаем города директора из Zustand store
+  const userCities = user?.cities || []
   
   // Опции для фильтра по городу
   const cityOptions = userCities.map(city => ({

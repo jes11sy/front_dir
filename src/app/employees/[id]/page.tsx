@@ -10,6 +10,7 @@ import { apiClient, Employee } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { toast } from '@/components/ui/toast'
 import { useDesignStore } from '@/store/design.store'
+import { useAuthStore } from '@/store/auth.store'
 import { Eye, EyeOff, ChevronDown, X, Upload, Check, ArrowLeft, RefreshCw, Download, Trash2 } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/loading-screen'
 
@@ -19,6 +20,7 @@ function EmployeeViewContent() {
   const params = useParams()
   const employeeId = params.id as string
   const { theme } = useDesignStore()
+  const { user } = useAuthStore()
   const isDark = theme === 'dark'
   
   const [activeTab, setActiveTab] = useState('personal')
@@ -43,8 +45,8 @@ function EmployeeViewContent() {
   
   const [showPassword, setShowPassword] = useState(false)
 
-  const currentUser = apiClient.getCurrentUser()
-  const availableCities = Array.isArray(currentUser?.cities) ? currentUser.cities : []
+  // Используем города из Zustand store (надёжный источник)
+  const availableCities = Array.isArray(user?.cities) ? user.cities : []
 
   useEffect(() => {
     const fetchEmployee = async () => {

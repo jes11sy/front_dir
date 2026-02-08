@@ -8,10 +8,12 @@ import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 import { useMultipleFileUpload } from '@/hooks/useMultipleFileUpload'
 import { X, Download, UploadCloud } from 'lucide-react'
 import { useDesignStore } from '@/store/design.store'
+import { useAuthStore } from '@/store/auth.store'
 
 function ExpenseContent() {
   const router = useRouter()
   const { theme } = useDesignStore()
+  const { user } = useAuthStore()
   const isDark = theme === 'dark'
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -53,9 +55,8 @@ function ExpenseContent() {
   const [receiptError, setReceiptError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Получаем города директора
-  const currentUser = apiClient.getCurrentUser()
-  const directorCities = currentUser?.cities || []
+  // Получаем города директора из Zustand store
+  const directorCities = user?.cities || []
   // Стабильная строка для зависимости useMemo
   const directorCitiesKey = directorCities.join(',')
   

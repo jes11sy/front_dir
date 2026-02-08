@@ -6,10 +6,12 @@ import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 import { useDesignStore } from '@/store/design.store'
+import { useAuthStore } from '@/store/auth.store'
 
 function IncomeContent() {
   const router = useRouter()
   const { theme } = useDesignStore()
+  const { user } = useAuthStore()
   const isDark = theme === 'dark'
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -37,9 +39,8 @@ function IncomeContent() {
     receipt: null as File | null
   })
 
-  // Данные для выпадающих списков
-  const currentUser = apiClient.getCurrentUser()
-  const directorCities = currentUser?.cities || []
+  // Получаем города директора из Zustand store
+  const directorCities = user?.cities || []
   // Стабильная строка для зависимости useMemo
   const directorCitiesKey = directorCities.join(',')
   
