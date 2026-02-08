@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -19,30 +19,29 @@ const navigationItems = [
   { name: 'Сотрудники', href: '/employees', icon: '/images/navigate/employees.svg' },
 ]
 
-export function CustomNavigation() {
-  const { user } = useAuthStore()
-  const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
-  const pathname = usePathname()
-  const router = useRouter()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+// Вынесено за пределы CustomNavigation, чтобы React не пересоздавал компонент при каждом рендере
+// (иначе иконки мерцают при смене страницы)
+interface MenuContentProps {
+  isMobile?: boolean
+  pathname: string
+  version: string
+  theme: string
+  toggleVersion: () => void
+  toggleTheme: () => void
+  userName: string | undefined
+  onCloseMobileMenu: () => void
+}
 
-  // Закрываем меню при смене маршрута
-  useEffect(() => {
-    setIsMobileMenuOpen(false)
-  }, [pathname])
-
-  // Блокируем скролл body при открытом меню
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isMobileMenuOpen])
-
+const MenuContent = memo(function MenuContent({
+  isMobile = false,
+  pathname,
+  version,
+  theme,
+  toggleVersion,
+  toggleTheme,
+  userName,
+  onCloseMobileMenu,
+}: MenuContentProps) {
   // Проверка активности с учетом подстраниц
   const isActive = (href: string) => {
     if (pathname === href) return true
@@ -50,17 +49,7 @@ export function CustomNavigation() {
     return false
   }
 
-  // Переход на главную страницу заказов
-  const handleLogoClick = () => {
-    setIsMobileMenuOpen(false)
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem(SCROLL_POSITION_KEY)
-    }
-    router.push('/orders')
-  }
-
-  // Контент меню (переиспользуется для десктопа и мобильной версии)
-  const MenuContent = ({ isMobile = false }: { isMobile?: boolean }) => (
+  return (
     <>
       {/* Navigation */}
       <nav className={`flex-1 px-5 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
@@ -73,7 +62,7 @@ export function CustomNavigation() {
               className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
                 isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
               }`}
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={onCloseMobileMenu}
             >
               {/* Индикатор активной вкладки - тонкая скобка */}
               <span 
@@ -171,7 +160,7 @@ export function CustomNavigation() {
           className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
             isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
           }`}
-          onClick={() => setIsMobileMenuOpen(false)}
+          onClick={onCloseMobileMenu}
         >
           <span 
             className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] ${
@@ -190,12 +179,58 @@ export function CustomNavigation() {
           </span>
           <User className={`text-gray-600 dark:text-gray-400 ${isMobile ? 'h-6 w-6' : 'h-5 w-5'}`} />
           <span className="text-gray-800 dark:text-gray-200 group-hover:text-[#0d5c4b]">
-            {user?.name || user?.login || 'Профиль'}
+            {userName || 'Профиль'}
           </span>
         </Link>
       </div>
     </>
   )
+})
+
+export function CustomNavigation() {
+  const { user } = useAuthStore()
+  const { version, toggleVersion, theme, toggleTheme } = useDesignStore()
+  const pathname = usePathname()
+  const router = useRouter()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  // Стабильная ссылка на колбэк закрытия мобильного меню
+  const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), [])
+
+  // Закрываем меню при смене маршрута
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+  }, [pathname])
+
+  // Блокируем скролл body при открытом меню
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileMenuOpen])
+
+  // Проверка активности с учетом подстраниц
+  const isActive = (href: string) => {
+    if (pathname === href) return true
+    if (href !== '/orders' && pathname.startsWith(href + '/')) return true
+    return false
+  }
+
+  // Переход на главную страницу заказов
+  const handleLogoClick = () => {
+    setIsMobileMenuOpen(false)
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(SCROLL_POSITION_KEY)
+    }
+    router.push('/orders')
+  }
+
+  const userName = user?.name || user?.login
 
   return (
     <>
@@ -247,7 +282,16 @@ export function CustomNavigation() {
         }`}
       >
         <div className="pt-6 flex flex-col h-full overflow-y-auto">
-          <MenuContent isMobile={true} />
+          <MenuContent
+            isMobile={true}
+            pathname={pathname}
+            version={version}
+            theme={theme}
+            toggleVersion={toggleVersion}
+            toggleTheme={toggleTheme}
+            userName={userName}
+            onCloseMobileMenu={closeMobileMenu}
+          />
         </div>
       </aside>
 
@@ -267,7 +311,16 @@ export function CustomNavigation() {
           </button>
         </div>
 
-        <MenuContent isMobile={false} />
+        <MenuContent
+          isMobile={false}
+          pathname={pathname}
+          version={version}
+          theme={theme}
+          toggleVersion={toggleVersion}
+          toggleTheme={toggleTheme}
+          userName={userName}
+          onCloseMobileMenu={closeMobileMenu}
+        />
       </aside>
     </>
   )
