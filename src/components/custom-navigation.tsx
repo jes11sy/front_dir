@@ -34,6 +34,191 @@ const mockNotifications: {
   orderId?: number
 }[] = []
 
+// Интерфейс пропсов для MenuContent
+interface MenuContentProps {
+  isMobile?: boolean
+  pathname: string
+  theme: string
+  toggleTheme: () => void
+  userName: string | undefined
+  onCloseMobileMenu: () => void
+  // Пропсы для уведомлений (только кнопка)
+  onToggleNotifications: () => void
+  isNotificationsOpen: boolean
+  unreadCount: number
+  notificationsButtonRef: React.RefObject<HTMLDivElement | null>
+}
+
+// Мемоизированный компонент меню - не пересоздаётся при изменении panelPosition
+const MenuContent = memo(function MenuContent({
+  isMobile = false,
+  pathname,
+  theme,
+  toggleTheme,
+  userName,
+  onCloseMobileMenu,
+  onToggleNotifications,
+  isNotificationsOpen,
+  unreadCount,
+  notificationsButtonRef,
+}: MenuContentProps) {
+  // Проверка активности с учетом подстраниц
+  const isActive = (href: string) => {
+    if (pathname === href) return true
+    if (href !== '/orders' && pathname.startsWith(href + '/')) return true
+    return false
+  }
+
+  return (
+    <>
+      {/* Navigation */}
+      <nav className={`flex-1 px-5 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
+        {navigationItems.map((item) => {
+          const active = isActive(item.href)
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
+                isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
+              }`}
+              onClick={onCloseMobileMenu}
+            >
+              {/* Индикатор активной вкладки - тонкая скобка */}
+              <span 
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] transition-opacity duration-200 ${
+                  active ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'
+                } ${isMobile ? 'h-12' : 'h-10'}`}
+              >
+                <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
+                  <path 
+                    d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
+                    stroke="#0d5c4b" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                </svg>
+              </span>
+              <Image 
+                src={item.icon} 
+                alt={item.name} 
+                width={isMobile ? 24 : 20} 
+                height={isMobile ? 24 : 20} 
+                className={`nav-icon transition-all duration-200 ${active ? 'nav-icon-active' : ''} ${isMobile ? 'w-6 h-6' : 'w-5 h-5'}`}
+              />
+              <span className={`transition-colors duration-200 ${
+                theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+              } group-hover:text-[#0d5c4b]`}>
+                {item.name}
+              </span>
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Bottom Section */}
+      <div className={`px-5 pb-6 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
+        {/* Theme Toggle */}
+        <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
+          <Sun className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'light' ? 'text-[#0d5c4b]' : 'text-gray-400'}`} />
+          <button
+            onClick={toggleTheme}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
+              theme === 'dark' ? 'bg-[#0d5c4b]' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+                theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
+              }`}
+            />
+          </button>
+          <Moon className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'dark' ? 'text-[#0d5c4b]' : 'text-gray-400'}`} />
+        </div>
+
+        {/* Notifications - только кнопка для десктопа */}
+        {!isMobile && (
+          <div className="relative" ref={notificationsButtonRef}>
+            <button
+              onClick={onToggleNotifications}
+              className={`nav-icon-hover relative flex items-center gap-3 px-3 py-2.5 text-sm font-normal group w-full text-left transition-colors ${
+                isNotificationsOpen ? 'text-[#0d5c4b]' : ''
+              }`}
+            >
+              <span 
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-opacity duration-200 ${
+                  isNotificationsOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'
+                }`}
+              >
+                <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
+                  <path 
+                    d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
+                    stroke="#0d5c4b" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                </svg>
+              </span>
+              <div className="relative">
+                <Bell className={`h-5 w-5 transition-colors duration-200 ${
+                  isNotificationsOpen ? 'text-[#0d5c4b]' : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                }`} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              <span className={`transition-colors duration-200 ${
+                isNotificationsOpen 
+                  ? 'text-[#0d5c4b]' 
+                  : theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+              } group-hover:text-[#0d5c4b]`}>
+                Уведомления
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Profile with user name */}
+        <Link
+          href="/profile"
+          className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
+            isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
+          }`}
+          onClick={onCloseMobileMenu}
+        >
+          <span 
+            className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] transition-opacity duration-200 ${
+              isActive('/profile') ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'
+            } ${isMobile ? 'h-12' : 'h-10'}`}
+          >
+            <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
+              <path 
+                d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
+                stroke="#0d5c4b" 
+                strokeWidth="1.5" 
+                strokeLinecap="round"
+                fill="none"
+              />
+            </svg>
+          </span>
+          <User className={`transition-colors duration-200 ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+          } ${isActive('/profile') ? 'text-[#0d5c4b]' : ''} ${isMobile ? 'h-6 w-6' : 'h-5 w-5'}`} />
+          <span className={`transition-colors duration-200 ${
+            theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+          } group-hover:text-[#0d5c4b]`}>
+            {userName || 'Профиль'}
+          </span>
+        </Link>
+      </div>
+    </>
+  )
+})
+
 export function CustomNavigation() {
   const { user } = useAuthStore()
   const { theme, toggleTheme } = useDesignStore()
@@ -164,13 +349,6 @@ export function CustomNavigation() {
     }
   }, [isDropdownOpen, closeDropdown, isDragging])
 
-  // Проверка активности с учетом подстраниц
-  const isActive = (href: string) => {
-    if (pathname === href) return true
-    if (href !== '/orders' && pathname.startsWith(href + '/')) return true
-    return false
-  }
-
   // Переход на главную страницу заказов
   const handleLogoClick = () => {
     setIsMobileMenuOpen(false)
@@ -221,149 +399,8 @@ export function CustomNavigation() {
 
   const userName = user?.name || user?.login
 
-  // Контент меню
-  const MenuContent = ({ isMobile = false }: { isMobile?: boolean }) => (
-    <>
-      {/* Navigation */}
-      <nav className={`flex-1 px-5 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
-        {navigationItems.map((item) => {
-          const active = isActive(item.href)
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
-                isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
-              }`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {/* Индикатор активной вкладки - тонкая скобка */}
-              <span 
-                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] ${
-                  active ? 'opacity-100' : 'opacity-0'
-                } ${isMobile ? 'h-12' : 'h-10'}`}
-              >
-                <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
-                  <path 
-                    d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
-                    stroke="#0d5c4b" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                </svg>
-              </span>
-              <Image 
-                src={item.icon} 
-                alt={item.name} 
-                width={isMobile ? 24 : 20} 
-                height={isMobile ? 24 : 20} 
-                className={`nav-icon ${active ? 'nav-icon-active' : ''} ${isMobile ? 'w-6 h-6' : 'w-5 h-5'}`}
-              />
-              <span className="text-gray-800 dark:text-gray-200 group-hover:text-[#0d5c4b]">
-                {item.name}
-              </span>
-            </Link>
-          )
-        })}
-      </nav>
-
-      {/* Bottom Section */}
-      <div className={`px-5 pb-6 ${isMobile ? 'space-y-4' : 'space-y-3'}`}>
-        {/* Theme Toggle */}
-        <div className={`flex items-center gap-3 px-3 ${isMobile ? 'py-3' : 'py-2'}`}>
-          <Sun className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'light' ? 'text-[#0d5c4b]' : 'text-gray-400'}`} />
-          <button
-            onClick={toggleTheme}
-            className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-              theme === 'dark' ? 'bg-[#0d5c4b]' : 'bg-gray-300'
-            }`}
-          >
-            <span
-              className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
-                theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
-              }`}
-            />
-          </button>
-          <Moon className={`transition-colors ${isMobile ? 'h-6 w-6' : 'h-5 w-5'} ${theme === 'dark' ? 'text-[#0d5c4b]' : 'text-gray-400'}`} />
-        </div>
-
-        {/* Notifications - только кнопка для десктопа, панель вынесена за пределы сайдбара */}
-        {!isMobile && (
-          <div className="relative" ref={notificationsRef}>
-            <button
-              onClick={toggleDropdown}
-              className={`nav-icon-hover relative flex items-center gap-3 px-3 py-2.5 text-sm font-normal group w-full text-left transition-colors ${
-                isDropdownOpen ? 'text-[#0d5c4b]' : ''
-              }`}
-            >
-              <span 
-                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] h-10 transition-opacity duration-200 ${
-                  isDropdownOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'
-                }`}
-              >
-                <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
-                  <path 
-                    d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
-                    stroke="#0d5c4b" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                </svg>
-              </span>
-              <div className="relative">
-                <Bell className={`h-5 w-5 transition-colors duration-200 ${
-                  isDropdownOpen ? 'text-[#0d5c4b]' : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                }`} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </div>
-              <span className={`transition-colors duration-200 ${
-                isDropdownOpen 
-                  ? 'text-[#0d5c4b]' 
-                  : theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
-              } group-hover:text-[#0d5c4b]`}>
-                Уведомления
-              </span>
-            </button>
-          </div>
-        )}
-
-        {/* Profile with user name */}
-        <Link
-          href="/profile"
-          className={`nav-icon-hover relative flex items-center gap-3 px-3 font-normal group ${
-            isMobile ? 'py-3.5 text-base' : 'py-2.5 text-sm'
-          }`}
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          <span 
-            className={`absolute left-0 top-1/2 -translate-y-1/2 w-[6px] ${
-              isActive('/profile') ? 'opacity-100' : 'opacity-0'
-            } ${isMobile ? 'h-12' : 'h-10'}`}
-          >
-            <svg viewBox="0 0 6 40" fill="none" className="w-full h-full">
-              <path 
-                d="M5 1C2.5 1 1 4.5 1 10v20c0 5.5 1.5 9 4 9" 
-                stroke="#0d5c4b" 
-                strokeWidth="1.5" 
-                strokeLinecap="round"
-                fill="none"
-              />
-            </svg>
-          </span>
-          <User className={`text-gray-600 dark:text-gray-400 ${isMobile ? 'h-6 w-6' : 'h-5 w-5'}`} />
-          <span className="text-gray-800 dark:text-gray-200 group-hover:text-[#0d5c4b]">
-            {userName || 'Профиль'}
-          </span>
-        </Link>
-      </div>
-    </>
-  )
+  // Стабильная ссылка на колбэк закрытия мобильного меню
+  const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), [])
 
   return (
     <>
@@ -488,7 +525,18 @@ export function CustomNavigation() {
         }`}
       >
         <div className="pt-6 flex flex-col h-full overflow-y-auto">
-          <MenuContent isMobile={true} />
+          <MenuContent
+            isMobile={true}
+            pathname={pathname}
+            theme={theme}
+            toggleTheme={toggleTheme}
+            userName={userName}
+            onCloseMobileMenu={closeMobileMenu}
+            onToggleNotifications={toggleDropdown}
+            isNotificationsOpen={isDropdownOpen}
+            unreadCount={unreadCount}
+            notificationsButtonRef={notificationsRef}
+          />
         </div>
       </aside>
 
@@ -508,7 +556,18 @@ export function CustomNavigation() {
           </button>
         </div>
 
-        <MenuContent isMobile={false} />
+        <MenuContent
+          isMobile={false}
+          pathname={pathname}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          userName={userName}
+          onCloseMobileMenu={closeMobileMenu}
+          onToggleNotifications={toggleDropdown}
+          isNotificationsOpen={isDropdownOpen}
+          unreadCount={unreadCount}
+          notificationsButtonRef={notificationsRef}
+        />
       </aside>
 
       {/* Desktop Notifications Panel - вынесено за пределы сайдбара */}
