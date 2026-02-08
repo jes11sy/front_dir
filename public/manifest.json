@@ -9,26 +9,26 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/images/pwa.png",
+      "src": "/images/pwa_light.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/images/pwa.png",
+      "src": "/images/pwa_light.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/images/pwa.png",
-      "sizes": "180x180",
+      "src": "/images/pwa_dark.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/images/pwa.png",
-      "sizes": "144x144",
+      "src": "/images/pwa_dark.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     }

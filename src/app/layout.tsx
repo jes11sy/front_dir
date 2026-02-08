@@ -10,9 +10,15 @@ export const metadata: Metadata = {
   description: 'CRM Директора',
   manifest: '/manifest.json',
   icons: {
-    icon: '/images/favicon.png',
+    icon: [
+      { url: '/images/pwa_light.png', media: '(prefers-color-scheme: light)' },
+      { url: '/images/pwa_dark.png', media: '(prefers-color-scheme: dark)' },
+    ],
     shortcut: '/images/favicon.png',
-    apple: '/images/pwa.png',
+    apple: [
+      { url: '/images/pwa_light.png', media: '(prefers-color-scheme: light)' },
+      { url: '/images/pwa_dark.png', media: '(prefers-color-scheme: dark)' },
+    ],
   },
   appleWebApp: {
     capable: true,
