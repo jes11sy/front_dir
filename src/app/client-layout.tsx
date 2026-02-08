@@ -71,7 +71,7 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
     <ErrorBoundary>
       <CustomNavigation />
       <AuthGuard>
-        <main className="pt-16 md:pt-0 md:ml-56 min-h-screen bg-white dark:bg-[#1e2530]">{children}</main>
+        <main className="main-content pt-16 md:pt-0 md:ml-56 min-h-screen">{children}</main>
       </AuthGuard>
     </ErrorBoundary>
   )

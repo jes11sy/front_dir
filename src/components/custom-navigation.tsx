@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useCallback, useEffect, memo } from 'react'
+import { useState, useCallback, useEffect, useLayoutEffect, memo } from 'react'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { Sun, Moon, Bell, User, Menu, X } from 'lucide-react'
@@ -19,17 +19,31 @@ const navigationItems = [
   { name: 'Сотрудники', href: '/employees', icon: '/images/navigate/employees.svg' },
 ]
 
+// Функция для синхронного чтения темы из DOM
+const getInitialTheme = (): 'light' | 'dark' => {
+  if (typeof window !== 'undefined') {
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+  }
+  return 'light'
+}
+
 // Мемоизированный компонент навигации
 export const CustomNavigation = memo(function CustomNavigation() {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
+  // Инициализируем тему из DOM синхронно, чтобы избежать мерцания
+  const [initialTheme] = useState(getInitialTheme)
+  
   // Используем индивидуальные селекторы для оптимизации
   const version = useDesignStore((state) => state.version)
   const toggleVersion = useDesignStore((state) => state.toggleVersion)
-  const theme = useDesignStore((state) => state.theme)
+  const storeTheme = useDesignStore((state) => state.theme)
   const toggleTheme = useDesignStore((state) => state.toggleTheme)
+  
+  // Используем тему из store если она загружена, иначе из DOM
+  const theme = storeTheme || initialTheme
   
   // Данные пользователя из auth store
   const user = useAuthStore((state) => state.user)

@@ -79,7 +79,7 @@ export function OptimizedPagination({
       <button
         onClick={handlePrevClick}
         disabled={disabled || currentPage === 1}
-        className="p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-green-800 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+        className="p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-[#0d5c4b] disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
         aria-label="Предыдущая страница"
       >
         <ChevronLeft className="w-5 h-5" />
@@ -91,7 +91,7 @@ export function OptimizedPagination({
           <button
             onClick={() => handlePageClick(1)}
             disabled={disabled}
-            className="min-w-[32px] h-8 px-2 rounded-md text-sm font-medium text-gray-600 hover:text-white hover:bg-green-800 transition-colors"
+            className="min-w-[32px] h-8 px-2 rounded-md text-sm font-medium text-gray-600 hover:text-white hover:bg-[#0d5c4b] transition-colors"
           >
             1
           </button>
@@ -109,8 +109,8 @@ export function OptimizedPagination({
           disabled={disabled}
           className={`min-w-[32px] h-8 px-2 rounded-md text-sm font-medium transition-colors ${
             currentPage === page
-              ? 'bg-green-800 text-white'
-              : 'text-gray-600 hover:text-white hover:bg-green-800'
+              ? 'bg-[#0d5c4b] text-white'
+              : 'text-gray-600 hover:text-white hover:bg-[#0d5c4b]'
           }`}
         >
           {page}
@@ -126,7 +126,7 @@ export function OptimizedPagination({
           <button
             onClick={() => handlePageClick(totalPages)}
             disabled={disabled}
-            className="min-w-[32px] h-8 px-2 rounded-md text-sm font-medium text-gray-600 hover:text-white hover:bg-green-800 transition-colors"
+            className="min-w-[32px] h-8 px-2 rounded-md text-sm font-medium text-gray-600 hover:text-white hover:bg-[#0d5c4b] transition-colors"
           >
             {totalPages}
           </button>
@@ -137,7 +137,7 @@ export function OptimizedPagination({
       <button
         onClick={handleNextClick}
         disabled={disabled || currentPage === totalPages}
-        className="p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-green-800 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+        className="p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-[#0d5c4b] disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
         aria-label="Следующая страница"
       >
         <ChevronRight className="w-5 h-5" />

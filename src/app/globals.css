@@ -110,12 +110,19 @@ html.dark body {
 }
 
 /* Навигация/Сайдбар - стили для предотвращения мерцания при загрузке */
+/* Отключаем transition при первой загрузке - класс удаляется после гидратации */
+html:not(.hydrated) nav.nav-main,
+html:not(.hydrated) aside.sidebar-main,
+html:not(.hydrated) header.header-main {
+  transition: none !important;
+}
+
 /* Светлая тема (по умолчанию) */
 nav.nav-main,
 aside.sidebar-main,
 header.header-main {
-  background-color: white;
-  border-color: #e5e7eb;
+  background-color: white !important;
+  border-color: #e5e7eb !important;
 }
 
 nav.nav-main .nav-logo,
@@ -141,8 +148,8 @@ header.header-main .nav-item-active {
 html.dark nav.nav-main,
 html.dark aside.sidebar-main,
 html.dark header.header-main {
-  background-color: #1e2530;
-  border-color: rgba(255, 255, 255, 0.15);
+  background-color: #1e2530 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 html.dark nav.nav-main .nav-logo,
@@ -162,6 +169,15 @@ html.dark aside.sidebar-main .nav-item-active,
 html.dark header.header-main .nav-item-active {
   color: white;
   background-color: #0d5c4b;
+}
+
+/* Main content - предотвращение мерцания */
+main.main-content {
+  background-color: white !important;
+}
+
+html.dark main.main-content {
+  background-color: #1e2530 !important;
 }
 
 /* iOS Safari: GPU ускорение для фиксированных элементов (кроме тех что используют translate) */

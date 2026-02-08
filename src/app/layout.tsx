@@ -49,21 +49,29 @@ export default function RootLayout({
                       document.documentElement.style.colorScheme = 'dark';
                     }
                   }
+                  // Добавляем класс hydrated после небольшой задержки для плавных переходов
+                  requestAnimationFrame(function() {
+                    document.documentElement.classList.add('hydrated');
+                  });
                 } catch (e) {}
               })();
             `,
           }}
         />
-        {/* Критические стили навигации/сайдбара для предотвращения мерцания */}
+        {/* Критические стили для предотвращения мерцания */}
         <style
           dangerouslySetInnerHTML={{
             __html: `
+              nav.nav-main, aside.sidebar-main, header.header-main, main.main-content {
+                background-color: white !important;
+              }
+              html.dark nav.nav-main, html.dark aside.sidebar-main, html.dark header.header-main, html.dark main.main-content {
+                background-color: #1e2530 !important;
+              }
               nav.nav-main, aside.sidebar-main, header.header-main {
-                background-color: white;
                 border-color: #e5e7eb;
               }
               html.dark nav.nav-main, html.dark aside.sidebar-main, html.dark header.header-main {
-                background-color: #1e2530;
                 border-color: rgba(255, 255, 255, 0.15);
               }
             `,
