@@ -1,9 +1,9 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { CustomNavigation } from '@/components/custom-navigation'
 import { ErrorBoundary } from '@/components/error-boundary'
 import AuthGuard from '@/components/auth-guard'
-import NavigationWrapper from '@/components/navigation-wrapper'
 import { useDesignStore } from '@/store/design.store'
 import React, { useLayoutEffect, useEffect, useMemo, useRef } from 'react'
 
@@ -11,11 +11,18 @@ interface ClientLayoutProps {
   children: React.ReactNode
 }
 
-// Компонент для синхронизации темы - не зависит от pathname
-const ThemeSync = React.memo(function ThemeSync() {
+const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
+  const pathname = usePathname()
+  const prevPathname = useRef(pathname)
+  
   const theme = useDesignStore((state) => state.theme)
   const isDark = theme === 'dark'
   
+  const isPublicPage = useMemo(() => {
+    return pathname === '/login' || pathname === '/logout'
+  }, [pathname])
+
+  // Синхронизируем класс dark на html элементе при изменении темы
   useEffect(() => {
     const html = document.documentElement
     if (isDark) {
@@ -28,15 +35,8 @@ const ThemeSync = React.memo(function ThemeSync() {
       html.style.colorScheme = ''
     }
   }, [isDark])
-  
-  return null
-})
 
-// Компонент для скролла - зависит от pathname
-const ScrollManager = React.memo(function ScrollManager() {
-  const pathname = usePathname()
-  const prevPathname = useRef(pathname)
-  
+  // Скроллим в начало при смене страницы
   useLayoutEffect(() => {
     const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
     const navigationType = navEntries.length > 0 ? navEntries[0].type : 'navigate'
@@ -50,38 +50,23 @@ const ScrollManager = React.memo(function ScrollManager() {
     
     prevPathname.current = pathname
   }, [pathname])
-  
-  return null
-})
 
-// Компонент контента - зависит от pathname для определения публичных страниц
-const ContentWrapper = React.memo<{ children: React.ReactNode }>(({ children }) => {
-  const pathname = usePathname()
-  
-  const isPublicPage = useMemo(() => {
-    return pathname === '/login' || pathname === '/logout'
-  }, [pathname])
-
+  // Публичные страницы (login, logout) - без AuthGuard и навигации
   if (isPublicPage) {
-    return <>{children}</>
+    return (
+      <ErrorBoundary>
+        {children}
+      </ErrorBoundary>
+    )
   }
 
-  return (
-    <AuthGuard>
-      <main className="main-content pt-16 md:pt-0 md:ml-56 min-h-screen">{children}</main>
-    </AuthGuard>
-  )
-})
-
-ContentWrapper.displayName = 'ContentWrapper'
-
-const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
+  // Защищенные страницы
   return (
     <ErrorBoundary>
-      <ThemeSync />
-      <ScrollManager />
-      <NavigationWrapper />
-      <ContentWrapper>{children}</ContentWrapper>
+      <CustomNavigation />
+      <AuthGuard>
+        <main className="pt-16 md:pt-0 md:ml-56 min-h-screen bg-white dark:bg-[#1e2530]">{children}</main>
+      </AuthGuard>
     </ErrorBoundary>
   )
 })
