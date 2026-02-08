@@ -18,6 +18,7 @@ interface AuthState {
   
   // Actions
   setUser: (user: User) => void;
+  setLoading: (loading: boolean) => void;
   logout: () => Promise<void>;
   updateUser: (user: Partial<User>) => void;
   checkAuth: () => Promise<boolean>;
@@ -37,6 +38,10 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
         });
         logger.debug('User set in store');
+      },
+
+      setLoading: (loading: boolean) => {
+        set({ isLoading: loading });
       },
 
       logout: async () => {
