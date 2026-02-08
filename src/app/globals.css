@@ -186,7 +186,7 @@ html.dark main.main-content {
 }
 
 .nav-icon-active {
-  filter: invert(27%) sepia(51%) saturate(1095%) hue-rotate(140deg) brightness(92%) contrast(92%);
+  filter: invert(27%) sepia(51%) saturate(1095%) hue-rotate(140deg) brightness(92%) contrast(92%) !important;
 }
 
 .group:hover .nav-icon:not(.nav-icon-active) {
@@ -200,6 +200,31 @@ html.dark .nav-icon:not(.nav-icon-active) {
 
 html.dark .group:hover .nav-icon:not(.nav-icon-active) {
   filter: invert(27%) sepia(51%) saturate(1095%) hue-rotate(140deg) brightness(92%) contrast(92%);
+}
+
+/* Текст навигации - без transition */
+.nav-text {
+  color: #1f2937;
+}
+
+.nav-text-active {
+  color: #0d5c4b !important;
+}
+
+.group:hover .nav-text {
+  color: #0d5c4b;
+}
+
+html.dark .nav-text {
+  color: #d1d5db;
+}
+
+html.dark .nav-text-active {
+  color: #0d5c4b !important;
+}
+
+html.dark .group:hover .nav-text {
+  color: #0d5c4b;
 }
 
 /* iOS Safari: GPU ускорение для фиксированных элементов (кроме тех что используют translate) */

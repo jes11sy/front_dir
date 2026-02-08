@@ -467,27 +467,27 @@ function OrdersContent() {
   const getStatusStyle = (status: string) => {
     if (isDark) {
       switch (status) {
-        case 'Готово': return 'bg-green-900/40 text-green-400'
-        case 'В работе': return 'bg-blue-900/40 text-blue-400'
-        case 'Ожидает': return 'bg-amber-900/40 text-amber-400'
-        case 'Отказ': return 'bg-red-900/40 text-red-400'
-        case 'Принял': return 'bg-emerald-900/40 text-emerald-400'
-        case 'В пути': return 'bg-violet-900/40 text-violet-400'
-        case 'Модерн': return 'bg-orange-900/40 text-orange-400'
-        case 'Незаказ': return 'bg-gray-700/40 text-gray-400'
-        default: return 'bg-gray-700/40 text-gray-400'
+        case 'Готово': return 'bg-green-700 text-white'
+        case 'В работе': return 'bg-blue-700 text-white'
+        case 'Ожидает': return 'bg-amber-600 text-white'
+        case 'Отказ': return 'bg-red-700 text-white'
+        case 'Принял': return 'bg-emerald-700 text-white'
+        case 'В пути': return 'bg-violet-700 text-white'
+        case 'Модерн': return 'bg-orange-600 text-white'
+        case 'Незаказ': return 'bg-gray-600 text-white'
+        default: return 'bg-gray-600 text-white'
       }
     }
     switch (status) {
-      case 'Готово': return 'bg-green-100 text-green-700'
-      case 'В работе': return 'bg-blue-100 text-blue-700'
-      case 'Ожидает': return 'bg-amber-100 text-amber-700'
-      case 'Отказ': return 'bg-red-100 text-red-700'
-      case 'Принял': return 'bg-emerald-100 text-emerald-700'
-      case 'В пути': return 'bg-violet-100 text-violet-700'
-      case 'Модерн': return 'bg-orange-100 text-orange-700'
-      case 'Незаказ': return 'bg-gray-100 text-gray-600'
-      default: return 'bg-gray-100 text-gray-600'
+      case 'Готово': return 'bg-green-600 text-white'
+      case 'В работе': return 'bg-blue-600 text-white'
+      case 'Ожидает': return 'bg-amber-500 text-white'
+      case 'Отказ': return 'bg-red-600 text-white'
+      case 'Принял': return 'bg-emerald-600 text-white'
+      case 'В пути': return 'bg-violet-600 text-white'
+      case 'Модерн': return 'bg-orange-500 text-white'
+      case 'Незаказ': return 'bg-gray-500 text-white'
+      default: return 'bg-gray-500 text-white'
     }
   }
 
@@ -495,17 +495,17 @@ function OrdersContent() {
   const getTypeStyle = (type: string) => {
     if (isDark) {
       switch (type) {
-        case 'Впервые': return 'bg-emerald-900/40 text-emerald-400'
-        case 'Повтор': return 'bg-amber-900/40 text-amber-400'
-        case 'Гарантия': return 'bg-red-900/40 text-red-400'
-        default: return 'bg-gray-700/40 text-gray-400'
+        case 'Впервые': return 'bg-emerald-700 text-white'
+        case 'Повтор': return 'bg-amber-600 text-white'
+        case 'Гарантия': return 'bg-red-700 text-white'
+        default: return 'bg-gray-600 text-white'
       }
     }
     switch (type) {
-      case 'Впервые': return 'bg-emerald-100 text-emerald-700'
-      case 'Повтор': return 'bg-amber-100 text-amber-700'
-      case 'Гарантия': return 'bg-red-100 text-red-700'
-      default: return 'bg-gray-100 text-gray-600'
+      case 'Впервые': return 'bg-emerald-600 text-white'
+      case 'Повтор': return 'bg-amber-500 text-white'
+      case 'Гарантия': return 'bg-red-600 text-white'
+      default: return 'bg-gray-500 text-white'
     }
   }
   return (
@@ -562,8 +562,8 @@ function OrdersContent() {
                         className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
                           statusTab === tab.id
                             ? isDark 
-                              ? 'bg-[#3a4451] text-teal-400 shadow-sm'
-                              : 'bg-white text-teal-600 shadow-sm'
+                              ? 'bg-[#0d5c4b] text-white shadow-sm'
+                              : 'bg-[#0d5c4b] text-white shadow-sm'
                             : isDark
                               ? 'text-gray-400 hover:text-gray-200 hover:bg-[#3a4451]'
                               : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
@@ -878,7 +878,7 @@ function OrdersContent() {
                 isDark ? 'bg-[#2a3441]' : 'bg-white'
               }`}>
                 <thead>
-                  <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451] border-teal-600' : 'bg-gray-50 border-teal-500'}`}>
+                  <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451] border-[#0d5c4b]' : 'bg-gray-50 border-[#0d5c4b]'}`}>
                     <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>ID</th>
                     <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Тип заказа</th>
                     <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>РК</th>

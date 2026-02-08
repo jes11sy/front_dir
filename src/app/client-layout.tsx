@@ -1,30 +1,21 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { CustomNavigation } from '@/components/custom-navigation'
 import { ErrorBoundary } from '@/components/error-boundary'
 import AuthGuard from '@/components/auth-guard'
+import NavigationWrapper from '@/components/navigation-wrapper'
 import { useDesignStore } from '@/store/design.store'
-import React, { useLayoutEffect, useEffect, useMemo, useRef, useCallback } from 'react'
+import React, { useLayoutEffect, useEffect, useMemo, useRef } from 'react'
 
 interface ClientLayoutProps {
   children: React.ReactNode
 }
 
-const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
-  const pathname = usePathname()
-  const prevPathname = useRef(pathname)
-  
-  // ✅ FIX: Используем селектор для предотвращения лишних re-render
+// Компонент для синхронизации темы - не зависит от pathname
+const ThemeSync = React.memo(function ThemeSync() {
   const theme = useDesignStore((state) => state.theme)
   const isDark = theme === 'dark'
   
-  const isPublicPage = useMemo(() => {
-    return pathname === '/login' || pathname === '/logout'
-  }, [pathname])
-
-
-  // Синхронизируем класс dark на html элементе при изменении темы
   useEffect(() => {
     const html = document.documentElement
     if (isDark) {
@@ -37,15 +28,19 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
       html.style.colorScheme = ''
     }
   }, [isDark])
+  
+  return null
+})
 
-  // Скроллим в начало при смене страницы, НО НЕ при возврате назад на страницу заказов
+// Компонент для скролла - зависит от pathname
+const ScrollManager = React.memo(function ScrollManager() {
+  const pathname = usePathname()
+  const prevPathname = useRef(pathname)
+  
   useLayoutEffect(() => {
-    // Проверяем тип навигации
     const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
     const navigationType = navEntries.length > 0 ? navEntries[0].type : 'navigate'
     
-    // Не скроллим если это back/forward навигация на страницу заказов
-    // (чтобы сохранить позицию прокрутки)
     const isBackForward = navigationType === 'back_forward'
     const isOrdersPage = pathname === '/orders' || pathname.startsWith('/orders?')
     
@@ -55,24 +50,38 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
     
     prevPathname.current = pathname
   }, [pathname])
+  
+  return null
+})
 
-  // Публичные страницы (login, logout) - без AuthGuard и навигации
+// Компонент контента - зависит от pathname для определения публичных страниц
+const ContentWrapper = React.memo<{ children: React.ReactNode }>(({ children }) => {
+  const pathname = usePathname()
+  
+  const isPublicPage = useMemo(() => {
+    return pathname === '/login' || pathname === '/logout'
+  }, [pathname])
+
   if (isPublicPage) {
-    return (
-      <ErrorBoundary>
-        {children}
-      </ErrorBoundary>
-    )
+    return <>{children}</>
   }
 
-  // Защищенные страницы
-  // ✅ FIX: Навигация вынесена из AuthGuard чтобы не мерцала при проверке авторизации
+  return (
+    <AuthGuard>
+      <main className="main-content pt-16 md:pt-0 md:ml-56 min-h-screen">{children}</main>
+    </AuthGuard>
+  )
+})
+
+ContentWrapper.displayName = 'ContentWrapper'
+
+const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
   return (
     <ErrorBoundary>
-      <CustomNavigation />
-      <AuthGuard>
-        <main className="main-content pt-16 md:pt-0 md:ml-56 min-h-screen">{children}</main>
-      </AuthGuard>
+      <ThemeSync />
+      <ScrollManager />
+      <NavigationWrapper />
+      <ContentWrapper>{children}</ContentWrapper>
     </ErrorBoundary>
   )
 })

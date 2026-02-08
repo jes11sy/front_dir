@@ -81,7 +81,7 @@ function MasterHandoverContent() {
                   Общая сумма к сдаче:
                 </span>
                 <span className={`text-lg font-bold ${
-                  theme === 'dark' ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'
+                  theme === 'dark' ? 'text-gray-200' : 'text-[#0d5c4b]'
                 }`}>
                   {totalAmount.toLocaleString()} ₽
                 </span>
@@ -131,7 +131,7 @@ function MasterHandoverContent() {
                     {master.cities?.join(', ') || '—'}
                   </td>
                   <td className={`py-3 px-4 font-semibold ${
-                    theme === 'dark' ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'
+                    theme === 'dark' ? 'text-gray-200' : 'text-[#0d5c4b]'
                   }`}>
                     {master.totalAmount.toLocaleString()} ₽
                   </td>

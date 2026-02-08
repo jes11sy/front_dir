@@ -486,7 +486,7 @@ function IncomeContent() {
                 ) : (
                   <table className={`w-full border-collapse text-[11px] min-w-[600px] rounded-lg shadow-lg ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
                     <thead>
-                      <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451]' : 'bg-gray-50'}`} style={{borderColor: '#14b8a6'}}>
+                      <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451]' : 'bg-gray-50'}`} style={{borderColor: '#0d5c4b'}}>
                         <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>ID</th>
                         <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Тип</th>
                         <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Город</th>
@@ -501,7 +501,7 @@ function IncomeContent() {
                       {currentData.map((item) => {
                         const getTypeColor = (type: string) => {
                           switch (type) {
-                            case 'приход': return '#14b8a6'
+                            case 'приход': return '#0d5c4b'
                             case 'расход': return '#ef4444'
                             default: return '#6b7280'
                           }
@@ -521,7 +521,7 @@ function IncomeContent() {
                             </td>
                             <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || directorCities[0] || 'Москва'}</td>
                             <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
-                            <td className={`py-3 px-3 font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>{Number(item.amount).toLocaleString()} ₽</td>
+                            <td className={`py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-[#0d5c4b]'}`}>{Number(item.amount).toLocaleString()} ₽</td>
                             <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
                             <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.dateCreate)}</td>
                           </tr>

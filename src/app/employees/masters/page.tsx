@@ -263,10 +263,10 @@ export default function MastersPage() {
                   if (!status) return '#6b7280'
                   const statusLower = status.toLowerCase()
                   if (statusLower.includes('работает') || statusLower.includes('работающий') || statusLower === 'active') {
-                    return '#10b981'
+                    return '#0d5c4b'
                   }
                   if (statusLower.includes('уволен') || statusLower.includes('уволенный') || statusLower === 'fired' || statusLower === 'inactive') {
-                    return '#ef4444'
+                    return '#6b7280'
                   }
                   return '#6b7280'
                 }

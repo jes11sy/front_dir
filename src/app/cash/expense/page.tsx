@@ -523,13 +523,13 @@ function ExpenseContent() {
                   </thead>
                   <tbody>
                     {currentData.map((item) => {
-                      const getTypeColor = (type: string) => {
-                        switch (type) {
-                          case 'приход': return '#14b8a6'
-                          case 'расход': return '#ef4444'
-                          default: return '#6b7280'
-                        }
+                    const getTypeColor = (type: string) => {
+                      switch (type) {
+                        case 'приход': return '#0d5c4b'
+                        case 'расход': return '#ef4444'
+                        default: return '#6b7280'
                       }
+                    }
                       
                       return (
                         <tr 
@@ -545,7 +545,7 @@ function ExpenseContent() {
                           </td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || directorCities[0] || 'Москва'}</td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
-                          <td className={`py-3 px-3 font-semibold ${isDark ? 'text-red-400' : 'text-red-600'}`}>{Number(item.amount).toLocaleString()} ₽</td>
+                          <td className={`py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-red-600'}`}>{Number(item.amount).toLocaleString()} ₽</td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.dateCreate)}</td>
                         </tr>

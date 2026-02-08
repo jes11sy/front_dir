@@ -468,11 +468,11 @@ function CityReportContent() {
               <div className={`grid grid-cols-2 sm:grid-cols-4 divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Оборот</div>
-                  <div className={`text-lg font-bold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>{formatNumber(totals.turnover)} ₽</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'}`}>{formatNumber(totals.turnover)} ₽</div>
                 </div>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Прибыль</div>
-                  <div className={`text-lg font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatNumber(totals.profit)} ₽</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'}`}>{formatNumber(totals.profit)} ₽</div>
                 </div>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Ср. чек</div>
@@ -480,7 +480,7 @@ function CityReportContent() {
                 </div>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Макс. чек</div>
-                  <div className={`text-lg font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{formatNumber(totals.maxCheck)} ₽</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{formatNumber(totals.maxCheck)} ₽</div>
                 </div>
               </div>
             </div>
@@ -497,7 +497,7 @@ function CityReportContent() {
                 </div>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Выполнено</div>
-                  <div className={`text-lg font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>{totals.completedOrders}</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'}`}>{totals.completedOrders}</div>
                 </div>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Вып. %</div>
@@ -509,11 +509,11 @@ function CityReportContent() {
                 </div>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Незаказ</div>
-                  <div className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-500'}`}>{totals.notOrders}</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{totals.notOrders}</div>
                 </div>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Ноль</div>
-                  <div className={`text-lg font-bold ${isDark ? 'text-red-400' : 'text-red-500'}`}>{totals.zeroOrders}</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{totals.zeroOrders}</div>
                 </div>
               </div>
             </div>
@@ -530,11 +530,11 @@ function CityReportContent() {
                 </div>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>От 10К</div>
-                  <div className={`text-lg font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{totals.over10kCount}</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{totals.over10kCount}</div>
                 </div>
                 <div className="p-4 text-center">
                   <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>СД</div>
-                  <div className={`text-lg font-bold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>{totals.masterHandover}</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'}`}>{totals.masterHandover}</div>
                 </div>
               </div>
             </div>
@@ -552,7 +552,7 @@ function CityReportContent() {
             <div className="min-w-[600px]">
               <table className={`w-full border-collapse text-sm rounded-lg shadow-lg overflow-hidden ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
                 <thead>
-                  <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451]' : 'bg-gray-50'}`} style={{borderColor: '#14b8a6'}}>
+                  <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451]' : 'bg-gray-50'}`} style={{borderColor: '#0d5c4b'}}>
                     <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Город</th>
                     <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Закрытых заказов</th>
                     <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Средний чек</th>
@@ -576,13 +576,13 @@ function CityReportContent() {
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatNumber(cityReport?.orders?.closedOrders || 0)}</td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatNumber(cityReport?.orders?.avgCheck || 0)} ₽</td>
-                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'}`}>
                           {formatNumber(turnover)} ₽
                         </td>
-                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'}`}>
                           {formatNumber(companyIncome)} ₽
                         </td>
-                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
+                        <td className={`py-3 px-4 font-semibold ${isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'}`}>
                           {formatNumber(cityReport?.cash?.totalAmount || 0)} ₽
                         </td>
                       </tr>
