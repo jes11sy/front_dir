@@ -14,8 +14,8 @@ interface AuthGuardProps {
 /**
  * AuthGuard - компонент защиты маршрутов
  * 
- * ✅ FIX: Использует isLoading из zustand store вместо локального state
- * Это предотвращает мерцание при переключении между страницами
+ * ✅ FIX: Не показывает LoadingScreen если пользователь уже есть в store (из persist)
+ * Проверка авторизации происходит в фоне, без мерцания UI
  */
 export default function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter()
@@ -49,10 +49,16 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
 
     const checkAuth = async () => {
-      try {
-        initRef.current = true
+      initRef.current = true
+      
+      // ✅ FIX: Если пользователь уже есть в store (из persist) - проверяем в фоне без loading
+      const hasStoredUser = !!user
+      
+      if (!hasStoredUser) {
         setLoading(true)
+      }
 
+      try {
         // Проверяем валидность сессии через httpOnly cookies
         const timeoutPromise = new Promise<never>((_, reject) => 
           setTimeout(() => reject(new Error('AUTH_TIMEOUT')), 15000)
@@ -94,6 +100,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
           if (errorMessage !== 'SESSION_EXPIRED') {
             await apiClient.logout()
           }
+          useAuthStore.setState({ user: null, isAuthenticated: false })
           router.push('/login')
         }
       } finally {
@@ -102,15 +109,16 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
 
     checkAuth()
-  }, [router, setUser, setLoading])
+  }, [router, setUser, setLoading, user])
 
-  // Показываем loading только при первой загрузке
-  if (isLoading) {
+  // ✅ FIX: Показываем loading ТОЛЬКО если нет сохранённого пользователя
+  // Если пользователь есть из persist — показываем контент сразу
+  if (isLoading && !user) {
     return <LoadingScreen message="Проверка авторизации" />
   }
 
-  // Если не авторизован - не показываем контент (редирект произойдёт в useEffect)
-  if (!isAuthenticated || !user) {
+  // Если не авторизован и нет пользователя - не показываем контент
+  if (!isAuthenticated && !user) {
     return null
   }
 

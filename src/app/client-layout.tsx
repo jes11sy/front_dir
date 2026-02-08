@@ -56,7 +56,7 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
     prevPathname.current = pathname
   }, [pathname])
 
-  // Публичные страницы (login, logout) - без AuthGuard
+  // Публичные страницы (login, logout) - без AuthGuard и навигации
   if (isPublicPage) {
     return (
       <ErrorBoundary>
@@ -65,11 +65,12 @@ const ClientLayout = React.memo<ClientLayoutProps>(({ children }) => {
     )
   }
 
-  // Защищенные страницы - с AuthGuard
+  // Защищенные страницы
+  // ✅ FIX: Навигация вынесена из AuthGuard чтобы не мерцала при проверке авторизации
   return (
     <ErrorBoundary>
+      <CustomNavigation />
       <AuthGuard>
-        <CustomNavigation />
         <main className="pt-16 md:pt-0 md:ml-56 min-h-screen bg-white dark:bg-[#1e2530]">{children}</main>
       </AuthGuard>
     </ErrorBoundary>
