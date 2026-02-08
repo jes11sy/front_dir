@@ -364,4 +364,4 @@ export const CustomNavigation = memo(function CustomNavigation() {
       </aside>
     </>
   )
-}
+})
