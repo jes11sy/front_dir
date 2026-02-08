@@ -186,7 +186,7 @@ function HistoryContent() {
             <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slide-in-left">
               <div className={`rounded-lg p-4 border shadow-sm hover:shadow-md transition-all duration-200 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Приходы</div>
-                <div className={`text-xl font-bold ${isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]'}`}>{totalIncome.toLocaleString()} ₽</div>
+                <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-[#0d5c4b]'}`}>{totalIncome.toLocaleString()} ₽</div>
               </div>
               <div className={`rounded-lg p-4 border shadow-sm hover:shadow-md transition-all duration-200 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Расходы</div>
@@ -194,7 +194,7 @@ function HistoryContent() {
               </div>
               <div className={`rounded-lg p-4 border shadow-sm hover:shadow-md transition-all duration-200 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Баланс</div>
-                <div className={`text-xl font-bold ${balance >= 0 ? (isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]') : (isDark ? 'text-gray-200' : 'text-red-600')}`}>
+                <div className={`text-xl font-bold ${balance >= 0 ? (isDark ? 'text-white' : 'text-[#0d5c4b]') : (isDark ? 'text-gray-200' : 'text-red-600')}`}>
                   {balance.toLocaleString()} ₽
                 </div>
               </div>
@@ -451,7 +451,7 @@ function HistoryContent() {
                           </td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || 'Москва'}</td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
-                          <td className={`py-3 px-3 font-semibold ${item.name === 'приход' ? (isDark ? 'text-[#0d5c4b]' : 'text-[#0d5c4b]') : (isDark ? 'text-gray-200' : 'text-red-600')}`}>
+                          <td className={`py-3 px-3 font-semibold ${item.name === 'приход' ? (isDark ? 'text-white' : 'text-[#0d5c4b]') : (isDark ? 'text-gray-200' : 'text-red-600')}`}>
                             {Number(item.amount).toLocaleString()} ₽
                           </td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
