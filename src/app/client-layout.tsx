@@ -63,8 +63,8 @@ const ClientLayout = ({ children }: ClientLayoutProps) => {
   // Защищенные страницы
   return (
     <ErrorBoundary>
-      <CustomNavigation />
       <AuthGuard>
+        <CustomNavigation />
         <main className="pt-16 md:pt-0 md:ml-56 min-h-screen bg-white dark:bg-[#1e2530]">{children}</main>
       </AuthGuard>
     </ErrorBoundary>
