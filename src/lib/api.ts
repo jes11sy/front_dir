@@ -1772,6 +1772,52 @@ export class ApiClient {
     const result = await safeParseJson(response, [])
     return Array.isArray(result) ? result : (result.data || [])
   }
+
+  // Push Notifications API (Director)
+  async subscribeToPush(subscription: PushSubscriptionJSON): Promise<{ success: boolean }> {
+    const response = await this.safeFetch(`${this.baseURL}/push/subscribe`, {
+      method: 'POST',
+      body: JSON.stringify({ subscription }),
+    })
+
+    if (!response.ok) {
+      const errorMessage = await extractErrorMessage(response, 'Ошибка подписки на уведомления')
+      throw new Error(errorMessage)
+    }
+
+    const result = await safeParseJson(response, { success: false })
+    return result
+  }
+
+  async unsubscribeFromPush(endpoint: string): Promise<{ success: boolean }> {
+    const response = await this.safeFetch(`${this.baseURL}/push/unsubscribe`, {
+      method: 'POST',
+      body: JSON.stringify({ endpoint }),
+    })
+
+    if (!response.ok) {
+      const errorMessage = await extractErrorMessage(response, 'Ошибка отписки от уведомлений')
+      throw new Error(errorMessage)
+    }
+
+    const result = await safeParseJson(response, { success: false })
+    return result
+  }
+
+  async sendTestPush(): Promise<{ success: boolean }> {
+    const response = await this.safeFetch(`${this.baseURL}/push/test`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
+
+    if (!response.ok) {
+      const errorMessage = await extractErrorMessage(response, 'Ошибка отправки тестового уведомления')
+      throw new Error(errorMessage)
+    }
+
+    const result = await safeParseJson(response, { success: false })
+    return result
+  }
 }
 
 // Типы для истории заказа
@@ -1794,6 +1840,15 @@ export interface OrderHistoryItem {
     city?: string;
     clientName?: string;
     phone?: string;
+  };
+}
+
+// Push Notifications
+export interface PushSubscriptionJSON {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
   };
 }
 

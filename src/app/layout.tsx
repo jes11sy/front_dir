@@ -100,6 +100,30 @@ export default function RootLayout({
             });
           `}
         </Script>
+        <Script id="sw-message-handler" strategy="afterInteractive">
+          {`
+            // Глобальный обработчик сообщений от Service Worker (PWA)
+            console.log('[SW Director Client] Setting up global message listener');
+            
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.addEventListener('message', (event) => {
+                console.log('[SW Director Client] Message from SW (global):', event.data);
+                
+                if (event.data?.type === 'NOTIFICATION_CLICK') {
+                  const url = event.data.url;
+                  console.log('[SW Director Client] Notification click, navigating to:', url);
+                  
+                  if (url) {
+                    // В PWA используем window.location.href для надежности
+                    window.location.href = url;
+                  }
+                }
+              });
+              
+              console.log('[SW Director Client] Global message listener ready');
+            }
+          `}
+        </Script>
       </head>
       <body className="font-myriad transition-colors duration-0">
         <ToastProvider>

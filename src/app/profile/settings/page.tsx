@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api'
 import { getSignedUrl } from '@/lib/s3-utils'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { Bell, BellOff } from 'lucide-react'
 
 function SettingsContent() {
   const router = useRouter()
@@ -25,6 +27,21 @@ function SettingsContent() {
   const [passportPreview, setPassportPreview] = useState<string | null>(null)
   const [contractDragOver, setContractDragOver] = useState(false)
   const [passportDragOver, setPassportDragOver] = useState(false)
+  
+  // Push Notifications
+  const {
+    isSupported: pushSupported,
+    isSubscribed: pushSubscribed,
+    permission: pushPermission,
+    isLoading: pushLoading,
+    error: pushError,
+    isSubscribing,
+    isUnsubscribing,
+    subscribe: subscribePush,
+    unsubscribe: unsubscribePush,
+    isIOSPWARequired,
+    isIOS,
+  } = usePushNotifications()
   
   // Максимальный размер файла (50MB для тестирования)
   const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB в байтах
@@ -264,6 +281,95 @@ function SettingsContent() {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Push-уведомления */}
+              <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 animate-slide-in-right">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-teal-600" />
+                  Push-уведомления
+                </h2>
+                
+                {pushLoading ? (
+                  <div className="text-center py-4 text-gray-500">
+                    Проверка поддержки уведомлений...
+                  </div>
+                ) : !pushSupported ? (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p className="text-sm text-yellow-800">
+                      {isIOSPWARequired 
+                        ? '📱 На iOS добавьте приложение на домашний экран для получения уведомлений'
+                        : pushError || 'Push-уведомления не поддерживаются в этом браузере'}
+                    </p>
+                    {isIOS && isIOSPWARequired && (
+                      <div className="mt-3 text-xs text-yellow-700">
+                        <p className="font-semibold mb-1">Как добавить на домашний экран:</p>
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>Нажмите кнопку "Поделиться" в Safari</li>
+                          <li>Выберите "На экран Домой"</li>
+                          <li>Нажмите "Добавить"</li>
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center gap-3">
+                        {pushSubscribed ? (
+                          <Bell className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <BellOff className="w-5 h-5 text-gray-400" />
+                        )}
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            {pushSubscribed ? 'Уведомления включены' : 'Уведомления отключены'}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {pushSubscribed 
+                              ? 'Вы будете получать уведомления о новых событиях'
+                              : 'Включите уведомления для получения оповещений'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={pushSubscribed ? unsubscribePush : subscribePush}
+                        disabled={isSubscribing || isUnsubscribing}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                          pushSubscribed
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                            : 'bg-teal-600 text-white hover:bg-teal-700'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {isSubscribing || isUnsubscribing ? (
+                          <span className="flex items-center gap-2">
+                            <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            {isSubscribing ? 'Подключение...' : 'Отключение...'}
+                          </span>
+                        ) : pushSubscribed ? (
+                          'Отключить'
+                        ) : (
+                          'Включить'
+                        )}
+                      </button>
+                    </div>
+                    
+                    {pushError && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <p className="text-sm text-red-600">{pushError}</p>
+                      </div>
+                    )}
+                    
+                    {pushPermission === 'denied' && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <p className="text-sm text-yellow-800">
+                          Уведомления заблокированы. Разрешите их в настройках браузера.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Документы */}

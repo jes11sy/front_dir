@@ -1,26 +1,238 @@
-// Отключаем Service Worker
-self.addEventListener('install', function(event) {
-  self.skipWaiting();
-});
+// Service Worker для Push-уведомлений (Директор)
+// Этот файл статичный и копируется в public при билде
 
-self.addEventListener('activate', function(event) {
+const CACHE_NAME = 'director-cache-v1';
+
+// Обработка push-уведомлений
+self.addEventListener('push', (event) => {
+  console.log('[SW Director] Push event received');
+  
+  if (!event.data) {
+    console.log('[SW Director] Push получен, но без данных');
+    return;
+  }
+
+  let data;
+
+  // Пробуем распарсить как JSON, если не получается - используем как текст
+  try {
+    data = event.data.json();
+    console.log('[SW Director] Push data (JSON):', data);
+  } catch (e) {
+    // Если данные не JSON, создаём объект из текста
+    const textData = event.data.text();
+    console.log('[SW Director] Push получен как текст:', textData);
+    data = {
+      title: 'Новые Схемы',
+      body: textData,
+      type: 'text_message',
+    };
+  }
+
+  // Опции уведомления
+  const options = {
+    body: data.body || data.message || '',
+    icon: data.icon || '/images/pwa_light.png',
+    badge: data.badge || '/images/favicon.png',
+    tag: data.tag || data.type || 'default',
+    renotify: true,
+    requireInteraction: data.requireInteraction || false,
+    vibrate: [200, 100, 200],
+    data: {
+      url: data.url || '/orders',
+      type: data.type,
+      orderId: data.orderId,
+      ...(data.data || {}),
+    },
+  };
+
+  const title = data.title || 'Новые Схемы';
+  console.log('[SW Director] Showing notification:', title);
+  
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames.map(function(cacheName) {
-          // Удаляем все кэши
-          return caches.delete(cacheName);
-        })
-      );
-    }).then(function() {
-      // Отменяем регистрацию
-      return self.registration.unregister();
-    }).then(function() {
-      // Перезагружаем страницу
-      return self.clients.matchAll();
-    }).then(function(clients) {
-      clients.forEach(client => client.navigate(client.url));
-    })
+    self.registration.showNotification(title, options)
+      .then(() => console.log('[SW Director] Notification shown successfully'))
+      .catch(err => console.error('[SW Director] Failed to show notification:', err))
   );
 });
 
+// Клик по уведомлению
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW Director] Notification clicked, data:', event.notification.data);
+  event.notification.close();
+
+  const data = event.notification.data || {};
+  
+  // Обработка действий
+  if (event.action === 'dismiss') {
+    console.log('[SW Director] Dismiss action - closing notification');
+    return;
+  }
+
+  // Определяем целевой URL
+  let targetUrl = '/orders'; // По умолчанию
+  
+  // Если есть orderId - формируем URL к странице заказа
+  if (data.orderId) {
+    targetUrl = `/orders/${data.orderId}`;
+  } else if (data.url) {
+    targetUrl = data.url;
+  }
+
+  console.log('[SW Director] Target URL:', targetUrl);
+
+  // Формируем полный URL для корректной работы в PWA
+  const fullUrl = new URL(targetUrl, self.location.origin).href;
+  console.log('[SW Director] Full URL:', fullUrl);
+
+  event.waitUntil(
+    (async () => {
+      try {
+        const clientList = await self.clients.matchAll({ 
+          type: 'window', 
+          includeUncontrolled: true 
+        });
+        
+        console.log('[SW Director] Active clients:', clientList.length);
+        
+        // Ищем уже открытое окно приложения
+        let appClient = null;
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          console.log('[SW Director] Client', i, ':', client.url);
+          
+          if (client.url.startsWith(self.location.origin)) {
+            appClient = client;
+            break;
+          }
+        }
+        
+        if (appClient) {
+          console.log('[SW Director] Found existing app window');
+          
+          // Отправляем сообщение клиенту для навигации через Next.js router
+          appClient.postMessage({
+            type: 'NOTIFICATION_CLICK',
+            url: targetUrl,
+            orderId: data.orderId,
+            data: data,
+          });
+          
+          // Фокусируемся на окне
+          await appClient.focus();
+          console.log('[SW Director] Window focused and message sent');
+          
+        } else {
+          // Если нет открытых окон - открываем новое
+          console.log('[SW Director] No active windows, opening new:', fullUrl);
+          const newClient = await self.clients.openWindow(fullUrl);
+          console.log('[SW Director] New window opened:', newClient ? 'success' : 'failed');
+        }
+        
+      } catch (error) {
+        console.error('[SW Director] Error handling notification click:', error);
+        // Последняя попытка - просто открыть окно
+        try {
+          await self.clients.openWindow(fullUrl);
+        } catch (e) {
+          console.error('[SW Director] Failed to open window:', e);
+        }
+      }
+    })()
+  );
+});
+
+// Закрытие уведомления
+self.addEventListener('notificationclose', (event) => {
+  const data = event.notification.data || {};
+  console.log('[SW Director] Уведомление закрыто:', data.type);
+});
+
+// Обработка изменения подписки на push
+self.addEventListener('pushsubscriptionchange', (event) => {
+  console.log('[SW Director] Push подписка изменилась, оповещаем клиент');
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'PUSH_SUBSCRIPTION_CHANGED',
+            oldSubscription: event.oldSubscription ? event.oldSubscription.toJSON() : null,
+            newSubscription: event.newSubscription ? event.newSubscription.toJSON() : null,
+          });
+        });
+      })
+      .catch((error) => {
+        console.error('[SW Director] Ошибка оповещения клиента:', error);
+      })
+  );
+});
+
+// Установка SW
+self.addEventListener('install', (event) => {
+  console.log('[SW Director] Installing...');
+  self.skipWaiting();
+});
+
+// Активация SW
+self.addEventListener('activate', (event) => {
+  console.log('[SW Director] Activating...');
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // Очистка старых кэшей
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => caches.delete(name))
+        );
+      }),
+    ])
+  );
+});
+
+// Обработка fetch для базового кэширования
+self.addEventListener('fetch', (event) => {
+  // Пропускаем не-GET запросы и API
+  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+    return;
+  }
+
+  // Для навигационных запросов - network first
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match('/') || new Response('Offline', { status: 503 });
+      })
+    );
+    return;
+  }
+
+  // Для статики - cache first
+  if (
+    event.request.url.includes('/_next/static/') ||
+    event.request.url.includes('/images/') ||
+    event.request.url.includes('/fonts/')
+  ) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) {
+          return cached;
+        }
+        return fetch(event.request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, clone);
+            });
+          }
+          return response;
+        });
+      })
+    );
+  }
+});
+
+console.log('[SW Director] Service Worker loaded');

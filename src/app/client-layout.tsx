@@ -5,6 +5,7 @@ import { CustomNavigation } from '@/components/custom-navigation'
 import { ErrorBoundary } from '@/components/error-boundary'
 import AuthGuard from '@/components/auth-guard'
 import { useDesignStore } from '@/store/design.store'
+import { ServiceWorkerRegister } from '@/components/push/ServiceWorkerRegister'
 import React, { useLayoutEffect, useEffect, useMemo, useRef } from 'react'
 
 interface ClientLayoutProps {
@@ -64,6 +65,7 @@ const ClientLayout = ({ children }: ClientLayoutProps) => {
   return (
     <ErrorBoundary>
       <AuthGuard>
+        <ServiceWorkerRegister />
         <CustomNavigation />
         <main className="pt-16 md:pt-0 md:ml-56 min-h-screen bg-white dark:bg-[#1e2530]">{children}</main>
       </AuthGuard>
