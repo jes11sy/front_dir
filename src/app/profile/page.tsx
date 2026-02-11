@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/auth.store'
 import { useDesignStore } from '@/store/design.store'
 import { apiClient } from '@/lib/api'
-import { User, Edit2, LogOut, MapPin, Calendar, Eye, EyeOff, Save, X, Loader2 } from 'lucide-react'
+import { getSignedUrl } from '@/lib/s3-utils'
+import { User, Edit2, LogOut, MapPin, Calendar, Eye, EyeOff, Save, X, Loader2, Settings, Bell, BellOff, FileText, Upload } from 'lucide-react'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -16,12 +18,22 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   // Форма редактирования
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    note: user?.note || ''
+    note: user?.note || '',
+    telegramId: ''
   })
+  
+  // Документы
+  const [contractFile, setContractFile] = useState<File | null>(null)
+  const [passportFile, setPassportFile] = useState<File | null>(null)
+  const [contractPreview, setContractPreview] = useState<string | null>(null)
+  const [passportPreview, setPassportPreview] = useState<string | null>(null)
+  const [showDocuments, setShowDocuments] = useState(false)
   
   // Форма смены пароля
   const [passwordData, setPasswordData] = useState({
@@ -33,6 +45,54 @@ export default function ProfilePage() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
+
+  // Push Notifications
+  const {
+    isSupported: pushSupported,
+    isSubscribed: pushSubscribed,
+    permission: pushPermission,
+    isLoading: pushLoading,
+    error: pushError,
+    isSubscribing,
+    isUnsubscribing,
+    subscribe: subscribePush,
+    unsubscribe: unsubscribePush,
+    isIOSPWARequired,
+    isIOS,
+  } = usePushNotifications()
+
+  // Загрузка профиля с документами
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true)
+        const profile = await apiClient.getCurrentUserProfile()
+        if (profile) {
+          setFormData({
+            name: profile.name || '',
+            note: profile.note || '',
+            telegramId: profile.tgId || ''
+          })
+          
+          // Загружаем превью документов
+          if (profile.contractDoc) {
+            const contractUrl = await getSignedUrl(profile.contractDoc)
+            setContractPreview(`${contractUrl}?t=${Date.now()}`)
+          }
+          if (profile.passportDoc) {
+            const passportUrl = await getSignedUrl(profile.passportDoc)
+            setPassportPreview(`${passportUrl}?t=${Date.now()}`)
+          }
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ошибка загрузки профиля')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [])
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -46,10 +106,6 @@ export default function ProfilePage() {
   }
 
   const handleEdit = () => {
-    setFormData({
-      name: user?.name || '',
-      note: user?.note || ''
-    })
     setIsEditing(true)
   }
 
@@ -57,21 +113,68 @@ export default function ProfilePage() {
     setIsEditing(false)
     setFormData({
       name: user?.name || '',
-      note: user?.note || ''
+      note: user?.note || '',
+      telegramId: formData.telegramId
     })
   }
 
   const handleSave = async () => {
     setIsSaving(true)
+    setError(null)
     try {
-      // TODO: Implement profile update API
-      // await apiClient.updateProfile(formData)
+      let contractDocPath = contractPreview && !contractPreview.startsWith('blob:') ? contractPreview.split('?')[0] : ''
+      let passportDocPath = passportPreview && !passportPreview.startsWith('blob:') ? passportPreview.split('?')[0] : ''
+
+      // Загружаем новые файлы
+      if (contractFile) {
+        const result = await apiClient.uploadDirectorContract(contractFile)
+        contractDocPath = result.filePath
+      }
+      if (passportFile) {
+        const result = await apiClient.uploadDirectorPassport(passportFile)
+        passportDocPath = result.filePath
+      }
+
+      // Обновляем профиль
+      await apiClient.updateUserProfile({
+        telegramId: formData.telegramId,
+        contractDoc: contractDocPath || undefined,
+        passportDoc: passportDocPath || undefined
+      })
+
+      // Обновляем localStorage
+      const updatedUser = await apiClient.getCurrentUserProfile()
+      if (updatedUser) {
+        const { sanitizeObject } = await import('@/lib/sanitize')
+        localStorage.setItem('user', JSON.stringify(sanitizeObject(updatedUser as Record<string, unknown>)))
+      }
+
       setIsEditing(false)
-    } catch (error) {
-      console.error('Save error:', error)
+      setContractFile(null)
+      setPassportFile(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка сохранения')
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const handleFile = (file: File, type: 'contract' | 'passport') => {
+    if (file.size > 50 * 1024 * 1024) {
+      setError('Файл слишком большой (макс. 50MB)')
+      return
+    }
+    
+    if (type === 'contract') {
+      if (contractPreview?.startsWith('blob:')) URL.revokeObjectURL(contractPreview)
+      setContractFile(file)
+      setContractPreview(URL.createObjectURL(file))
+    } else {
+      if (passportPreview?.startsWith('blob:')) URL.revokeObjectURL(passportPreview)
+      setPassportFile(file)
+      setPassportPreview(URL.createObjectURL(file))
+    }
+    setError(null)
   }
 
   const handlePasswordChange = async () => {
@@ -205,7 +308,189 @@ export default function ProfilePage() {
                 <span className={`text-right max-w-xs ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>{user?.note || 'Не указано'}</span>
               )}
             </div>
+
+            {/* Telegram ID */}
+            <div className={`flex justify-between items-center py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Telegram</span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.telegramId}
+                  onChange={(e) => setFormData({ ...formData, telegramId: e.target.value })}
+                  className={`w-64 text-right bg-transparent border-b focus:border-teal-500 focus:outline-none ${isDark ? 'text-gray-200 border-gray-600' : 'text-gray-900 border-gray-300'}`}
+                  placeholder="@username"
+                />
+              ) : (
+                <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>{formData.telegramId || 'Не указан'}</span>
+              )}
+            </div>
+
+            {/* Push-уведомления */}
+            <div className={`flex justify-between items-center py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <div className="flex items-center gap-2">
+                {pushLoading ? (
+                  <>
+                    <Bell className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Push-уведомления</span>
+                  </>
+                ) : !pushSupported ? (
+                  <>
+                    <BellOff className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Push-уведомления</span>
+                  </>
+                ) : (
+                  <>
+                    {pushSubscribed ? (
+                      <Bell className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <BellOff className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                    )}
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Push-уведомления</span>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {pushLoading ? (
+                  <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Проверка...</span>
+                ) : !pushSupported ? (
+                  <span className={`text-sm ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                    {isIOSPWARequired ? 'Нужен PWA' : 'Не поддерживается'}
+                  </span>
+                ) : (
+                  <>
+                    <span className={`text-sm ${pushSubscribed ? 'text-green-600' : isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {pushSubscribed ? 'Включены' : 'Отключены'}
+                    </span>
+                    <button
+                      onClick={pushSubscribed ? unsubscribePush : subscribePush}
+                      disabled={isSubscribing || isUnsubscribing}
+                      className={`text-sm transition-colors disabled:opacity-50 ${
+                        isDark ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'
+                      }`}
+                    >
+                      {isSubscribing || isUnsubscribing ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : pushSubscribed ? (
+                        'Отключить'
+                      ) : (
+                        'Включить'
+                      )}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Документы */}
+            <div className={`py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <button
+                onClick={() => setShowDocuments(!showDocuments)}
+                className={`w-full flex justify-between items-center transition-colors ${isDark ? 'text-gray-400 hover:text-teal-400' : 'text-gray-500 hover:text-teal-600'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span>Документы</span>
+                </div>
+                <span className="text-sm">{showDocuments ? '▼' : '▶'}</span>
+              </button>
+
+              {showDocuments && (
+                <div className="mt-3 space-y-3 pl-6">
+                  {/* Договор */}
+                  <div>
+                    <label className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Договор</label>
+                    {contractPreview ? (
+                      <div className="mt-1 flex items-center gap-2">
+                        <a
+                          href={contractPreview}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-sm flex-1 truncate ${isDark ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'}`}
+                        >
+                          📄 Просмотр
+                        </a>
+                        {isEditing && (
+                          <button
+                            onClick={() => {
+                              if (contractPreview.startsWith('blob:')) URL.revokeObjectURL(contractPreview)
+                              setContractFile(null)
+                              setContractPreview(null)
+                            }}
+                            className={`text-xs ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-600'}`}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ) : isEditing ? (
+                      <label className={`mt-1 flex items-center gap-2 cursor-pointer text-sm ${isDark ? 'text-gray-300 hover:text-teal-400' : 'text-gray-600 hover:text-teal-600'}`}>
+                        <Upload className="h-3 w-3" />
+                        <span>Загрузить</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], 'contract')}
+                        />
+                      </label>
+                    ) : (
+                      <div className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Не загружен</div>
+                    )}
+                  </div>
+
+                  {/* Паспорт */}
+                  <div>
+                    <label className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Паспорт</label>
+                    {passportPreview ? (
+                      <div className="mt-1 flex items-center gap-2">
+                        <a
+                          href={passportPreview}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-sm flex-1 truncate ${isDark ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'}`}
+                        >
+                          📄 Просмотр
+                        </a>
+                        {isEditing && (
+                          <button
+                            onClick={() => {
+                              if (passportPreview.startsWith('blob:')) URL.revokeObjectURL(passportPreview)
+                              setPassportFile(null)
+                              setPassportPreview(null)
+                            }}
+                            className={`text-xs ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-600'}`}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ) : isEditing ? (
+                      <label className={`mt-1 flex items-center gap-2 cursor-pointer text-sm ${isDark ? 'text-gray-300 hover:text-teal-400' : 'text-gray-600 hover:text-teal-600'}`}>
+                        <Upload className="h-3 w-3" />
+                        <span>Загрузить</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], 'passport')}
+                        />
+                      </label>
+                    ) : (
+                      <div className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Не загружен</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Ошибки */}
+          {error && (
+            <div className={`mb-4 p-3 rounded-lg ${isDark ? 'bg-red-900/20 border border-red-800' : 'bg-red-50 border border-red-200'}`}>
+              <p className={`text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>{error}</p>
+            </div>
+          )}
 
           {/* Разделитель */}
           <div className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`} />
@@ -298,9 +583,6 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-
-          {/* Разделитель */}
-          <div className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`} />
 
           {/* Выход */}
           <button
