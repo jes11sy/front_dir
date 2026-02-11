@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
+import { useNotifications } from '@/hooks/useNotifications'
 import { Sun, Moon, Bell, User, Menu, X, Check, FileText, Info, GripHorizontal } from 'lucide-react'
 
 // Ключ для сохранения позиции прокрутки
@@ -23,16 +24,7 @@ const navigationItems = [
   { name: 'Сотрудники', href: '/employees', icon: '/images/navigate/employees.svg' },
 ]
 
-// Моковые уведомления (пока без функционала)
-const mockNotifications: {
-  id: string
-  title: string
-  message: string
-  type: string
-  read: boolean
-  createdAt: string
-  orderId?: number
-}[] = []
+// Удалены моковые уведомления - теперь используем реальные из API
 
 // Интерфейс пропсов для MenuContent
 interface MenuContentProps {
@@ -233,8 +225,13 @@ export function CustomNavigation() {
   
   // Состояние уведомлений
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [notifications] = useState(mockNotifications)
-  const unreadCount = notifications.filter(n => !n.read).length
+  const { 
+    notifications, 
+    unreadCount, 
+    isLoading: notificationsLoading,
+    markAsRead: markNotificationAsRead,
+    markAllAsRead: markAllNotificationsAsRead,
+  } = useNotifications()
   
   // Позиция окна уведомлений (для desktop drag)
   const [panelPosition, setPanelPosition] = useState(DEFAULT_POSITION)
@@ -384,17 +381,23 @@ export function CustomNavigation() {
     }
   }
 
-  // Обработка клика на уведомление (пока заглушка)
-  const handleNotificationClick = (notification: typeof notifications[0]) => {
+  // Обработка клика на уведомление
+  const handleNotificationClick = async (notification: typeof notifications[0]) => {
+    // Отмечаем как прочитанное
+    if (!notification.read) {
+      await markNotificationAsRead(notification.id)
+    }
+    
+    // Переходим на страницу заказа
     if (notification.orderId) {
       router.push(`/orders/${notification.orderId}`)
       closeDropdown()
     }
   }
 
-  // Пометить все как прочитанные (заглушка)
+  // Пометить все как прочитанные
   const markAllAsRead = () => {
-    console.log('markAllAsRead - пока без функционала')
+    markAllNotificationsAsRead()
   }
 
   const userName = user?.name || user?.login
