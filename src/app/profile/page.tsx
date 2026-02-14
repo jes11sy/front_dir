@@ -430,37 +430,45 @@ export default function ProfilePage() {
             <div className={`py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
               <div className="flex justify-between items-center">
                 <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Push-уведомления</span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {pushLoading ? (
-                    <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Проверка...</span>
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                      <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Проверка...</span>
+                    </div>
                   ) : !pushSupported ? (
                     <span className={`text-sm ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
                       {isIOSPWARequired ? 'Нужен PWA' : 'Не поддерживается'}
                     </span>
                   ) : (
                     <>
-                      <span className={`text-sm ${pushSubscribed ? 'text-green-600' : isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                        {pushSubscribed ? 'Включены' : 'Отключены'}
-                      </span>
+                      {/* iOS-style переключатель */}
                       <button
                         onClick={pushSubscribed ? unsubscribePush : subscribePush}
                         disabled={isSubscribing || isUnsubscribing}
-                        className={`text-sm transition-colors disabled:opacity-50 ${
-                          isDark ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 ${
+                          pushSubscribed 
+                            ? 'bg-teal-600' 
+                            : isDark ? 'bg-gray-600' : 'bg-gray-300'
                         }`}
                       >
-                        {isSubscribing || isUnsubscribing ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : pushSubscribed ? (
-                          'Отключить'
-                        ) : (
-                          'Включить'
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform duration-200 ease-in-out ${
+                            pushSubscribed ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                        {(isSubscribing || isUnsubscribing) && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Loader2 className="h-3 w-3 animate-spin text-white" />
+                          </div>
                         )}
                       </button>
+
+                      {/* Кнопка настроек */}
                       {pushSubscribed && (
                         <button
                           onClick={() => setShowPushSettings(!showPushSettings)}
-                          className={`ml-2 transition-colors ${isDark ? 'text-gray-400 hover:text-teal-400' : 'text-gray-500 hover:text-teal-600'}`}
+                          className={`transition-colors ${isDark ? 'text-gray-400 hover:text-teal-400' : 'text-gray-500 hover:text-teal-600'}`}
                         >
                           <Settings className="h-4 w-4" />
                         </button>
