@@ -999,26 +999,28 @@ export default function ProfilePage() {
 
             {/* Кнопки */}
             <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowPWAInstructions(false)}
-                className={`flex-1 py-2 px-4 rounded-lg transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-              >
-                Понятно
-              </button>
               {canInstallPWA ? (
-                <button
-                  onClick={handleInstallPWA}
-                  className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Установить сейчас
-                </button>
+                <>
+                  <button
+                    onClick={() => setShowPWAInstructions(false)}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  >
+                    Позже
+                  </button>
+                  <button
+                    onClick={handleInstallPWA}
+                    className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Установить сейчас
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={() => setShowPWAInstructions(false)}
-                  className={`flex-1 py-2 px-4 rounded-lg transition-colors ${isDark ? 'bg-teal-900/40 text-teal-400' : 'bg-teal-100 text-teal-700'}`}
+                  className="w-full py-2 px-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
                 >
-                  Следовать инструкциям
+                  Понятно
                 </button>
               )}
             </div>
