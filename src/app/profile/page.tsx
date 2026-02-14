@@ -52,6 +52,10 @@ export default function ProfilePage() {
   const [disabledCities, setDisabledCities] = useState<string[]>([])
   const [disabledTypes, setDisabledTypes] = useState<string[]>([])
 
+  // PWA установка
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [canInstallPWA, setCanInstallPWA] = useState(false)
+
   // Типы уведомлений для директора
   const notificationTypes = [
     { id: 'order_new', label: 'Новый заказ' },
@@ -239,6 +243,41 @@ export default function ProfilePage() {
   // Определяем тип устройства для инструкций
   const isAndroid = typeof window !== 'undefined' && /Android/i.test(navigator.userAgent)
 
+  // Функция установки PWA
+  const handleInstallPWA = async () => {
+    if (!deferredPrompt) {
+      console.log('[PWA] No deferred prompt available')
+      // Если нет deferred prompt, просто закрываем модалку - пользователь должен следовать инструкциям
+      setShowPWAInstructions(false)
+      return
+    }
+
+    try {
+      console.log('[PWA] Showing install prompt')
+      // Показываем нативный промпт установки
+      deferredPrompt.prompt()
+      
+      // Ждем ответа пользователя
+      const { outcome } = await deferredPrompt.userChoice
+      console.log('[PWA] User choice:', outcome)
+      
+      if (outcome === 'accepted') {
+        console.log('[PWA] User accepted the install prompt')
+      } else {
+        console.log('[PWA] User dismissed the install prompt')
+      }
+      
+      // Очищаем deferred prompt
+      setDeferredPrompt(null)
+      setCanInstallPWA(false)
+      
+    } catch (error) {
+      console.error('[PWA] Error during installation:', error)
+      // В случае ошибки просто закрываем модалку
+      setShowPWAInstructions(false)
+    }
+  }
+
   // Функция для обработки клика по переключателю push
   const handlePushToggle = async () => {
     // Если push не поддерживается - показываем инструкции
@@ -285,6 +324,34 @@ export default function ProfilePage() {
     }
 
     loadPushSettings()
+  }, [])
+
+  // Отслеживание события beforeinstallprompt для PWA
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('[PWA] beforeinstallprompt event fired')
+      // Предотвращаем автоматический показ браузерного промпта
+      e.preventDefault()
+      // Сохраняем событие для использования позже
+      setDeferredPrompt(e)
+      setCanInstallPWA(true)
+    }
+
+    const handleAppInstalled = () => {
+      console.log('[PWA] App installed')
+      setDeferredPrompt(null)
+      setCanInstallPWA(false)
+      setShowPWAInstructions(false)
+      // Можно показать уведомление об успешной установке
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+    }
   }, [])
 
   // Функция сохранения в IndexedDB для Service Worker
@@ -489,10 +556,10 @@ export default function ProfilePage() {
                       {/* Статус или кнопка настроек */}
                       {!pushSupported ? (
                         <button
-                          onClick={() => setShowPWAInstructions(true)}
+                          onClick={canInstallPWA ? handleInstallPWA : () => setShowPWAInstructions(true)}
                           className={`text-sm transition-colors ${isDark ? 'text-yellow-400 hover:text-yellow-300' : 'text-yellow-600 hover:text-yellow-700'}`}
                         >
-                          Установить PWA
+                          {canInstallPWA ? 'Установить' : 'Как установить?'}
                         </button>
                       ) : pushSubscribed ? (
                         <button
@@ -938,15 +1005,22 @@ export default function ProfilePage() {
               >
                 Понятно
               </button>
-              <button
-                onClick={() => {
-                  setShowPWAInstructions(false)
-                  // Можно добавить логику для показа системного диалога установки PWA
-                }}
-                className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-              >
-                Установить
-              </button>
+              {canInstallPWA ? (
+                <button
+                  onClick={handleInstallPWA}
+                  className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Установить сейчас
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowPWAInstructions(false)}
+                  className={`flex-1 py-2 px-4 rounded-lg transition-colors ${isDark ? 'bg-teal-900/40 text-teal-400' : 'bg-teal-100 text-teal-700'}`}
+                >
+                  Следовать инструкциям
+                </button>
+              )}
             </div>
           </div>
         </div>
