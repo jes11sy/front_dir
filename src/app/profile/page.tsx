@@ -241,8 +241,8 @@ export default function ProfilePage() {
 
   // Функция для обработки клика по переключателю push
   const handlePushToggle = async () => {
-    // Если пытаемся включить push не в PWA режиме (iOS или Android)
-    if (!pushSubscribed && !pushSupported && (isIOSPWARequired || (!isIOS && isAndroid && !window.matchMedia('(display-mode: standalone)').matches))) {
+    // Если push не поддерживается - показываем инструкции
+    if (!pushSupported) {
       setShowPWAInstructions(true)
       return
     }
@@ -456,25 +456,27 @@ export default function ProfilePage() {
                       <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                       <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Проверка...</span>
                     </div>
-                  ) : !pushSupported ? (
-                    <span className={`text-sm ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                      {isIOSPWARequired ? 'Нужен PWA' : 'Не поддерживается'}
-                    </span>
                   ) : (
                     <>
-                      {/* iOS-style переключатель */}
+                      {/* iOS-style переключатель - всегда показываем */}
                       <button
                         onClick={handlePushToggle}
                         disabled={isSubscribing || isUnsubscribing}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 ${
                           pushSubscribed 
                             ? 'bg-teal-600' 
-                            : isDark ? 'bg-gray-600' : 'bg-gray-300'
+                            : !pushSupported
+                              ? isDark ? 'bg-yellow-600/30' : 'bg-yellow-400/30'
+                              : isDark ? 'bg-gray-600' : 'bg-gray-300'
                         }`}
                       >
                         <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform duration-200 ease-in-out ${
-                            pushSubscribed ? 'translate-x-6' : 'translate-x-1'
+                          className={`inline-block h-4 w-4 transform rounded-full shadow-lg transition-transform duration-200 ease-in-out ${
+                            pushSubscribed 
+                              ? 'translate-x-6 bg-white' 
+                              : !pushSupported
+                                ? 'translate-x-1 bg-yellow-400'
+                                : 'translate-x-1 bg-white'
                           }`}
                         />
                         {(isSubscribing || isUnsubscribing) && (
@@ -484,15 +486,22 @@ export default function ProfilePage() {
                         )}
                       </button>
 
-                      {/* Кнопка настроек */}
-                      {pushSubscribed && (
+                      {/* Статус или кнопка настроек */}
+                      {!pushSupported ? (
+                        <button
+                          onClick={() => setShowPWAInstructions(true)}
+                          className={`text-sm transition-colors ${isDark ? 'text-yellow-400 hover:text-yellow-300' : 'text-yellow-600 hover:text-yellow-700'}`}
+                        >
+                          Установить PWA
+                        </button>
+                      ) : pushSubscribed ? (
                         <button
                           onClick={() => setShowPushSettings(!showPushSettings)}
                           className={`transition-colors ${isDark ? 'text-gray-400 hover:text-teal-400' : 'text-gray-500 hover:text-teal-600'}`}
                         >
                           <Settings className="h-4 w-4" />
                         </button>
-                      )}
+                      ) : null}
                     </>
                   )}
                 </div>
