@@ -46,6 +46,22 @@ export default function ProfilePage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
 
+  // Push настройки
+  const [showPushSettings, setShowPushSettings] = useState(false)
+  const [disabledCities, setDisabledCities] = useState<string[]>([])
+  const [disabledTypes, setDisabledTypes] = useState<string[]>([])
+
+  // Типы уведомлений для директора
+  const notificationTypes = [
+    { id: 'order_new', label: 'Новый заказ' },
+    { id: 'order_accepted', label: 'Заказ принят' },
+    { id: 'order_rescheduled', label: 'Заказ перенесен' },
+    { id: 'order_rejected', label: 'Незаказ' },
+    { id: 'order_refusal', label: 'Отказ' },
+    { id: 'order_closed', label: 'Заказ закрыт' },
+    { id: 'order_modern', label: 'Заказ в модерн' },
+  ]
+
   // Push Notifications
   const {
     isSupported: pushSupported,
@@ -219,6 +235,91 @@ export default function ProfilePage() {
 
   const cities = user?.cities || []
 
+  // Загрузка настроек push-уведомлений
+  useEffect(() => {
+    const loadPushSettings = async () => {
+      const savedDisabledCities = localStorage.getItem('director-push-disabled-cities')
+      const savedDisabledTypes = localStorage.getItem('director-push-disabled-types')
+      
+      if (savedDisabledCities) {
+        try {
+          const cities = JSON.parse(savedDisabledCities)
+          setDisabledCities(cities)
+          // Синхронизируем с IndexedDB
+          await saveToIndexedDB('director-push-disabled-cities', savedDisabledCities)
+        } catch (e) {
+          console.warn('Failed to parse disabled cities:', e)
+        }
+      }
+      
+      if (savedDisabledTypes) {
+        try {
+          const types = JSON.parse(savedDisabledTypes)
+          setDisabledTypes(types)
+          // Синхронизируем с IndexedDB
+          await saveToIndexedDB('director-push-disabled-types', savedDisabledTypes)
+        } catch (e) {
+          console.warn('Failed to parse disabled types:', e)
+        }
+      }
+    }
+
+    loadPushSettings()
+  }, [])
+
+  // Функция сохранения в IndexedDB для Service Worker
+  const saveToIndexedDB = async (key: string, value: string) => {
+    try {
+      const request = indexedDB.open('director-settings', 1)
+      
+      return new Promise<void>((resolve, reject) => {
+        request.onerror = () => reject(request.error)
+        request.onsuccess = () => {
+          const db = request.result
+          const transaction = db.transaction(['settings'], 'readwrite')
+          const store = transaction.objectStore('settings')
+          
+          store.put({ key, value })
+          transaction.oncomplete = () => resolve()
+          transaction.onerror = () => reject(transaction.error)
+        }
+        
+        request.onupgradeneeded = () => {
+          const db = request.result
+          if (!db.objectStoreNames.contains('settings')) {
+            db.createObjectStore('settings', { keyPath: 'key' })
+          }
+        }
+      })
+    } catch (error) {
+      console.warn('Failed to save to IndexedDB:', error)
+    }
+  }
+
+  // Управление настройками городов
+  const handleCityToggle = async (city: string, enabled: boolean) => {
+    const newDisabledCities = enabled 
+      ? disabledCities.filter(c => c !== city)
+      : [...disabledCities, city]
+    
+    setDisabledCities(newDisabledCities)
+    const citiesJson = JSON.stringify(newDisabledCities)
+    localStorage.setItem('director-push-disabled-cities', citiesJson)
+    await saveToIndexedDB('director-push-disabled-cities', citiesJson)
+  }
+
+  // Управление настройками типов уведомлений
+  const handleTypeToggle = async (type: string, enabled: boolean) => {
+    const newDisabledTypes = enabled
+      ? disabledTypes.filter(t => t !== type)
+      : [...disabledTypes, type]
+    
+    setDisabledTypes(newDisabledTypes)
+    const typesJson = JSON.stringify(newDisabledTypes)
+    localStorage.setItem('director-push-disabled-types', typesJson)
+    await saveToIndexedDB('director-push-disabled-types', typesJson)
+  }
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#1e2530]' : 'bg-white'}`}>
       <div className="px-6 py-6">
@@ -326,60 +427,97 @@ export default function ProfilePage() {
             </div>
 
             {/* Push-уведомления */}
-            <div className={`flex justify-between items-center py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-              <div className="flex items-center gap-2">
-                {pushLoading ? (
-                  <>
-                    <Bell className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Push-уведомления</span>
-                  </>
-                ) : !pushSupported ? (
-                  <>
-                    <BellOff className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Push-уведомления</span>
-                  </>
-                ) : (
-                  <>
-                    {pushSubscribed ? (
-                      <Bell className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <BellOff className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                    )}
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Push-уведомления</span>
-                  </>
-                )}
+            <div className={`py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <div className="flex justify-between items-center">
+                <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Push-уведомления</span>
+                <div className="flex items-center gap-2">
+                  {pushLoading ? (
+                    <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Проверка...</span>
+                  ) : !pushSupported ? (
+                    <span className={`text-sm ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                      {isIOSPWARequired ? 'Нужен PWA' : 'Не поддерживается'}
+                    </span>
+                  ) : (
+                    <>
+                      <span className={`text-sm ${pushSubscribed ? 'text-green-600' : isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {pushSubscribed ? 'Включены' : 'Отключены'}
+                      </span>
+                      <button
+                        onClick={pushSubscribed ? unsubscribePush : subscribePush}
+                        disabled={isSubscribing || isUnsubscribing}
+                        className={`text-sm transition-colors disabled:opacity-50 ${
+                          isDark ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'
+                        }`}
+                      >
+                        {isSubscribing || isUnsubscribing ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : pushSubscribed ? (
+                          'Отключить'
+                        ) : (
+                          'Включить'
+                        )}
+                      </button>
+                      {pushSubscribed && (
+                        <button
+                          onClick={() => setShowPushSettings(!showPushSettings)}
+                          className={`ml-2 transition-colors ${isDark ? 'text-gray-400 hover:text-teal-400' : 'text-gray-500 hover:text-teal-600'}`}
+                        >
+                          <Settings className="h-4 w-4" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                {pushLoading ? (
-                  <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Проверка...</span>
-                ) : !pushSupported ? (
-                  <span className={`text-sm ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                    {isIOSPWARequired ? 'Нужен PWA' : 'Не поддерживается'}
-                  </span>
-                ) : (
-                  <>
-                    <span className={`text-sm ${pushSubscribed ? 'text-green-600' : isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                      {pushSubscribed ? 'Включены' : 'Отключены'}
-                    </span>
-                    <button
-                      onClick={pushSubscribed ? unsubscribePush : subscribePush}
-                      disabled={isSubscribing || isUnsubscribing}
-                      className={`text-sm transition-colors disabled:opacity-50 ${
-                        isDark ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'
-                      }`}
-                    >
-                      {isSubscribing || isUnsubscribing ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : pushSubscribed ? (
-                        'Отключить'
-                      ) : (
-                        'Включить'
-                      )}
-                    </button>
-                  </>
-                )}
-              </div>
+              {/* Настройки push-уведомлений */}
+              {pushSubscribed && showPushSettings && (
+                <div className="mt-4 space-y-4 pl-4 border-l-2 border-teal-500/20">
+                  {/* Настройки по городам */}
+                  <div>
+                    <h4 className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Уведомления по городам
+                    </h4>
+                    <div className="space-y-2">
+                      {cities.map((city) => (
+                        <label key={city} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!disabledCities.includes(city)}
+                            onChange={(e) => handleCityToggle(city, e.target.checked)}
+                            className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 focus:ring-2"
+                          />
+                          <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {city}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Настройки по типам уведомлений */}
+                  <div>
+                    <h4 className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Типы уведомлений
+                    </h4>
+                    <div className="space-y-2">
+                      {notificationTypes.map((type) => (
+                        <label key={type.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!disabledTypes.includes(type.id)}
+                            onChange={(e) => handleTypeToggle(type.id, e.target.checked)}
+                            className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 focus:ring-2"
+                          />
+                          <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {type.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Документы */}
@@ -392,7 +530,14 @@ export default function ProfilePage() {
                   <FileText className="h-4 w-4" />
                   <span>Документы</span>
                 </div>
-                <span className="text-sm">{showDocuments ? '▼' : '▶'}</span>
+                <svg 
+                  className={`w-4 h-4 transition-transform duration-200 ${showDocuments ? 'rotate-90' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
 
               {showDocuments && (
