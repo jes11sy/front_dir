@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useDesignStore } from '@/store/design.store'
 import { apiClient } from '@/lib/api'
 import { getSignedUrl } from '@/lib/s3-utils'
-import { User, Edit2, LogOut, MapPin, Calendar, Eye, EyeOff, Save, X, Loader2, Settings, Bell, BellOff, FileText, Upload } from 'lucide-react'
+import { User, Edit2, LogOut, MapPin, Calendar, Eye, EyeOff, Save, X, Loader2, Settings, Bell, BellOff, FileText, Upload, Smartphone, Share, Plus, Home } from 'lucide-react'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 export default function ProfilePage() {
@@ -48,6 +48,7 @@ export default function ProfilePage() {
 
   // Push настройки
   const [showPushSettings, setShowPushSettings] = useState(false)
+  const [showPWAInstructions, setShowPWAInstructions] = useState(false)
   const [disabledCities, setDisabledCities] = useState<string[]>([])
   const [disabledTypes, setDisabledTypes] = useState<string[]>([])
 
@@ -234,6 +235,25 @@ export default function ProfilePage() {
   }
 
   const cities = user?.cities || []
+
+  // Определяем тип устройства для инструкций
+  const isAndroid = typeof window !== 'undefined' && /Android/i.test(navigator.userAgent)
+
+  // Функция для обработки клика по переключателю push
+  const handlePushToggle = async () => {
+    // Если пытаемся включить push не в PWA режиме (iOS или Android)
+    if (!pushSubscribed && !pushSupported && (isIOSPWARequired || (!isIOS && isAndroid && !window.matchMedia('(display-mode: standalone)').matches))) {
+      setShowPWAInstructions(true)
+      return
+    }
+
+    // Обычная логика включения/выключения
+    if (pushSubscribed) {
+      await unsubscribePush()
+    } else {
+      await subscribePush()
+    }
+  }
 
   // Загрузка настроек push-уведомлений
   useEffect(() => {
@@ -444,7 +464,7 @@ export default function ProfilePage() {
                     <>
                       {/* iOS-style переключатель */}
                       <button
-                        onClick={pushSubscribed ? unsubscribePush : subscribePush}
+                        onClick={handlePushToggle}
                         disabled={isSubscribing || isUnsubscribing}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 ${
                           pushSubscribed 
@@ -749,6 +769,179 @@ export default function ProfilePage() {
 
         </div>
       </div>
+
+      {/* Модальное окно с инструкциями по установке PWA */}
+      {showPWAInstructions && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className={`max-w-md w-full rounded-2xl p-6 ${isDark ? 'bg-[#1e2530]' : 'bg-white'}`}>
+            {/* Заголовок */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${isDark ? 'bg-teal-900/40' : 'bg-teal-100'}`}>
+                  <Smartphone className={`h-5 w-5 ${isDark ? 'text-teal-400' : 'text-teal-600'}`} />
+                </div>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Установите приложение
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowPWAInstructions(false)}
+                className={`p-1 rounded-full transition-colors ${isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Описание */}
+            <p className={`text-sm mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              Для получения push-уведомлений необходимо установить приложение на {isIOS ? 'домашний экран' : 'главный экран'}:
+            </p>
+
+            {/* Инструкции */}
+            <div className="space-y-4">
+              {isIOS ? (
+                <>
+                  {/* iOS Шаг 1 */}
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${isDark ? 'bg-teal-900/40 text-teal-400' : 'bg-teal-100 text-teal-600'}`}>
+                      1
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Нажмите кнопку "Поделиться"
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Share className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Внизу экрана в Safari
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* iOS Шаг 2 */}
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${isDark ? 'bg-teal-900/40 text-teal-400' : 'bg-teal-100 text-teal-600'}`}>
+                      2
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Выберите "На экран Домой"
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Plus className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          В меню поделиться
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* iOS Шаг 3 */}
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${isDark ? 'bg-teal-900/40 text-teal-400' : 'bg-teal-100 text-teal-600'}`}>
+                      3
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Нажмите "Добавить"
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Home className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Приложение появится на домашнем экране
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Android Шаг 1 */}
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${isDark ? 'bg-teal-900/40 text-teal-400' : 'bg-teal-100 text-teal-600'}`}>
+                      1
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Нажмите меню браузера
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Settings className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Три точки в правом верхнем углу
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Android Шаг 2 */}
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${isDark ? 'bg-teal-900/40 text-teal-400' : 'bg-teal-100 text-teal-600'}`}>
+                      2
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Выберите "Установить приложение"
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Plus className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Или "Добавить на главный экран"
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Android Шаг 3 */}
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${isDark ? 'bg-teal-900/40 text-teal-400' : 'bg-teal-100 text-teal-600'}`}>
+                      3
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Подтвердите установку
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Home className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Приложение появится на главном экране
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Примечание */}
+            <div className={`mt-6 p-3 rounded-lg ${isDark ? 'bg-yellow-900/20 border border-yellow-800' : 'bg-yellow-50 border border-yellow-200'}`}>
+              <p className={`text-xs ${isDark ? 'text-yellow-400' : 'text-yellow-700'}`}>
+                💡 После установки откройте приложение с домашнего экрана и включите уведомления в настройках профиля
+              </p>
+            </div>
+
+            {/* Кнопки */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowPWAInstructions(false)}
+                className={`flex-1 py-2 px-4 rounded-lg transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              >
+                Понятно
+              </button>
+              <button
+                onClick={() => {
+                  setShowPWAInstructions(false)
+                  // Можно добавить логику для показа системного диалога установки PWA
+                }}
+                className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+              >
+                Установить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
