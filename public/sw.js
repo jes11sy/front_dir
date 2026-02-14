@@ -6,9 +6,14 @@ const CACHE_NAME = 'director-cache-v1';
 // Функция проверки настроек уведомлений
 async function checkNotificationSettings(data) {
   try {
+    console.log('[SW Director] Checking notification settings for:', data);
+    
     // Получаем настройки из localStorage (через IndexedDB в SW)
     const disabledCitiesStr = await getFromIndexedDB('director-push-disabled-cities');
     const disabledTypesStr = await getFromIndexedDB('director-push-disabled-types');
+    
+    console.log('[SW Director] Disabled cities:', disabledCitiesStr);
+    console.log('[SW Director] Disabled types:', disabledTypesStr);
     
     const disabledCities = disabledCitiesStr ? JSON.parse(disabledCitiesStr) : [];
     const disabledTypes = disabledTypesStr ? JSON.parse(disabledTypesStr) : [];
@@ -25,6 +30,7 @@ async function checkNotificationSettings(data) {
       return false;
     }
     
+    console.log('[SW Director] Notification allowed');
     return true;
   } catch (error) {
     console.warn('[SW Director] Error checking notification settings:', error);
