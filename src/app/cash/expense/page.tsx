@@ -6,7 +6,7 @@ import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 import { useMultipleFileUpload } from '@/hooks/useMultipleFileUpload'
-import { X, Download, UploadCloud } from 'lucide-react'
+import { X, Download, ArrowUpFromLine } from 'lucide-react'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 
@@ -636,89 +636,88 @@ function ExpenseContent() {
 
               {/* Чеки (обязательно, множественная загрузка) */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Чек <span className="text-red-500">*</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Чек <span className="text-red-500">*</span>
+                  </label>
                   {receiptFiles.length > 0 && (
-                    <span className={`font-normal ml-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>({receiptFiles.length} файл(ов))</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-500'}`}>
+                      {receiptFiles.length}
+                    </span>
                   )}
-                </label>
-                
+                </div>
+
                 {receiptError && (
-                  <div className={`mb-2 p-2 rounded-lg text-sm ${isDark ? 'bg-red-900/30 border border-red-700 text-red-400' : 'bg-red-50 border border-red-200 text-red-600'}`}>
-                    {receiptError}
-                  </div>
+                  <div className="mb-2 text-xs text-red-500">{receiptError}</div>
                 )}
-                
+
                 <div
-                  className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
-                    dragOver
-                      ? isDark ? 'border-teal-500 bg-teal-900/20' : 'border-teal-400 bg-teal-50'
-                      : receiptFiles.length > 0
-                        ? isDark ? 'border-green-600 bg-green-900/20' : 'border-green-400 bg-green-50'
-                        : receiptError
-                          ? isDark ? 'border-red-600 bg-red-900/20' : 'border-red-400 bg-red-50'
-                          : isDark ? 'border-gray-600 bg-[#3a4451]' : 'border-gray-300 bg-gray-50'
-                  }`}
+                  className={`relative border border-dashed rounded-lg transition-colors ${
+                    dragOver ? 'border-blue-400' : receiptError ? 'border-red-400' : isDark ? 'border-gray-600' : 'border-gray-300'
+                  } ${receiptFiles.length > 0 ? 'p-3' : 'p-6'}`}
                   onDragOver={handleReceiptDragOver}
                   onDragLeave={handleReceiptDragLeave}
                   onDrop={handleReceiptDrop}
                 >
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    multiple
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    disabled={!canAddMoreReceipts}
-                    onChange={handleReceiptInputChange}
-                  />
+                  {receiptFiles.length === 0 && (
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      multiple
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={!canAddMoreReceipts}
+                      onChange={handleReceiptInputChange}
+                    />
+                  )}
 
                   {receiptFiles.length > 0 ? (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-3 gap-2">
-                        {receiptFiles.map((fileWithPreview) => (
-                          <div key={fileWithPreview.id} className="relative group">
-                            {fileWithPreview.file?.type.startsWith('image/') ? (
-                              <img
-                                src={fileWithPreview.preview}
-                                alt={fileWithPreview.file?.name || 'Чек'}
-                                className="w-full h-16 object-cover rounded-lg shadow-sm"
-                              />
-                            ) : (
-                              <div className={`w-full h-16 rounded-lg flex items-center justify-center ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                                <svg className={`w-6 h-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                            )}
+                    <div className="grid grid-cols-3 gap-2">
+                      {receiptFiles.map((fileWithPreview) => (
+                        <div key={fileWithPreview.id} className="relative group aspect-square">
+                          {fileWithPreview.file?.type.startsWith('image/') ? (
+                            <img
+                              src={fileWithPreview.preview}
+                              alt={fileWithPreview.file?.name || 'Чек'}
+                              className="w-full h-full object-cover rounded cursor-pointer"
+                              onClick={() => window.open(fileWithPreview.preview, '_blank')}
+                            />
+                          ) : (
+                            <div className={`w-full h-full rounded flex items-center justify-center ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                              <ArrowUpFromLine className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded transition-all duration-150" />
+                          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                             <button
                               type="button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                removeReceiptFile(fileWithPreview.id)
-                              }}
-                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all shadow-lg opacity-0 group-hover:opacity-100"
+                              onClick={(e) => { e.stopPropagation(); removeReceiptFile(fileWithPreview.id); }}
+                              className="w-6 h-6 bg-white/90 hover:bg-white text-gray-700 rounded flex items-center justify-center transition-colors"
                               title="Удалить"
                             >
                               <X className="w-3 h-3" />
                             </button>
-                            <div className={`text-xs text-center mt-1 truncate px-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                              {fileWithPreview.file?.name || 'Файл'}
-                            </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                       {canAddMoreReceipts && (
-                        <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Нажмите или перетащите для добавления ещё файлов</p>
+                        <label className={`relative aspect-square border border-dashed rounded flex items-center justify-center cursor-pointer transition-colors ${isDark ? 'border-gray-600 hover:border-gray-400' : 'border-gray-300 hover:border-gray-400'}`}>
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            multiple
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            onChange={handleReceiptInputChange}
+                          />
+                          <ArrowUpFromLine className={`w-4 h-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                        </label>
                       )}
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center py-2">
-                      <UploadCloud className={`w-8 h-8 mb-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {dragOver ? 'Отпустите файлы' : 'Перетащите чеки сюда'}
-                      </p>
-                      <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>или нажмите для выбора (можно несколько)</p>
-                      <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>PDF, JPG, PNG (макс. 10 файлов)</p>
+                    <div className="flex flex-col items-center gap-2 text-center">
+                      <ArrowUpFromLine className={`w-5 h-5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {dragOver ? 'Отпустите файлы' : 'Перетащите чеки или нажмите для выбора'}
+                      </span>
                     </div>
                   )}
                 </div>

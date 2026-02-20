@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { ArrowUpFromLine, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
@@ -614,51 +615,56 @@ function IncomeContent() {
               {/* Чек */}
               <div>
                 <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Чек</label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    id="receipt-upload"
-                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                  />
-                  <label
-                    htmlFor="receipt-upload"
-                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${isDark ? 'border-gray-600 bg-[#3a4451] hover:bg-[#4a5461]' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'}`}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                  >
-                    {formData.receipt ? (
-                      <div className="flex flex-col items-center">
-                        {formData.receipt.type.startsWith('image/') ? (
-                          <img
-                            src={URL.createObjectURL(formData.receipt)}
-                            alt="Предпросмотр"
-                            className="w-16 h-16 object-cover rounded border border-gray-600 mb-2"
-                          />
-                        ) : (
-                          <div className={`w-16 h-16 rounded border flex items-center justify-center mb-2 ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-600 border-gray-500'}`}>
-                            <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        )}
-                        <p className="text-xs text-green-400 font-medium">{formData.receipt.name}</p>
-                        <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Нажмите для изменения</p>
+                <div
+                  className={`relative border border-dashed rounded-lg transition-colors ${
+                    isDark ? 'border-gray-600' : 'border-gray-300'
+                  } ${formData.receipt ? 'p-2' : 'p-6'}`}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                >
+                  {!formData.receipt && (
+                    <input
+                      type="file"
+                      onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                    />
+                  )}
+                  {formData.receipt ? (
+                    <div className="relative group">
+                      {formData.receipt.type.startsWith('image/') ? (
+                        <img
+                          src={URL.createObjectURL(formData.receipt)}
+                          alt="Предпросмотр"
+                          className="w-full max-h-40 object-contain rounded cursor-pointer"
+                          onClick={() => window.open(URL.createObjectURL(formData.receipt!), '_blank')}
+                        />
+                      ) : (
+                        <div className={`w-full h-20 rounded flex items-center justify-center gap-2 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                          <ArrowUpFromLine className="w-4 h-4 text-gray-400" />
+                          <span className={`text-sm truncate max-w-[200px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{formData.receipt.name}</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded transition-all duration-150" />
+                      <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}
+                          className="w-6 h-6 bg-white/90 hover:bg-white text-gray-700 rounded flex items-center justify-center transition-colors"
+                          title="Удалить"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center">
-                        <svg className={`w-8 h-8 mb-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        <p className={`text-sm text-center ${isDark ? 'text-gray-400' : 'text-gray-400'}`}>
-                          <span className="font-medium text-teal-500">Перетащите файл сюда</span>
-                        </p>
-                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>или нажмите для выбора</p>
-                        <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>PDF, JPG, PNG</p>
-                      </div>
-                    )}
-                  </label>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-center">
+                      <ArrowUpFromLine className={`w-5 h-5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Перетащите чек или нажмите для выбора
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

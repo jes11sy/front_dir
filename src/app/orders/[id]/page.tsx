@@ -331,7 +331,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
   if (loading) {
     return (
-      <div className={`flex items-center justify-center py-12 min-h-screen ${isDark ? 'bg-[#1e2530]' : 'bg-[#daece2]'}`}>
+      <div className={`flex items-center justify-center py-12 min-h-screen ${isDark ? 'bg-[#1e2530]' : 'bg-gray-50'}`}>
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
           <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Загрузка заказа...</span>
@@ -342,7 +342,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
   if (error || !order) {
     return (
-      <div className={`min-h-screen p-4 ${isDark ? 'bg-[#1e2530]' : 'bg-[#daece2]'}`}>
+      <div className={`min-h-screen p-4 ${isDark ? 'bg-[#1e2530]' : 'bg-gray-50'}`}>
         <div className={`rounded-xl p-4 ${isDark ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
           <p className={isDark ? 'text-red-400 text-sm' : 'text-red-600 text-sm'}>{error instanceof Error ? error.message : error || 'Заказ не найден'}</p>
         </div>
@@ -352,7 +352,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className={`space-y-4 min-h-screen -m-4 sm:-m-6 p-4 sm:p-6 transition-colors duration-300 ${
-      isDark ? 'bg-[#1e2530]' : 'bg-[#daece2]'
+      isDark ? 'bg-[#1e2530]' : 'bg-gray-50'
     }`}>
       {/* Шапка заказа */}
       <div className={`rounded-b-xl shadow-sm ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
