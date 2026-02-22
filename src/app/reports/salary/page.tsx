@@ -22,9 +22,6 @@ function getSunday(date: Date) {
   return d.toISOString().split('T')[0]
 }
 
-function calcSalary(reports: CityReport[]) {
-  return reports.reduce((s, r) => s + (r.orders?.totalClean ?? 0) * RATE, 0)
-}
 
 function SalaryReportContent() {
   const { theme } = useDesignStore()
@@ -47,11 +44,6 @@ function SalaryReportContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cityReports, setCityReports] = useState<CityReport[]>([])
-
-  // Блоки статистики
-  const [prevWeekSalary, setPrevWeekSalary] = useState<number | null>(null)
-  const [curWeekSalary, setCurWeekSalary] = useState<number | null>(null)
-  const [curMonthSalary, setCurMonthSalary] = useState<number | null>(null)
 
   // История выплат
   const [history, setHistory] = useState<CashTransaction[]>([])
@@ -142,34 +134,6 @@ function SalaryReportContent() {
     }
   }
 
-  const loadStatBlocks = async () => {
-    const now = new Date()
-
-    // Прошлая неделя
-    const prevMon = new Date(now)
-    prevMon.setDate(now.getDate() - 7)
-    const prevWeekStart = getMonday(prevMon)
-    const prevWeekEnd = getSunday(prevMon)
-
-    // Текущая неделя
-    const curWeekStart = getMonday(now)
-    const curWeekEnd = getSunday(now)
-
-    // Текущий месяц
-    const curMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-    const curMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
-
-    const [prevWeek, curWeek, curMonth] = await Promise.allSettled([
-      apiClient.getCityReport({ startDate: prevWeekStart, endDate: prevWeekEnd }),
-      apiClient.getCityReport({ startDate: curWeekStart, endDate: curWeekEnd }),
-      apiClient.getCityReport({ startDate: curMonthStart, endDate: curMonthEnd }),
-    ])
-
-    setPrevWeekSalary(prevWeek.status === 'fulfilled' ? calcSalary(prevWeek.value) : 0)
-    setCurWeekSalary(curWeek.status === 'fulfilled' ? calcSalary(curWeek.value) : 0)
-    setCurMonthSalary(curMonth.status === 'fulfilled' ? calcSalary(curMonth.value) : 0)
-  }
-
   const loadHistory = async () => {
     try {
       setHistoryLoading(true)
@@ -189,7 +153,6 @@ function SalaryReportContent() {
   useEffect(() => {
     const now = new Date()
     loadReport({ startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0] })
-    loadStatBlocks()
     loadHistory()
   }, [])
 
@@ -210,33 +173,6 @@ function SalaryReportContent() {
 
   return (
     <div>
-      {/* Блок начислений */}
-      <div className={`rounded-xl border mb-8 overflow-hidden ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
-        <div className={`px-5 py-3 border-b flex items-center gap-2 ${isDark ? 'border-gray-700 bg-[#3a4451]' : 'border-gray-100 bg-gray-50'}`}>
-          <svg className={`w-4 h-4 ${isDark ? 'text-teal-400' : 'text-teal-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Начисления</span>
-        </div>
-        <div className={`grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
-          {[
-            { label: 'Начислено за пред. неделю', value: prevWeekSalary },
-            { label: 'Начислено за тек. неделю', value: curWeekSalary },
-            { label: 'Начислено за месяц', value: curMonthSalary },
-          ].map(({ label, value }) => (
-            <div key={label} className="px-5 py-5">
-              <div className={`text-xs font-medium mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{label}</div>
-              {value === null ? (
-                <div className="h-8 w-28 rounded-lg animate-pulse bg-gray-300/20" />
-              ) : (
-                <div className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {formatNumber(value)} ₽
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Состояние загрузки */}
       {loading && (
@@ -404,8 +340,8 @@ function SalaryReportContent() {
                     <tr key={row.city} className={`border-b transition-colors ${isDark ? 'border-gray-700 hover:bg-[#3a4451]' : 'hover:bg-teal-50'}`}>
                       <td className={`py-3 px-4 font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{row.city}</td>
                       <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{row.name}</td>
-                      <td className={`py-3 px-4 font-semibold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>{formatNumber(row.turnover)} ₽</td>
-                      <td className={`py-3 px-4 font-semibold ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>{formatNumber(row.salary)} ₽</td>
+                      <td className={`py-3 px-4 font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatNumber(row.turnover)} ₽</td>
+                      <td className={`py-3 px-4 font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatNumber(row.salary)} ₽</td>
                     </tr>
                   ))}
                 </tbody>
@@ -455,19 +391,11 @@ function SalaryReportContent() {
                           <td className={`py-3 px-4 whitespace-nowrap ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{formatDate(tx.dateCreate || tx.createdAt)}</td>
                           <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{tx.city || '—'}</td>
                           <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{tx.note || '—'}</td>
-                          <td className={`py-3 px-4 font-semibold ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>{formatNumber(tx.amount)} ₽</td>
+                          <td className={`py-3 px-4 font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatNumber(tx.amount)} ₽</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
-              </div>
-            )}
-
-            {!historyLoading && history.length > 0 && (
-              <div className={`mt-3 flex justify-end`}>
-                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold ${isDark ? 'bg-[#3a4451] text-amber-400' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                  Итого выплачено:&nbsp;{formatNumber(history.reduce((s, t) => s + t.amount, 0))} ₽
                 </div>
               </div>
             )}
