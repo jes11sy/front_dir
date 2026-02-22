@@ -210,27 +210,32 @@ function SalaryReportContent() {
 
   return (
     <div>
-      {/* Блоки статистики */}
-      <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6`}>
-        {[
-          { label: 'ЗП за прошлую неделю', value: prevWeekSalary },
-          { label: 'ЗП за текущую неделю', value: curWeekSalary },
-          { label: 'ЗП за месяц', value: curMonthSalary },
-        ].map(({ label, value }) => (
-          <div
-            key={label}
-            className={`rounded-xl border p-4 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}
-          >
-            <div className={`text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{label}</div>
-            {value === null ? (
-              <div className="h-7 w-24 rounded animate-pulse bg-gray-300/30" />
-            ) : (
-              <div className={`text-xl font-bold ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
-                {formatNumber(value)} ₽
-              </div>
-            )}
-          </div>
-        ))}
+      {/* Блок начислений */}
+      <div className={`rounded-xl border mb-8 overflow-hidden ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`px-5 py-3 border-b flex items-center gap-2 ${isDark ? 'border-gray-700 bg-[#3a4451]' : 'border-gray-100 bg-gray-50'}`}>
+          <svg className={`w-4 h-4 ${isDark ? 'text-teal-400' : 'text-teal-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Начисления</span>
+        </div>
+        <div className={`grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
+          {[
+            { label: 'Начислено за пред. неделю', value: prevWeekSalary },
+            { label: 'Начислено за тек. неделю', value: curWeekSalary },
+            { label: 'Начислено за месяц', value: curMonthSalary },
+          ].map(({ label, value }) => (
+            <div key={label} className="px-5 py-5">
+              <div className={`text-xs font-medium mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{label}</div>
+              {value === null ? (
+                <div className="h-8 w-28 rounded-lg animate-pulse bg-gray-300/20" />
+              ) : (
+                <div className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {formatNumber(value)} ₽
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Состояние загрузки */}
@@ -416,9 +421,17 @@ function SalaryReportContent() {
 
           {/* История выплат */}
           <div className="mt-10">
-            <h2 className={`text-base font-semibold mb-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
-              История списаний зарплаты
-            </h2>
+            <div className={`border-t mb-8 ${isDark ? 'border-gray-700' : 'border-gray-200'}`} />
+            <div className={`flex items-center gap-3 mb-4`}>
+              <h2 className={`text-base font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                История списаний зарплаты
+              </h2>
+              {!historyLoading && history.length > 0 && (
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${isDark ? 'bg-[#3a4451] text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                  {history.length}
+                </span>
+              )}
+            </div>
 
             {historyLoading ? (
               <div className="text-center py-6">
@@ -447,6 +460,14 @@ function SalaryReportContent() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {!historyLoading && history.length > 0 && (
+              <div className={`mt-3 flex justify-end`}>
+                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold ${isDark ? 'bg-[#3a4451] text-amber-400' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                  Итого выплачено:&nbsp;{formatNumber(history.reduce((s, t) => s + t.amount, 0))} ₽
                 </div>
               </div>
             )}
