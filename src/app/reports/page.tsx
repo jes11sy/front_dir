@@ -7,6 +7,7 @@ import { useDesignStore } from '@/store/design.store'
 const tabs = [
   { name: 'По городу', href: '/reports/city' },
   { name: 'По мастерам', href: '/reports/masters' },
+  { name: 'Зарплата', href: '/reports/salary' },
 ]
 
 export default function ReportsPage() {
