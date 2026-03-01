@@ -25,6 +25,16 @@ jobs:
         dockerfile: Dockerfile
         failure-threshold: warning
 
+    - name: Set build environment
+      run: |
+        if [ "${{ github.ref_name }}" = "dev" ]; then
+          echo "BUILD_API_URL=${{ secrets.DEV_NEXT_PUBLIC_API_URL }}" >> $GITHUB_ENV
+          echo "BUILD_VAPID_KEY=${{ secrets.DEV_NEXT_PUBLIC_VAPID_PUBLIC_KEY }}" >> $GITHUB_ENV
+        else
+          echo "BUILD_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> $GITHUB_ENV
+          echo "BUILD_VAPID_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}" >> $GITHUB_ENV
+        fi
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -58,7 +68,7 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
-          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-          NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          NEXT_PUBLIC_API_URL=${{ env.BUILD_API_URL }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ env.BUILD_VAPID_KEY }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
