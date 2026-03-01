@@ -455,7 +455,7 @@ function HistoryContent() {
                             {Number(item.amount).toLocaleString()} ₽
                           </td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.dateCreate)}</td>
+                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.createdAt)}</td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.nameCreate}</td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
                             {item.receiptDoc ? (

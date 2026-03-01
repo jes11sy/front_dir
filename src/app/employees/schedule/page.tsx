@@ -8,8 +8,9 @@ import { useDesignStore } from '@/store/design.store'
 interface MasterWithSchedule {
   id: number
   name: string
-  statusWork: string
-  cities: string[]
+  status: string
+  cityIds: number[]
+  cities?: { id: number; name: string }[]
   schedule: { date: string; isWorkDay: boolean }[]
 }
 

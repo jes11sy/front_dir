@@ -131,8 +131,8 @@ function AddEmployeeContent() {
         note: formData.notes || undefined,
         tgId: formData.telegramId || undefined,
         chatId: formData.chatId || undefined,
-        passportDoc: undefined,
-        contractDoc: undefined,
+        passport: undefined,
+        contract: undefined,
       }
       
       await apiClient.createEmployee(employeeData)

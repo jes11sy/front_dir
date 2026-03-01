@@ -23,17 +23,17 @@ export const OrderInfoTabContent: React.FC<OrderInfoTabContentProps> = ({ order 
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">РК</label>
-            <p className="text-gray-800">{order.rk}</p>
+            <p className="text-gray-800">{order.rk?.name || '-'}</p>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Город</label>
-            <p className="text-gray-800">{order.city}</p>
+            <p className="text-gray-800">{order.city?.name || '-'}</p>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Имя мастера</label>
-            <p className="text-gray-800">{order.avitoName || '-'}</p>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Авито</label>
+            <p className="text-gray-800">{order.avito?.name || '-'}</p>
           </div>
           
           <div>
@@ -67,13 +67,15 @@ export const OrderInfoTabContent: React.FC<OrderInfoTabContentProps> = ({ order 
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Направление</label>
-            <p className="text-gray-800">{order.typeEquipment}</p>
+            <p className="text-gray-800">{order.equipmentType?.name || '-'}</p>
           </div>
           
+          {order.comment && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Проблема</label>
-            <p className="text-gray-800">{order.problem}</p>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
+            <p className="text-gray-800">{order.comment}</p>
           </div>
+          )}
         </div>
       </div>
     </div>

@@ -252,7 +252,7 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
               </div>
               <div className="flex">
                 <span className="text-gray-600 font-medium min-w-[120px]">Направление:</span>
-                <span className="text-gray-800">{order.typeEquipment || 'Не указано'}</span>
+                <span className="text-gray-800">{order.equipmentType?.name || 'Не указано'}</span>
               </div>
               <div className="flex">
                 <span className="text-gray-600 font-medium min-w-[120px]">Аккаунт авито:</span>

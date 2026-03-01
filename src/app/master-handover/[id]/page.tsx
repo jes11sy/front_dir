@@ -206,7 +206,7 @@ function MasterHandoverDetailContent() {
                     {order.address || '—'}
                   </td>
                   <td className={`py-3 px-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {order.problem || '—'}
+                    {order.comment || '—'}
                   </td>
                   <td className={`py-3 px-4 font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                     {order.result?.toLocaleString() || 0} ₽

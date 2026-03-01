@@ -22,7 +22,7 @@ export default function MastersPage() {
   // Фильтры
   const [showFilters, setShowFilters] = useState(false)
   const [searchName, setSearchName] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'working' | 'fired' | 'all'>('working') // По умолчанию только работающие
+  const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'all'>('active') // По умолчанию только работающие
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -36,7 +36,7 @@ export default function MastersPage() {
         const safeData = Array.isArray(data) ? data : []
         const filteredEmployees = safeData.filter(employee => {
           if (directorCities.length === 0) return true
-          return employee.cities && Array.isArray(employee.cities) && employee.cities.some(city => directorCities.includes(city))
+          return employee.cities && Array.isArray(employee.cities) && employee.cities.some((city: { id: number; name: string }) => directorCities.includes(city.name))
         })
         
         setEmployees(filteredEmployees)
@@ -50,18 +50,8 @@ export default function MastersPage() {
     fetchEmployees()
   }, [user])
 
-  // Проверка статуса работы
-  const isWorking = (status: string | undefined) => {
-    if (!status) return false
-    const statusLower = status.toLowerCase()
-    return statusLower.includes('работает') || statusLower.includes('работающий') || statusLower === 'active'
-  }
-
-  const isFired = (status: string | undefined) => {
-    if (!status) return false
-    const statusLower = status.toLowerCase()
-    return statusLower.includes('уволен') || statusLower.includes('уволенный') || statusLower === 'fired' || statusLower === 'inactive'
-  }
+  const isWorking = (status: string | undefined) => status === 'active'
+  const isFired = (status: string | undefined) => status === 'inactive'
 
   // Фильтрация и сортировка данных
   const filteredAndSortedData = useMemo(() => {
@@ -69,8 +59,8 @@ export default function MastersPage() {
     
     // Фильтруем по статусу
     let filtered = safeEmployees.filter(employee => {
-      if (statusFilter === 'working') return isWorking(employee.statusWork)
-      if (statusFilter === 'fired') return isFired(employee.statusWork)
+      if (statusFilter === 'active') return isWorking(employee.status)
+      if (statusFilter === 'inactive') return isFired(employee.status)
       return true // 'all'
     })
     
@@ -84,14 +74,14 @@ export default function MastersPage() {
     
     // Сортируем
     return filtered.sort((a, b) => {
-      const aIsWorking = isWorking(a.statusWork)
-      const bIsWorking = isWorking(b.statusWork)
+      const aIsWorking = isWorking(a.status)
+      const bIsWorking = isWorking(b.status)
       
       if (aIsWorking && !bIsWorking) return -1
       if (!aIsWorking && bIsWorking) return 1
       
-      const aDate = new Date(a.dateCreate || 0).getTime()
-      const bDate = new Date(b.dateCreate || 0).getTime()
+      const aDate = new Date(a.createdAt || 0).getTime()
+      const bDate = new Date(b.createdAt || 0).getTime()
       return bDate - aDate
     })
   }, [employees, statusFilter, searchName])
@@ -107,7 +97,7 @@ export default function MastersPage() {
   }, [searchName, statusFilter])
 
   // Проверка есть ли активные фильтры (кроме дефолтного)
-  const hasActiveFilters = searchName.trim() !== '' || statusFilter !== 'working'
+  const hasActiveFilters = searchName.trim() !== '' || statusFilter !== 'active'
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Не указана'
@@ -201,15 +191,15 @@ export default function MastersPage() {
               <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Статус</label>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'working' | 'fired' | 'all')}
+                onChange={(e) => setStatusFilter(e.target.value as 'active' | 'inactive' | 'all')}
                 className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d5c4b] focus:border-transparent transition-all ${
                   isDark 
                     ? 'bg-[#1e2530] border-[#0d5c4b]/30 text-gray-200'
                     : 'bg-white border-gray-200 text-gray-800'
                 }`}
               >
-                <option value="working">Работает</option>
-                <option value="fired">Уволен</option>
+                <option value="active">Работает</option>
+                <option value="inactive">Уволен</option>
                 <option value="all">Все</option>
               </select>
             </div>
@@ -218,7 +208,7 @@ export default function MastersPage() {
             <button
               onClick={() => {
                 setSearchName('')
-                setStatusFilter('working')
+                setStatusFilter('active')
               }}
               className={`px-4 py-2 rounded-lg text-sm transition-colors font-medium ${
                 isDark 
@@ -260,19 +250,17 @@ export default function MastersPage() {
             ) : (
               currentData.map((item) => {
                 const getStatusColor = (status: string | undefined) => {
-                  if (!status) return '#6b7280'
-                  const statusLower = status.toLowerCase()
-                  if (statusLower.includes('работает') || statusLower.includes('работающий') || statusLower === 'active') {
-                    return '#0d5c4b'
-                  }
-                  if (statusLower.includes('уволен') || statusLower.includes('уволенный') || statusLower === 'fired' || statusLower === 'inactive') {
-                    return '#6b7280'
-                  }
+                  if (status === 'active') return '#0d5c4b'
                   return '#6b7280'
                 }
+                const getStatusLabel = (status: string | undefined) => {
+                  if (status === 'active') return 'Работает'
+                  if (status === 'inactive') return 'Уволен'
+                  return 'Не указан'
+                }
                 
-                const cities = Array.isArray(item.cities) ? item.cities : []
-                const statusWork = item.statusWork || 'Не указан'
+                const cities = Array.isArray(item.cities) ? item.cities.map((c: { id: number; name: string }) => c.name) : []
+                const statusWork = item.status
                 
                 return (
                   <tr 
@@ -289,11 +277,11 @@ export default function MastersPage() {
                     <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{item.login || '-'}</td>
                     <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{cities.length > 0 ? cities.join(', ') : '-'}</td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-1 rounded-full text-xs font-medium text-white" style={{backgroundColor: getStatusColor(item.statusWork)}}>
-                        {statusWork}
+                      <span className="px-2 py-1 rounded-full text-xs font-medium text-white" style={{backgroundColor: getStatusColor(statusWork)}}>
+                        {getStatusLabel(statusWork)}
                       </span>
                     </td>
-                    <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{formatDate(item.dateCreate)}</td>
+                    <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{formatDate(item.createdAt)}</td>
                   </tr>
                 )
               })

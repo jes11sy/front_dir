@@ -56,7 +56,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   // Функция для проверки, заблокированы ли поля для редактирования
   const isFieldsDisabled = (): boolean => {
     // Блокируем поля только если статус в БД является финальным (не выбранный, а сохраненный)
-    return !!(order && ['Готово', 'Отказ', 'Незаказ'].includes(order.statusOrder || ''))
+    return !!(order && ['Готово', 'Отказ', 'Незаказ'].includes(order.status?.name || ''))
   }
 
   // Функция для проверки, нужно ли скрывать поля итога, расхода, документа и чека
@@ -116,7 +116,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
   useEffect(() => {
     if (order) {
       const loadDocuments = async () => {
-        setOrderStatus(order.statusOrder || '')
+        setOrderStatus(order.status?.name || '')
         setResult(order.result?.toString() || '')
         setExpenditure(order.expenditure?.toString() || '')
         setClean(order.clean?.toString() || '')
@@ -242,8 +242,8 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
           .map(f => f.preview)
       }
       
-      const updateData: Partial<Order> = {
-        statusOrder: orderStatus,
+      const updateData: Partial<Order> & { statusName?: string } = {
+        statusName: orderStatus,
         masterId: selectedMaster ? Number(selectedMaster) : undefined,
         result: result && result.trim() !== '' ? Number(result) : undefined,
         expenditure: expenditure && expenditure.trim() !== '' ? Number(expenditure) : undefined,
@@ -446,15 +446,15 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
                   </div>
                   <div className="p-4">
                     <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>РК</div>
-                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.rk || '-'}</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.rk?.name || '-'}</div>
                   </div>
                   <div className="p-4">
                     <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Источник</div>
-                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.avitoName || '-'}</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.avito?.name || '-'}</div>
                   </div>
                   <div className="p-4">
                     <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Направление</div>
-                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.typeEquipment || '-'}</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.equipmentType?.name || '-'}</div>
                   </div>
                 </div>
               </div>
@@ -467,7 +467,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
                 <div className={`grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x ${isDark ? 'divide-gray-700' : 'divide-gray-100'}`}>
                   <div className="p-4">
                     <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Город</div>
-                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.city || '-'}</div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.city?.name || '-'}</div>
                   </div>
                   <div className="p-4">
                     <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Адрес</div>
@@ -499,8 +499,8 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
                     </div>
                   </div>
                   <div className="p-4">
-                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Проблема</div>
-                    <div className={`text-sm ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.problem || '-'}</div>
+                    <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Комментарий</div>
+                    <div className={`text-sm ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.comment || '-'}</div>
                   </div>
                 </div>
               </div>

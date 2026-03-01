@@ -41,14 +41,14 @@ function OrdersContent() {
   const [showFilters, setShowFilters] = useState(() => {
     // Показываем фильтры если есть активные фильтры в URL
     return !!(searchParams.get('status') || searchParams.get('city') || searchParams.get('master') || 
-              searchParams.get('rk') || searchParams.get('typeEquipment') || 
+              searchParams.get('rkId') || searchParams.get('equipmentTypeId') || 
               searchParams.get('dateFrom') || searchParams.get('dateTo') ||
               searchParams.get('searchId') || searchParams.get('searchPhone') || searchParams.get('searchAddress'))
   })
   
   // Новые фильтры
-  const [rkFilter, setRkFilter] = useState(() => searchParams.get('rk') || '')
-  const [typeEquipmentFilter, setTypeEquipmentFilter] = useState(() => searchParams.get('typeEquipment') || '')
+  const [rkFilter, setRkFilter] = useState(() => searchParams.get('rkId') || '')
+  const [typeEquipmentFilter, setTypeEquipmentFilter] = useState(() => searchParams.get('equipmentTypeId') || '')
   const [dateType, setDateType] = useState<'create' | 'close' | 'meeting'>(() => {
     const dt = searchParams.get('dateType')
     return (dt === 'create' || dt === 'close' || dt === 'meeting') ? dt : 'create'
@@ -132,8 +132,8 @@ function OrdersContent() {
     if (statusFilter) params.set('status', statusFilter)
     if (cityFilter) params.set('city', cityFilter)
     if (masterFilter) params.set('master', masterFilter)
-    if (rkFilter) params.set('rk', rkFilter)
-    if (typeEquipmentFilter) params.set('typeEquipment', typeEquipmentFilter)
+    if (rkFilter) params.set('rkId', rkFilter)
+    if (typeEquipmentFilter) params.set('equipmentTypeId', typeEquipmentFilter)
     if (dateType !== 'create') params.set('dateType', dateType)
     if (dateFrom) params.set('dateFrom', dateFrom)
     if (dateTo) params.set('dateTo', dateTo)
@@ -204,8 +204,8 @@ function OrdersContent() {
         searchPhone: searchPhone?.trim() || undefined,
         searchAddress: searchAddress?.trim() || undefined,
         master: masterFilter?.trim() || undefined,
-        rk: rkFilter?.trim() || undefined,
-        typeEquipment: typeEquipmentFilter?.trim() || undefined,
+        rkId: rkFilter?.trim() || undefined,
+        equipmentTypeId: typeEquipmentFilter?.trim() || undefined,
         dateType: (dateFrom?.trim() || dateTo?.trim()) ? dateType : undefined,
         dateFrom: dateFrom?.trim() || undefined,
         dateTo: dateTo?.trim() || undefined,
@@ -220,7 +220,7 @@ function OrdersContent() {
       const [statuses, mastersData, filterOptions] = await Promise.all([
         apiClient.getOrderStatuses().catch(() => ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ']),
         apiClient.getMasters().catch(() => []),
-        apiClient.getFilterOptions().catch(() => ({ rks: [], typeEquipments: [] }))
+        apiClient.getFilterOptions().catch(() => ({ rks: [], equipmentTypes: [], cities: [] }))
       ])
       
       // Повторная проверка актуальности
@@ -228,10 +228,8 @@ function OrdersContent() {
         return
       }
       
-      // Фильтруем мастеров только со статусом "работает"
       const masters = (Array.isArray(mastersData) ? mastersData : []).filter(master => {
-        const status = (master.statusWork || '').toLowerCase();
-        return status.includes('работает') || status.includes('работающий') || status === 'active';
+        return master.status === 'active';
       });
       
       // API может возвращать данные в разных форматах - обрабатываем оба
@@ -245,8 +243,8 @@ function OrdersContent() {
       setAllStatuses(Array.isArray(statuses) ? statuses : ['Ожидает', 'Принял', 'В пути', 'В работе', 'Готово', 'Отказ', 'Модерн', 'Незаказ'])
       setAllMasters(masters)
       
-      setAllRks(filterOptions.rks || [])
-      setAllTypeEquipments(filterOptions.typeEquipments || [])
+      setAllRks((filterOptions.rks || []).map((r: { id: number; name: string } | string) => typeof r === 'string' ? r : r.name))
+      setAllTypeEquipments((filterOptions.equipmentTypes || []).map((et: { id: number; name: string } | string) => typeof et === 'string' ? et : et.name))
       
       setPagination(responseData.data?.pagination || responseData.pagination || {
         page: 1,
@@ -912,18 +910,18 @@ function OrdersContent() {
                           {order.typeOrder}
                         </span>
                       </td>
-                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.rk}</td>
-                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.city}</td>
-                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.avitoName || '-'}</td>
+                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.rk?.name || '-'}</td>
+                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.city?.name || '-'}</td>
+                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.avito?.name || '-'}</td>
                       <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.phone}</td>
                       <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.clientName}</td>
                       <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.address}</td>
                       <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(order.dateMeeting)}</td>
-                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.typeEquipment}</td>
-                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.problem}</td>
+                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.equipmentType?.name || '-'}</td>
+                      <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.comment || '-'}</td>
                       <td className="py-2 px-2 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${getStatusStyle(order.statusOrder)}`}>
-                          {order.statusOrder}
+                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${getStatusStyle(order.status?.name || '')}`}>
+                          {order.status?.name || '-'}
                         </span>
                       </td>
                       <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.master?.name || '-'}</td>
@@ -977,17 +975,21 @@ function OrdersContent() {
                     {/* Клиент и город */}
                     <div className="flex items-center justify-between mb-1.5">
                       <span className={`font-medium text-sm ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{order.clientName || 'Без имени'}</span>
-                      <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{order.city}</span>
+                      <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{order.city?.name || '—'}</span>
                     </div>
                     
                     {/* Адрес */}
                     <p className={`text-xs mb-2 line-clamp-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{order.address || '—'}</p>
                     
-                    {/* Проблема */}
+                    {/* Тип техники и комментарий */}
                     <div className="flex items-start gap-1.5 mb-2">
-                      <span className={`text-xs shrink-0 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{order.typeEquipment}</span>
-                      <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>·</span>
-                      <span className={`text-xs line-clamp-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{order.problem || '—'}</span>
+                      <span className={`text-xs shrink-0 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{order.equipmentType?.name || '—'}</span>
+                      {order.comment && (
+                        <>
+                          <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>·</span>
+                          <span className={`text-xs line-clamp-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{order.comment}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                   
@@ -997,8 +999,8 @@ function OrdersContent() {
                   }`}>
                     <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{order.master?.name || 'Не назначен'}</span>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusStyle(order.statusOrder)}`}>
-                        {order.statusOrder}
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusStyle(order.status?.name || '')}`}>
+                        {order.status?.name || '-'}
                       </span>
                       {order.result && typeof order.result === 'number' && (
                         <span className={`font-bold text-sm ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>

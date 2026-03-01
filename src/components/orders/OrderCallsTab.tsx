@@ -15,15 +15,18 @@ import { RefreshCw } from 'lucide-react';
 interface OrderHistory {
   id: number;
   clientName: string;
-  city: string;
-  statusOrder: string;
+  cityId: number;
+  city?: { id: number; name: string };
+  statusId: number;
+  status?: { id: number; name: string; code: string };
   dateMeeting: string;
-  typeEquipment: string;
+  equipmentTypeId: number;
+  equipmentType?: { id: number; name: string };
   typeOrder: string;
-  problem: string;
+  comment?: string;
   createdAt: string;
-  rk: string;
-  avitoName: string;
+  rkId: number;
+  rk?: { id: number; name: string };
   address: string;
   result: number | null;
   master: { id: number; name: string } | null;
@@ -200,18 +203,21 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
     // Другие изменения
     if (metadata.changes) {
       const fieldLabels: Record<string, string> = {
-        statusOrder: 'Статус',
+        statusId: 'Статус',
         masterId: 'Мастер',
         address: 'Адрес',
         phone: 'Телефон',
         clientName: 'Клиент',
         dateMeeting: 'Дата встречи',
-        problem: 'Проблема',
+        comment: 'Комментарий',
         result: 'Итог',
         expenditure: 'Расход',
         clean: 'Чистыми',
         masterChange: 'Сдача мастера',
-        comment: 'Комментарий',
+        cityId: 'Город',
+        rkId: 'РК',
+        equipmentTypeId: 'Тип техники',
+        closingAt: 'Дата закрытия',
       };
 
       Object.entries(metadata.changes).forEach(([field, change]) => {
@@ -351,13 +357,13 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>#{historyOrder.id}</span>
                         <span className={`px-1.5 py-0.5 text-xs font-medium rounded ${
-                          historyOrder.statusOrder === 'Готово' ? 'bg-green-100 text-green-700' :
-                          historyOrder.statusOrder === 'Отказ' ? 'bg-red-100 text-red-700' :
-                          historyOrder.statusOrder === 'Незаказ' ? 'bg-gray-200 text-gray-600' :
-                          historyOrder.statusOrder === 'В работе' ? 'bg-blue-100 text-blue-700' :
+                          historyOrder.status?.code === 'done' ? 'bg-green-100 text-green-700' :
+                          historyOrder.status?.code === 'refused' ? 'bg-red-100 text-red-700' :
+                          historyOrder.status?.code === 'no_order' ? 'bg-gray-200 text-gray-600' :
+                          historyOrder.status?.code === 'in_progress' ? 'bg-blue-100 text-blue-700' :
                           'bg-amber-100 text-amber-700'
                         }`}>
-                          {historyOrder.statusOrder}
+                          {historyOrder.status?.name || '—'}
                         </span>
                         {historyOrder.result && historyOrder.result > 0 && (
                           <span className={`text-xs font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}>
@@ -368,13 +374,13 @@ export const OrderCallsTab: React.FC<OrderCallsTabProps> = ({
                       
                       <div className={`mt-1.5 text-xs space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                         <div className="flex flex-wrap gap-x-2">
-                          <span>{historyOrder.city}</span>
-                          {historyOrder.typeEquipment && (
-                            <span>• {historyOrder.typeEquipment}</span>
+                          <span>{historyOrder.city?.name || '—'}</span>
+                          {historyOrder.equipmentType && (
+                            <span>• {historyOrder.equipmentType.name}</span>
                           )}
                         </div>
-                        {historyOrder.problem && (
-                          <p className={`line-clamp-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{historyOrder.problem}</p>
+                        {historyOrder.comment && (
+                          <p className={`line-clamp-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{historyOrder.comment}</p>
                         )}
                         {historyOrder.master && (
                           <p className={isDark ? 'text-teal-400' : 'text-teal-600'}>Мастер: {historyOrder.master.name}</p>

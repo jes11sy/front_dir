@@ -28,25 +28,24 @@ const OrderCard = React.memo<OrderCardProps>(({ order, onClick }) => {
           {sanitizeString(order.clientName)}
         </h3>
         <span className={`px-2 py-1 rounded text-xs ${
-          order.statusOrder === 'completed' ? 'bg-green-500' :
-          order.statusOrder === 'in-progress' ? 'bg-yellow-500' :
+          order.status?.code === 'done' ? 'bg-green-500' :
+          order.status?.code === 'in_progress' ? 'bg-yellow-500' :
           'bg-gray-500'
         }`}>
-          {sanitizeString(order.statusOrder)}
+          {sanitizeString(order.status?.name || '')}
         </span>
       </div>
       
       <div className="text-gray-400 text-sm space-y-1">
         <p>Телефон: {sanitizePhone(order.phone)}</p>
-        <p>Город: {sanitizeString(order.city)}</p>
+        <p>Город: {sanitizeString(order.city?.name || '')}</p>
         {order.address && <p>Адрес: {sanitizeString(order.address)}</p>}
       </div>
     </div>
   )
 }, (prevProps, nextProps) => {
-  // Кастомная функция сравнения для оптимизации
   return prevProps.order.id === nextProps.order.id &&
-         prevProps.order.statusOrder === nextProps.order.statusOrder &&
+         prevProps.order.statusId === nextProps.order.statusId &&
          prevProps.onClick === nextProps.onClick
 })
 

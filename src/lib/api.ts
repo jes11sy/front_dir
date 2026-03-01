@@ -56,18 +56,20 @@ export interface LoginResponse {
 
 export interface Order {
   id: number
-  rk: string
-  city: string
-  avitoName?: string
+  rkId: number
+  rk?: { id: number; name: string }
+  cityId: number
+  city?: { id: number; name: string }
+  equipmentTypeId: number
+  equipmentType?: { id: number; name: string }
+  statusId: number
+  status?: { id: number; name: string; code: string }
   phone: string
   typeOrder: string
   clientName: string
   address: string
   dateMeeting: string
-  typeEquipment: string
-  problem: string
   callRecord?: string
-  statusOrder: string
   masterId?: number
   result?: number
   expenditure?: number
@@ -75,9 +77,9 @@ export interface Order {
   masterChange?: number
   bsoDoc?: string[] | null
   expenditureDoc?: string[] | null
-  operatorNameId: number
-  createDate: string
-  closingData?: string
+  operatorId: number
+  createdAt: string
+  closingAt?: string
   avitoChatId?: string
   callId?: string
   prepayment?: number
@@ -101,6 +103,7 @@ export interface Order {
     name: string
   }
   avito?: {
+    id: number
     name: string
   }
 }
@@ -126,15 +129,17 @@ export interface OrdersStats {
 export interface Master {
   id: number
   name: string
-  cities: string[]
-  statusWork: string
+  cityIds: number[]
+  cities?: { id: number; name: string }[]
+  status: string
 }
 
 export interface Call {
   id: number
-  rk: string
-  city: string
-  avitoName?: string
+  rkId?: number
+  rk?: { id: number; name: string }
+  cityId?: number
+  city?: { id: number; name: string }
   phoneClient: string
   phoneAts: string
   createdAt: string
@@ -156,15 +161,15 @@ export interface Employee {
   login?: string
   password?: string
   hasPassword?: boolean
-  cities: string[]
-  statusWork: string
-  dateCreate: string
+  cityIds: number[]
+  cities?: { id: number; name: string }[]
+  status: 'active' | 'inactive'
+  createdAt: string
   note?: string
   tgId?: string
   chatId?: string
-  passportDoc?: string
-  contractDoc?: string
-  createdAt: string
+  passport?: string
+  contract?: string
   updatedAt: string
 }
 
@@ -172,27 +177,27 @@ export interface CreateEmployeeDto {
   name: string
   login?: string
   password?: string
-  cities?: string[]
-  statusWork?: string
+  cityIds?: number[]
+  status?: 'active' | 'inactive'
   note?: string
   tgId?: string
   chatId?: string
-  passportDoc?: string
-  contractDoc?: string
+  passport?: string
+  contract?: string
 }
 
 export interface CashTransaction {
   id: number
   name: string
   amount: number
-  city?: string
+  cityId?: number
+  city?: { id: number; name: string }
   note?: string
   receiptDoc?: string
-  receiptDocs?: string[] // Массив чеков для расходов
+  receiptDocs?: string[]
   paymentPurpose?: string
-  dateCreate: string
-  nameCreate: string
   createdAt: string
+  nameCreate: string
   updatedAt: string
 }
 
@@ -871,8 +876,8 @@ export class ApiClient {
     searchPhone?: string   // Поиск по телефону
     searchAddress?: string // Поиск по адресу
     master?: string  // ID мастера (для обратной совместимости)
-    rk?: string
-    typeEquipment?: string
+    rkId?: string
+    equipmentTypeId?: string
     dateType?: 'create' | 'close' | 'meeting'
     dateFrom?: string
     dateTo?: string
@@ -891,8 +896,8 @@ export class ApiClient {
       if (params.searchPhone && params.searchPhone.trim()) queryParts.push(`searchPhone=${encodeURIComponent(params.searchPhone.trim())}`)
       if (params.searchAddress && params.searchAddress.trim()) queryParts.push(`searchAddress=${encodeURIComponent(params.searchAddress.trim())}`)
       if (params.master && params.master.trim()) queryParts.push(`masterId=${encodeURIComponent(params.master.trim())}`)
-      if (params.rk && params.rk.trim()) queryParts.push(`rk=${encodeURIComponent(params.rk.trim())}`)
-      if (params.typeEquipment && params.typeEquipment.trim()) queryParts.push(`typeEquipment=${encodeURIComponent(params.typeEquipment.trim())}`)
+      if (params.rkId && params.rkId.trim()) queryParts.push(`rkId=${encodeURIComponent(params.rkId.trim())}`)
+      if (params.equipmentTypeId && params.equipmentTypeId.trim()) queryParts.push(`equipmentTypeId=${encodeURIComponent(params.equipmentTypeId.trim())}`)
       if (params.dateType) queryParts.push(`dateType=${encodeURIComponent(params.dateType)}`)
       if (params.dateFrom && params.dateFrom.trim()) queryParts.push(`dateFrom=${encodeURIComponent(params.dateFrom.trim())}`)
       if (params.dateTo && params.dateTo.trim()) queryParts.push(`dateTo=${encodeURIComponent(params.dateTo.trim())}`)
@@ -997,10 +1002,9 @@ export class ApiClient {
     }
   }
 
-  async getFilterOptions(): Promise<{ rks: string[], typeEquipments: string[] }> {
+  async getFilterOptions(): Promise<{ rks: { id: number; name: string }[], equipmentTypes: { id: number; name: string }[], cities: { id: number; name: string }[] }> {
     const response = await this.safeFetch(`${this.baseURL}/orders/filter-options`, {
       method: 'GET',
-      // 🍪 Headers добавляются автоматически в safeFetch
     })
 
     if (!response.ok) {
@@ -1009,9 +1013,9 @@ export class ApiClient {
 
     try {
       const result = await response.json()
-      return result.data || { rks: [], typeEquipments: [] }
+      return result.data || { rks: [], equipmentTypes: [], cities: [] }
     } catch {
-      return { rks: [], typeEquipments: [] }
+      return { rks: [], equipmentTypes: [], cities: [] }
     }
   }
 
@@ -1069,8 +1073,9 @@ export class ApiClient {
     masters: Array<{
       id: number
       name: string
-      statusWork: string
-      cities: string[]
+      status: string
+      cityIds: number[]
+      cities?: { id: number; name: string }[]
       schedule: { date: string; isWorkDay: boolean }[]
     }>
     period: { startDate: string; endDate: string }
@@ -1256,9 +1261,8 @@ export class ApiClient {
     const result = await safeParseJson(response, { data: [] })
     const data = result.data || result
     
-    // Сортируем по дате создания (новые сначала)
     const sortedData = (Array.isArray(data) ? data : []).sort((a: CashTransaction, b: CashTransaction) => 
-      new Date(b.dateCreate).getTime() - new Date(a.dateCreate).getTime()
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
     
     return sortedData
@@ -1570,8 +1574,8 @@ export class ApiClient {
 
   async updateUserProfile(data: {
     telegramId?: string;
-    contractDoc?: string;
-    passportDoc?: string;
+    contract?: string;
+    passport?: string;
   }): Promise<any> {
     const response = await fetch(`${this.baseURL}/users/profile`, {
       method: 'PUT',
@@ -1708,15 +1712,18 @@ export class ApiClient {
     data: Array<{
       id: number;
       clientName: string;
-      city: string;
-      statusOrder: string;
+      cityId: number;
+      city?: { id: number; name: string };
+      statusId: number;
+      status?: { id: number; name: string; code: string };
       dateMeeting: string;
-      typeEquipment: string;
+      equipmentTypeId: number;
+      equipmentType?: { id: number; name: string };
       typeOrder: string;
-      problem: string;
+      comment?: string;
       createdAt: string;
-      rk: string;
-      avitoName: string;
+      rkId: number;
+      rk?: { id: number; name: string };
       address: string;
       result: number | null;
       master: { id: number; name: string } | null;

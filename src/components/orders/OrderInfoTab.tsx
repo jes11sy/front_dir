@@ -83,28 +83,21 @@ export const OrderInfoTab: React.FC<OrderInfoTabProps> = ({ order }) => {
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Тип оборудования</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.typeEquipment}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Проблема</label>
-          <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.problem}
+            {order.equipmentType?.name || '-'}
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Авито аккаунт</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.avitoName || order.avito?.name || '-'}
+            {order.avito?.name || '-'}
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Статус</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.statusOrder || '-'}
+            {order.status?.name || '-'}
           </div>
         </div>
 
@@ -118,14 +111,14 @@ export const OrderInfoTab: React.FC<OrderInfoTabProps> = ({ order }) => {
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Дата создания</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.createDate ? formatDate(order.createDate) : '-'}
+            {order.createdAt ? formatDate(order.createdAt) : '-'}
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Дата закрытия</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.closingData ? formatDate(order.closingData) : '-'}
+            {order.closingAt ? formatDate(order.closingAt) : '-'}
           </div>
         </div>
 

@@ -57,12 +57,12 @@ function EmployeeViewContent() {
         setHasPassword(data.hasPassword || false)
         setSelectedCities(data.cities)
         
-        if (data.passportDoc) {
-          const passportUrl = await getSignedUrl(data.passportDoc)
+        if (data.passport) {
+          const passportUrl = await getSignedUrl(data.passport)
           setPassportPreview(passportUrl)
         }
-        if (data.contractDoc) {
-          const contractUrl = await getSignedUrl(data.contractDoc)
+        if (data.contract) {
+          const contractUrl = await getSignedUrl(data.contract)
           setContractPreview(contractUrl)
         }
       } catch (err) {
@@ -106,7 +106,7 @@ function EmployeeViewContent() {
   }
 
   const handleStatusChange = (newStatus: string) => {
-    setEmployee(prev => prev ? { ...prev, statusWork: newStatus } : null)
+    setEmployee(prev => prev ? { ...prev, status: newStatus as 'active' | 'inactive' } : null)
     setIsStatusDropdownOpen(false)
   }
 
@@ -201,8 +201,8 @@ function EmployeeViewContent() {
         return
       }
       
-      let passportDocPath = employee.passportDoc
-      let contractDocPath = employee.contractDoc
+      let passportDocPath = employee.passport
+      let contractDocPath = employee.contract
 
       if (passportFile) {
         try {
@@ -233,12 +233,12 @@ function EmployeeViewContent() {
         login: employee.login || undefined,
         password: employee.password || undefined,
         cities: selectedCities,
-        statusWork: employee.statusWork,
+        status: employee.status,
         note: employee.note || undefined,
         tgId: employee.tgId || undefined,
         chatId: employee.chatId || undefined,
-        passportDoc: passportDocPath,
-        contractDoc: contractDocPath,
+        passport: passportDocPath,
+        contract: contractDocPath,
       }
       
       const updatedEmployee = await apiClient.updateEmployee(employee.id, employeeData)
@@ -249,14 +249,14 @@ function EmployeeViewContent() {
       if (employeeData.password) setHasPassword(true)
       
       if (passportDocPath) {
-        const passportUrl = await getSignedUrl(passportDocPath)
+        const passportUrl = await getSignedUrl(passportDocPath as string)
         setPassportPreview(passportUrl)
       } else {
         setPassportPreview(null)
       }
       
       if (contractDocPath) {
-        const contractUrl = await getSignedUrl(contractDocPath)
+        const contractUrl = await getSignedUrl(contractDocPath as string)
         setContractPreview(contractUrl)
       } else {
         setContractPreview(null)
@@ -301,10 +301,8 @@ function EmployeeViewContent() {
   }
 
   const statusOptions = [
-    { value: 'работает', label: 'Работает', color: 'text-green-500' },
-    { value: 'уволен', label: 'Уволен', color: 'text-red-500' },
-    { value: 'отпуск', label: 'Отпуск', color: 'text-yellow-500' },
-    { value: 'больничный', label: 'Больничный', color: 'text-orange-500' },
+    { value: 'active', label: 'Работает', color: 'text-green-500' },
+    { value: 'inactive', label: 'Уволен', color: 'text-red-500' },
   ]
 
   return (
@@ -539,7 +537,7 @@ function EmployeeViewContent() {
                             : 'bg-[#f5f5f0] text-gray-800'
                         }`}
                       >
-                        <span>{employee.statusWork}</span>
+                        <span>{employee.status === 'active' ? 'Работает' : employee.status === 'inactive' ? 'Уволен' : '—'}</span>
                         <ChevronDown className={`w-5 h-5 transition-transform ${isDark ? 'text-gray-500' : 'text-gray-400'} ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
                       </button>
                       
@@ -653,8 +651,8 @@ function EmployeeViewContent() {
                           className="mx-auto max-w-full max-h-48 object-contain rounded-lg cursor-pointer hover:opacity-80"
                           onClick={async () => {
                             let viewUrl = passportPreview
-                            if (!passportPreview.startsWith('blob:') && employee.passportDoc) {
-                              viewUrl = await getSignedUrl(employee.passportDoc)
+                            if (!passportPreview.startsWith('blob:') && employee.passport) {
+                              viewUrl = await getSignedUrl(employee.passport)
                             }
                             window.open(viewUrl, '_blank')
                           }}
@@ -667,8 +665,8 @@ function EmployeeViewContent() {
                             type="button"
                             onClick={async () => {
                               let downloadUrl = passportPreview
-                              if (!passportPreview.startsWith('blob:') && employee.passportDoc) {
-                                downloadUrl = await getSignedUrl(employee.passportDoc)
+                              if (!passportPreview.startsWith('blob:') && employee.passport) {
+                                downloadUrl = await getSignedUrl(employee.passport)
                               }
                               const link = document.createElement('a')
                               link.href = downloadUrl
@@ -741,8 +739,8 @@ function EmployeeViewContent() {
                           className="mx-auto max-w-full max-h-48 object-contain rounded-lg cursor-pointer hover:opacity-80"
                           onClick={async () => {
                             let viewUrl = contractPreview
-                            if (!contractPreview.startsWith('blob:') && employee.contractDoc) {
-                              viewUrl = await getSignedUrl(employee.contractDoc)
+                            if (!contractPreview.startsWith('blob:') && employee.contract) {
+                              viewUrl = await getSignedUrl(employee.contract)
                             }
                             window.open(viewUrl, '_blank')
                           }}
@@ -755,8 +753,8 @@ function EmployeeViewContent() {
                             type="button"
                             onClick={async () => {
                               let downloadUrl = contractPreview
-                              if (!contractPreview.startsWith('blob:') && employee.contractDoc) {
-                                downloadUrl = await getSignedUrl(employee.contractDoc)
+                              if (!contractPreview.startsWith('blob:') && employee.contract) {
+                                downloadUrl = await getSignedUrl(employee.contract)
                               }
                               const link = document.createElement('a')
                               link.href = downloadUrl

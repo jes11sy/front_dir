@@ -144,7 +144,7 @@ function IncomeViewContent() {
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 text-sm sm:text-base">Дата создания:</span>
-                <span className="text-gray-800 text-sm sm:text-base">{formatDate(transaction.dateCreate)}</span>
+                <span className="text-gray-800 text-sm sm:text-base">{formatDate(transaction.createdAt)}</span>
               </div>
 
               <div className="flex justify-between items-center">

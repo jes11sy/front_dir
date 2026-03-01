@@ -96,12 +96,12 @@ export default function ProfilePage() {
           })
           
           // Загружаем превью документов
-          if (profile.contractDoc) {
-            const contractUrl = await getSignedUrl(profile.contractDoc)
+          if ((profile as any).contract) {
+            const contractUrl = await getSignedUrl((profile as any).contract)
             setContractPreview(`${contractUrl}?t=${Date.now()}`)
           }
-          if (profile.passportDoc) {
-            const passportUrl = await getSignedUrl(profile.passportDoc)
+          if ((profile as any).passport) {
+            const passportUrl = await getSignedUrl((profile as any).passport)
             setPassportPreview(`${passportUrl}?t=${Date.now()}`)
           }
         }
@@ -159,8 +159,8 @@ export default function ProfilePage() {
       // Обновляем профиль
       await apiClient.updateUserProfile({
         telegramId: formData.telegramId,
-        contractDoc: contractDocPath || undefined,
-        passportDoc: passportDocPath || undefined
+        contract: contractDocPath || undefined,
+        passport: passportDocPath || undefined
       })
 
       // Обновляем localStorage
@@ -478,7 +478,7 @@ export default function ProfilePage() {
             <div className={`flex justify-between items-center py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
               <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Дата регистрации</span>
               <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>
-                {user?.createdAt ? formatDate(user.createdAt) : user?.dateCreate ? formatDate(user.dateCreate) : 'Не указана'}
+                {user?.createdAt ? formatDate(user.createdAt) : 'Не указана'}
               </span>
             </div>
 
