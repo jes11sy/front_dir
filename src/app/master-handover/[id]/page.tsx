@@ -267,7 +267,6 @@ function MasterHandoverDetailContent() {
         )}
         </div>
       </div>
-    </div>
   )
 }
 
