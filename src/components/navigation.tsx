@@ -27,7 +27,7 @@ const navigationItems = [
   { 
     name: 'Сотрудники', 
     dropdown: [
-      { name: 'Мастера', href: '/employees' },
+      { name: 'Мастера', href: '/employees/masters' },
       { name: 'График работы', href: '/employees/schedule' }
     ]
   },

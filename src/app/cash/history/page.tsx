@@ -5,6 +5,8 @@ import { apiClient, CashTransaction, CashStats } from '@/lib/api'
 import { getSignedUrl } from '@/lib/s3-utils'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
+import { NetworkError } from '@/components/ui/network-error'
+import { LoadingState } from '@/components/ui/loading-state'
 
 // Импортируем оптимизированный CustomSelect
 import CustomSelect from '@/components/optimized/CustomSelect'
@@ -180,147 +182,154 @@ function HistoryContent() {
   const totalExpense = stats.totalExpense
   const balance = stats.balance
 
+  if (error) {
+    return (
+      <div className="min-h-[60vh]">
+        <NetworkError
+          isDark={isDark}
+          onRetry={loadHistoryData}
+          message={error !== 'Ошибка загрузки данных' ? error : undefined}
+        />
+      </div>
+    )
+  }
+
   return (
     <div>
-      {/* Статистика */}
+            {/* Статистика */}
             <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slide-in-left">
-              <div className={`rounded-lg p-4 border shadow-sm hover:shadow-md transition-all duration-200 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
-                <div className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Приходы</div>
-                <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-[#0d5c4b]'}`}>{totalIncome.toLocaleString()} ₽</div>
+              <div className={`rounded-2xl p-4 border shadow-sm transition-all duration-200 ${isDark ? 'bg-white/[0.04] border-white/10' : 'bg-white border-black/10'}`}>
+                <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${isDark ? 'text-white/40' : 'text-black/40'}`}>Приходы</div>
+                <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-[#111113]'}`}>{totalIncome.toLocaleString()} ₽</div>
               </div>
-              <div className={`rounded-lg p-4 border shadow-sm hover:shadow-md transition-all duration-200 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
-                <div className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Расходы</div>
-                <div className={`text-xl font-bold ${isDark ? 'text-gray-200' : 'text-red-600'}`}>{totalExpense.toLocaleString()} ₽</div>
+              <div className={`rounded-2xl p-4 border shadow-sm transition-all duration-200 ${isDark ? 'bg-white/[0.04] border-white/10' : 'bg-white border-black/10'}`}>
+                <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${isDark ? 'text-white/40' : 'text-black/40'}`}>Расходы</div>
+                <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-[#111113]'}`}>{totalExpense.toLocaleString()} ₽</div>
               </div>
-              <div className={`rounded-lg p-4 border shadow-sm hover:shadow-md transition-all duration-200 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
-                <div className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Баланс</div>
-                <div className={`text-xl font-bold ${balance >= 0 ? (isDark ? 'text-white' : 'text-[#0d5c4b]') : (isDark ? 'text-gray-200' : 'text-red-600')}`}>
+              <div className={`rounded-2xl p-4 border shadow-sm transition-all duration-200 ${isDark ? 'bg-white/[0.04] border-white/10' : 'bg-white border-black/10'}`}>
+                <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${isDark ? 'text-white/40' : 'text-black/40'}`}>Баланс</div>
+                <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-[#111113]'}`}>
                   {balance.toLocaleString()} ₽
                 </div>
               </div>
             </div>
 
-            {/* Состояние загрузки и ошибки */}
-            {loading && (
-              <div className="text-center py-8 animate-fade-in">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-                <div className={`text-lg mt-4 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Загрузка...</div>
-              </div>
-            )}
-
-            {error && (
-              <div className="text-center py-8 animate-slide-in-left">
-                <div className={`rounded-lg p-6 ${isDark ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
-                  <div className={`text-lg mb-4 ${isDark ? 'text-red-400' : 'text-red-600'}`}>Ошибка: {error}</div>
-                  <button 
-                    onClick={loadHistoryData}
-                    className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md font-medium"
-                  >
-                    Попробовать снова
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Заголовок и кнопка фильтров */}
             <div className="mb-4 animate-slide-in-left">
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* Иконка фильтров */}
-                <button
-                  onClick={openFilterDrawer}
-                  className={`relative p-2 rounded-lg transition-all duration-200 ${isDark ? 'bg-[#3a4451] hover:bg-[#4a5461] text-gray-300 hover:text-teal-400' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-teal-600'}`}
-                  title="Фильтры"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                  </svg>
-                  {/* Индикатор активных фильтров */}
-                  {activeFiltersCount > 0 && (
-                    <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 ${isDark ? 'border-[#2a3441]' : 'border-white'}`}></span>
-                  )}
-                </button>
-
+              <div className="flex items-center justify-between gap-4">
                 {/* Активные фильтры как теги */}
-                {activeFiltersCount > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {startDate && (
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-teal-900/30 text-teal-300 border-teal-700' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>
-                        От: {new Date(startDate).toLocaleDateString('ru-RU')}
-                        <button onClick={() => setStartDate('')} className={`ml-1 ${isDark ? 'hover:text-teal-100' : 'hover:text-teal-900'}`}>×</button>
-                      </span>
+                <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+                  {activeFiltersCount > 0 && (
+                    <>
+                      {startDate && (
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-white/10 text-white border-white/20' : 'bg-black/5 text-black border-black/10'}`}>
+                          От: {new Date(startDate).toLocaleDateString('ru-RU')}
+                          <button onClick={() => setStartDate('')} className={`ml-1 ${isDark ? 'hover:text-white/60' : 'hover:text-black/60'}`}>×</button>
+                        </span>
+                      )}
+                      {endDate && (
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-white/10 text-white border-white/20' : 'bg-black/5 text-black border-black/10'}`}>
+                          До: {new Date(endDate).toLocaleDateString('ru-RU')}
+                          <button onClick={() => setEndDate('')} className={`ml-1 ${isDark ? 'hover:text-white/60' : 'hover:text-black/60'}`}>×</button>
+                        </span>
+                      )}
+                      {typeFilter && (
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-white/10 text-white border-white/20' : 'bg-black/5 text-black border-black/10'}`}>
+                          {typeOptions.find(t => t.value === typeFilter)?.label || typeFilter}
+                          <button onClick={() => setTypeFilter('')} className={`ml-1 ${isDark ? 'hover:text-white/60' : 'hover:text-black/60'}`}>×</button>
+                        </span>
+                      )}
+                      {cityFilter && (
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-white/10 text-white border-white/20' : 'bg-black/5 text-black border-black/10'}`}>
+                          {cityFilter}
+                          <button onClick={() => setCityFilter('')} className={`ml-1 ${isDark ? 'hover:text-white/60' : 'hover:text-black/60'}`}>×</button>
+                        </span>
+                      )}
+                      <button
+                        onClick={clearAllFilters}
+                        className={`text-xs transition-colors whitespace-nowrap ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-black'}`}
+                      >
+                        Сбросить
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 ml-auto">
+                  {/* Иконка фильтров */}
+                  <button
+                    onClick={openFilterDrawer}
+                    className={`relative flex items-center justify-center min-h-[40px] w-[40px] flex-shrink-0 rounded-2xl transition-all duration-200 bg-transparent ${
+                      isDark 
+                        ? 'text-white/92 hover:bg-white/[0.04] hover:text-white' 
+                        : 'text-[#3a3a3c] hover:-translate-y-[1px] hover:bg-black/[0.035] hover:text-[#111113]'
+                    }`}
+                    title="Фильтры"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    {/* Индикатор активных фильтров */}
+                    {activeFiltersCount > 0 && (
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-[#b3261e] rounded-full"></span>
                     )}
-                    {endDate && (
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-teal-900/30 text-teal-300 border-teal-700' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>
-                        До: {new Date(endDate).toLocaleDateString('ru-RU')}
-                        <button onClick={() => setEndDate('')} className={`ml-1 ${isDark ? 'hover:text-teal-100' : 'hover:text-teal-900'}`}>×</button>
-                      </span>
-                    )}
-                    {typeFilter && (
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-teal-900/30 text-teal-300 border-teal-700' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>
-                        {typeOptions.find(t => t.value === typeFilter)?.label || typeFilter}
-                        <button onClick={() => setTypeFilter('')} className={`ml-1 ${isDark ? 'hover:text-teal-100' : 'hover:text-teal-900'}`}>×</button>
-                      </span>
-                    )}
-                    {cityFilter && (
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-teal-900/30 text-teal-300 border-teal-700' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>
-                        {cityFilter}
-                        <button onClick={() => setCityFilter('')} className={`ml-1 ${isDark ? 'hover:text-teal-100' : 'hover:text-teal-900'}`}>×</button>
-                      </span>
-                    )}
-                    <button
-                      onClick={clearAllFilters}
-                      className={`text-xs transition-colors ${isDark ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}`}
-                    >
-                      Сбросить
-                    </button>
-                  </div>
-                )}
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Sidebar Drawer для фильтров */}
-            {showFilterDrawer && (
-              <>
-                {/* Overlay */}
-                <div 
-                  className="fixed inset-0 bg-black/30 z-40 transition-opacity duration-300"
-                  onClick={() => setShowFilterDrawer(false)}
-                />
-                
-                {/* Drawer */}
-                <div className={`fixed top-16 md:top-0 right-0 h-[calc(100%-4rem)] md:h-full w-full sm:w-80 shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+            <>
+              {/* Overlay */}
+              <div 
+                className={`fixed inset-0 z-40 transition-opacity duration-300 ${
+                  showFilterDrawer ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                } ${isDark ? 'bg-black/50' : 'bg-black/30 backdrop-blur-sm'}`}
+                onClick={() => setShowFilterDrawer(false)}
+              />
+              
+              {/* Drawer */}
+              <div className={`fixed top-16 md:top-4 right-0 md:right-4 h-[calc(100%-4rem)] md:h-[calc(100vh-2rem)] w-full sm:w-[360px] z-50 transform transition-all duration-300 ease-out overflow-y-auto md:rounded-[30px] ${
+                showFilterDrawer ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0'
+              } ${
+                isDark 
+                  ? 'bg-[#111113]/92 backdrop-blur-xl border-l md:border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.35)]' 
+                  : 'bg-white/92 backdrop-blur-xl border-l md:border border-black/[0.06] shadow-[0_24px_60px_rgba(15,23,42,0.08)]'
+              }`}>
                   {/* Header - только на десктопе */}
-                  <div className={`hidden md:flex sticky top-0 border-b px-4 py-3 items-center justify-between z-10 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <h2 className={`text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Фильтры</h2>
+                  <div className={`hidden md:flex sticky top-0 border-b px-4 py-4 items-center justify-start z-10 ${
+                    isDark ? 'bg-[#111113]/40 backdrop-blur-md border-white/10' : 'bg-white/40 backdrop-blur-md border-black/[0.06]'
+                  }`}>
                     <button
                       onClick={() => setShowFilterDrawer(false)}
-                      className={`p-2 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-[#3a4451]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
-                      title="Закрыть"
+                      className="flex h-10 w-10 items-center justify-center rounded-xl text-[#6e6e73] transition-colors hover:bg-black/[0.04] hover:text-[#111113] dark:text-white/60 dark:hover:bg-white/[0.05] dark:hover:text-white"
+                      title="Скрыть фильтры"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 18 6-6-6-6" />
                       </svg>
                     </button>
                   </div>
 
                   {/* Кнопка скрыть - только на мобильных */}
-                  <div className={`md:hidden sticky top-0 border-b px-4 py-3 z-10 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <div className={`md:hidden sticky top-0 border-b px-4 py-3 z-10 ${
+                    isDark ? 'bg-[#111113]/40 backdrop-blur-md border-white/10' : 'bg-white/40 backdrop-blur-md border-black/[0.06]'
+                  }`}>
                     <button
                       onClick={() => setShowFilterDrawer(false)}
-                      className={`w-full py-2.5 px-4 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 ${isDark ? 'bg-[#3a4451] hover:bg-[#4a5461] text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                      className={`w-full py-3 px-4 rounded-2xl text-base font-medium transition-colors flex items-center justify-center gap-2 ${
+                        isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-white' : 'bg-black/[0.035] hover:bg-black/[0.06] text-[#111113]'
+                      }`}
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                      </svg>
                       Скрыть фильтры
                     </button>
                   </div>
 
                   {/* Content */}
-                  <div className="p-4 space-y-4">
+                  <div className="p-6 space-y-8">
                     {/* Секция: Период */}
-                    <div className="space-y-3">
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Период</h3>
+                    <div className="space-y-4">
+                      <h3 className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>Период</h3>
                       
                       <div className="grid grid-cols-2 gap-2">
                         {quickPeriods.map((period) => (
@@ -331,43 +340,54 @@ function HistoryContent() {
                               setDraftStartDate(start)
                               setDraftEndDate(end)
                             }}
-                            className={`px-3 py-2 border rounded-lg text-sm font-medium transition-all duration-200 ${isDark ? 'bg-[#3a4451] hover:bg-teal-900/30 border-gray-600 hover:border-teal-600 text-gray-300 hover:text-teal-400' : 'bg-gray-50 hover:bg-teal-50 border-gray-200 hover:border-teal-300 text-gray-700 hover:text-teal-700'}`}
+                            className={`min-h-[44px] px-3 py-2 rounded-2xl text-sm font-medium transition-all duration-200 border-0 shadow-sm ${
+                              isDark 
+                                ? 'bg-white/[0.04] hover:bg-white/10 text-white' 
+                                : 'bg-white hover:bg-black/[0.035] text-[#111113]'
+                            }`}
                           >
                             {period.label}
                           </button>
                         ))}
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>С</label>
+                          <label className={`block text-xs font-medium mb-1.5 ml-1 ${isDark ? 'text-white/60' : 'text-black/60'}`}>С</label>
                           <input
                             type="date"
                             value={draftStartDate}
                             onChange={(e) => setDraftStartDate(e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-200 text-gray-800'}`}
+                            className={`w-full min-h-[44px] px-4 py-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/20 transition-all border-0 shadow-sm ${
+                              isDark 
+                                ? 'bg-white/[0.04] text-white' 
+                                : 'bg-white text-[#111113]'
+                            }`}
                           />
                         </div>
                         <div>
-                          <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>По</label>
+                          <label className={`block text-xs font-medium mb-1.5 ml-1 ${isDark ? 'text-white/60' : 'text-black/60'}`}>По</label>
                           <input
                             type="date"
                             value={draftEndDate}
                             onChange={(e) => setDraftEndDate(e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-200 text-gray-800'}`}
+                            className={`w-full min-h-[44px] px-4 py-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/20 transition-all border-0 shadow-sm ${
+                              isDark 
+                                ? 'bg-white/[0.04] text-white' 
+                                : 'bg-white text-[#111113]'
+                            }`}
                           />
                         </div>
                       </div>
                     </div>
 
-                    <hr className={isDark ? 'border-gray-700' : 'border-gray-200'} />
+                    <hr className={isDark ? 'border-white/10' : 'border-black/[0.06]'} />
 
                     {/* Секция: Основные */}
-                    <div className="space-y-3">
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Основные</h3>
+                    <div className="space-y-4">
+                      <h3 className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>Основные</h3>
                       
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Тип</label>
+                      <div className="space-y-3">
                         <CustomSelect
                           value={draftTypeFilter}
                           onChange={(value) => setDraftTypeFilter(value)}
@@ -376,11 +396,9 @@ function HistoryContent() {
                           selectId="filter-type"
                           openSelect={filterOpenSelect}
                           setOpenSelect={setFilterOpenSelect}
+                          className={`w-full min-h-[44px] rounded-2xl text-[15px] border-0 shadow-sm ${isDark ? 'bg-white/[0.04] text-white' : 'bg-white text-[#111113]'}`}
                         />
-                      </div>
 
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Город</label>
                         <CustomSelect
                           value={draftCityFilter}
                           onChange={(value) => setDraftCityFilter(value)}
@@ -389,75 +407,114 @@ function HistoryContent() {
                           selectId="filter-city"
                           openSelect={filterOpenSelect}
                           setOpenSelect={setFilterOpenSelect}
+                          className={`w-full min-h-[44px] rounded-2xl text-[15px] border-0 shadow-sm ${isDark ? 'bg-white/[0.04] text-white' : 'bg-white text-[#111113]'}`}
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Footer */}
-                  <div className={`sticky bottom-0 border-t px-4 py-3 flex gap-2 ${isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <div className={`sticky bottom-0 border-t px-6 py-4 flex gap-3 ${
+                    isDark ? 'bg-[#111113]/40 backdrop-blur-md border-white/10' : 'bg-white/40 backdrop-blur-md border-black/[0.06]'
+                  }`}>
                     <button
                       onClick={resetFilters}
-                      className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark ? 'bg-[#3a4451] hover:bg-[#4a5461] text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                      className={`flex-1 py-3.5 rounded-2xl text-[15px] font-semibold transition-colors ${
+                        isDark 
+                          ? 'bg-white/[0.04] hover:bg-white/[0.08] text-white' 
+                          : 'bg-black/[0.035] hover:bg-black/[0.06] text-[#111113]'
+                      }`}
                     >
                       Сбросить
                     </button>
                     <button
                       onClick={applyFilters}
-                      className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      className={`flex-1 py-3.5 rounded-2xl transition-colors text-[15px] font-semibold ${
+                        isDark 
+                          ? 'bg-white hover:bg-gray-200 text-[#111113]' 
+                          : 'bg-[#111113] hover:bg-[#1c1c1e] text-white shadow-md shadow-black/20'
+                      }`}
                     >
                       Применить
                     </button>
                   </div>
-                </div>
-              </>
+              </div>
+            </>
+
+            {/* Состояние загрузки и ошибки */}
+            {loading && <LoadingState isDark={isDark} />}
+
+            {error && (
+              <NetworkError 
+                isDark={isDark} 
+                onRetry={loadHistoryData} 
+                message={error !== 'Ошибка загрузки данных' ? error : undefined} 
+              />
             )}
 
             {/* Таблица */}
             {!loading && !error && (
               <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
-                <table className={`w-full border-collapse text-[11px] min-w-[600px] rounded-lg shadow-lg ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
+                <table className={`w-full border-collapse text-xs min-w-[600px] rounded-lg shadow-lg ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
                   <thead>
-                    <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451]' : 'bg-gray-50'}`} style={{borderColor: '#0d5c4b'}}>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>ID</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Тип</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Город</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Назначение платежа</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Сумма</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Комментарий</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Дата</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Создатель</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Документ</th>
+                    <tr className={`border-b-2 ${isDark ? 'bg-white/[0.04] border-white/20' : 'bg-black/[0.02] border-black/10'}`}>
+                      <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>ID</th>
+                      <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Тип</th>
+                      <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Город</th>
+                      <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Назначение платежа</th>
+                      <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Сумма</th>
+                      <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Комментарий</th>
+                      <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Дата</th>
+                      <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Создатель</th>
+                      <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Документ</th>
                     </tr>
                   </thead>
                   <tbody>
                     {/* 🔧 FIX: Данные уже пагинированы с сервера */}
                     {historyData.map((item) => {
-                      const getTypeColor = (type: string) => {
+                      const getTypeStyle = (type: string) => {
+                        if (isDark) {
+                          switch (type) {
+                            case 'приход': return 'bg-emerald-700 text-white'
+                            case 'расход': return 'bg-red-700 text-white'
+                            default: return 'bg-gray-600 text-white'
+                          }
+                        }
                         switch (type) {
-                          case 'приход': return '#0d5c4b'
-                          case 'расход': return '#ef4444'
-                          default: return '#6b7280'
+                          case 'приход': return 'bg-emerald-600 text-white'
+                          case 'расход': return 'bg-red-600 text-white'
+                          default: return 'bg-gray-500 text-white'
                         }
                       }
                       
                       return (
-                        <tr key={item.id} className={`border-b transition-colors ${isDark ? 'hover:bg-[#3a4451] border-gray-700' : 'hover:bg-teal-50 border-gray-200'}`}>
-                          <td className={`py-3 px-3 font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{item.id}</td>
-                          <td className="py-3 px-3">
-                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(item.name)}}>
+                        <tr key={item.id} className={`border-b transition-colors ${
+                          isDark 
+                            ? 'border-white/10 hover:bg-white/[0.04]'
+                            : 'border-black/10 hover:bg-black/[0.02]'
+                        }`}>
+                          <td className={`py-2 px-2 font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{item.id}</td>
+                          <td className="py-2 px-2">
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${getTypeStyle(item.name)}`}>
                               {item.name}
                             </span>
                           </td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || 'Москва'}</td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
-                          <td className={`py-3 px-3 font-semibold ${item.name === 'приход' ? (isDark ? 'text-white' : 'text-[#0d5c4b]') : (isDark ? 'text-gray-200' : 'text-red-600')}`}>
+                          <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || 'Москва'}</td>
+                          <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
+                          <td className={`py-2 px-2 font-semibold ${item.name === 'приход' ? (isDark ? 'text-emerald-400' : 'text-[#0d5c4b]') : (isDark ? 'text-red-400' : 'text-red-600')}`}>
                             {Number(item.amount).toLocaleString()} ₽
                           </td>
+<<<<<<< Updated upstream
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.createdAt)}</td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.nameCreate}</td>
                           <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
+=======
+                          <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
+                          <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.dateCreate)}</td>
+                          <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.nameCreate}</td>
+                          <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
+>>>>>>> Stashed changes
                             {item.receiptDoc ? (
                               <button 
                                 className={`underline transition-colors ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
@@ -503,15 +560,15 @@ function HistoryContent() {
           width: 6px;
         }
         .custom-dropdown::-webkit-scrollbar-track {
-          background: #374151;
+          background: transparent;
           border-radius: 3px;
         }
         .custom-dropdown::-webkit-scrollbar-thumb {
-          background: #2a6b68;
+          background: rgba(150, 150, 150, 0.3);
           border-radius: 3px;
         }
         .custom-dropdown::-webkit-scrollbar-thumb:hover {
-          background: #1a5a57;
+          background: rgba(150, 150, 150, 0.5);
         }
         
         /* Slide-in animation for drawer */

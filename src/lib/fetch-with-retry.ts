@@ -212,16 +212,16 @@ export function getUserFriendlyErrorMessage(error: any): string {
   
   switch (networkError.type) {
     case 'NETWORK_ERROR':
-      return '❌ Нет подключения к интернету. Проверьте сеть и попробуйте снова.'
+      return 'Нет подключения к интернету. Проверьте сеть и попробуйте снова.'
     
     case 'TIMEOUT':
-      return '⏱️ Превышено время ожидания. Сервер не отвечает. Попробуйте позже.'
+      return 'Превышено время ожидания. Сервер не отвечает. Попробуйте позже.'
     
     case 'SERVER_ERROR':
-      return '🔧 Ошибка на сервере. Мы уже работаем над устранением проблемы.'
+      return 'Ошибка на сервере. Мы уже работаем над устранением проблемы.'
     
     case 'CLIENT_ERROR':
-      return networkError.message || '❌ Ошибка запроса. Проверьте введенные данные.'
+      return networkError.message || 'Ошибка запроса. Проверьте введенные данные.'
     
     case 'ABORT':
       return 'Запрос был отменен'

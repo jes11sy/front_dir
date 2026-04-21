@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { apiClient } from '@/lib/api'
 import { useDesignStore } from '@/store/design.store'
+import { LoadingState } from '@/components/ui/loading-state'
+import { NetworkError } from '@/components/ui/network-error'
 
 // Тип мастера из нового API
 interface MasterWithSchedule {
@@ -170,34 +172,21 @@ export default function SchedulePage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="flex items-center gap-3">
-          <div className={`w-5 h-5 border-2 border-[#0d5c4b] border-t-transparent rounded-full animate-spin`}></div>
-          <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Загрузка...</span>
-        </div>
-      </div>
-    )
+    return <LoadingState isDark={isDark} message="Загрузка графика..." />
   }
 
   if (error) {
-    return (
-      <div className={`rounded-xl p-4 ${
-        isDark ? 'bg-red-900/30 border border-red-800' : 'bg-red-50 border border-red-200'
-      }`}>
-        <p className={isDark ? 'text-red-400 text-sm' : 'text-red-600 text-sm'}>{error}</p>
-      </div>
-    )
+    return <NetworkError isDark={isDark} onRetry={() => window.location.reload()} title="Ошибка загрузки графика" message={error} buttonText="Обновить" />
   }
 
   // Мобильная версия - карточки мастеров
   const MobileView = () => (
-    <div className="space-y-3 md:hidden">
+    <div className="space-y-3 md:hidden animate-fade-in">
       {masters.map((master) => {
         const workDays = getWorkingDaysCount(master.id)
         return (
           <div key={master.id} className={`rounded-xl border p-4 ${
-            isDark ? 'bg-[#2a3441] border-[#0d5c4b]/30' : 'bg-white border-gray-200'
+            isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-black/10'
           }`}>
             {/* Имя и счётчик */}
             <div className="flex items-center justify-between mb-3">
@@ -260,13 +249,13 @@ export default function SchedulePage() {
 
   // Десктопная версия - таблица
   const DesktopView = () => (
-    <div className={`hidden md:block rounded-xl border overflow-hidden shadow-sm ${
-      isDark ? 'bg-[#2a3441] border-[#0d5c4b]/30' : 'bg-white border-gray-200'
+    <div className={`hidden md:block rounded-xl border overflow-hidden shadow-sm animate-fade-in ${
+      isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-black/10'
     }`}>
       <table className="w-full table-fixed">
         <thead>
           <tr className={`border-b ${
-            isDark ? 'bg-[#1e2530] border-[#0d5c4b]/30' : 'bg-gray-50 border-gray-200'
+            isDark ? 'bg-white/[0.02] border-white/10' : 'bg-black/[0.02] border-black/10'
           }`}>
             <th className={`text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide ${
               isDark ? 'text-gray-400' : 'text-gray-500'
@@ -391,18 +380,18 @@ export default function SchedulePage() {
   )
 
   return (
-    <div>
+    <div className={`transition-colors duration-300 ${isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'}`}>
       {/* Навигация по неделям */}
       <div className="flex items-center justify-between md:justify-start gap-4 mb-4 md:mb-6">
         <div className={`flex items-center border rounded-lg ${
-          isDark ? 'bg-[#2a3441] border-[#0d5c4b]/30' : 'bg-white border-gray-200'
+          isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-black/10'
         }`}>
           <button 
             onClick={goToPreviousWeek}
             className={`p-2 md:p-2.5 transition-colors rounded-l-lg border-r ${
               isDark 
-                ? 'hover:bg-[#1e2530] border-[#0d5c4b]/30' 
-                : 'hover:bg-gray-50 border-gray-200'
+                ? 'hover:bg-white/[0.04] border-white/10' 
+                : 'hover:bg-black/[0.02] border-black/10'
             }`}
           >
             <svg className={`w-4 h-4 md:w-5 md:h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -418,8 +407,8 @@ export default function SchedulePage() {
             onClick={goToNextWeek}
             className={`p-2 md:p-2.5 transition-colors rounded-r-lg border-l ${
               isDark 
-                ? 'hover:bg-[#1e2530] border-[#0d5c4b]/30' 
-                : 'hover:bg-gray-50 border-gray-200'
+                ? 'hover:bg-white/[0.04] border-white/10' 
+                : 'hover:bg-black/[0.02] border-black/10'
             }`}
           >
             <svg className={`w-4 h-4 md:w-5 md:h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -433,8 +422,8 @@ export default function SchedulePage() {
             onClick={goToCurrentWeek}
             className={`px-3 py-2 text-sm rounded-lg transition-colors font-medium ${
               isDark 
-                ? 'text-[#0d5c4b] hover:bg-[#0d5c4b]/20' 
-                : 'text-[#0d5c4b] hover:text-[#0a4a3c] hover:bg-[#daece2]/50'
+                ? 'text-white/80 hover:bg-white/[0.06]' 
+                : 'text-[#0a4f42] hover:text-[#083f35] hover:bg-black/[0.03]'
             }`}
           >
             Сегодня

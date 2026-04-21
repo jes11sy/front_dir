@@ -7,6 +7,8 @@ import { apiClient, Employee } from '@/lib/api'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
+import { LoadingState } from '@/components/ui/loading-state'
+import { NetworkError } from '@/components/ui/network-error'
 
 export default function MastersPage() {
   const router = useRouter()
@@ -105,28 +107,15 @@ export default function MastersPage() {
   }
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className={`inline-block animate-spin rounded-full h-8 w-8 border-b-2 ${
-          isDark ? 'border-[#0d5c4b]' : 'border-[#0d5c4b]'
-        }`}></div>
-        <div className={`text-lg mt-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Загрузка мастеров...</div>
-      </div>
-    )
+    return <LoadingState isDark={isDark} message="Загрузка мастеров..." />
   }
 
   if (error) {
-    return (
-      <div className={`rounded-lg p-6 ${
-        isDark ? 'bg-red-900/30 border border-red-800' : 'bg-red-50 border border-red-200'
-      }`}>
-        <div className={isDark ? 'text-red-400 text-lg' : 'text-red-600 text-lg'}>Ошибка: {error}</div>
-      </div>
-    )
+    return <NetworkError isDark={isDark} onRetry={() => window.location.reload()} title="Ошибка загрузки мастеров" message={error} buttonText="Обновить" />
   }
   
   return (
-    <div>
+    <div className={`transition-colors duration-300 ${isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'}`}>
       {/* Панель управления: фильтры + добавление */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -139,8 +128,8 @@ export default function MastersPage() {
                   ? 'bg-[#0d5c4b]/20 text-[#0d5c4b]'
                   : 'bg-[#daece2] text-[#0d5c4b]'
                 : isDark
-                  ? 'bg-[#2a3441] text-gray-400 hover:bg-[#2a3441]/80 hover:text-[#0d5c4b]'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-[#0d5c4b]'
+                  ? 'bg-white/[0.03] text-white/80 hover:bg-white/[0.06] hover:text-white'
+                  : 'bg-white text-[#6e6e73] hover:bg-black/[0.03] hover:text-[#111113]'
             }`}
             title="Фильтры"
           >
@@ -148,15 +137,15 @@ export default function MastersPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
             {/* Индикатор активных фильтров */}
-            {hasActiveFilters && (
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#0d5c4b] rounded-full border-2 border-white"></span>
-            )}
+            {hasActiveFilters && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#b3261e] rounded-full border-2 border-white"></span>}
           </button>
         </div>
 
         <Button 
           onClick={() => router.push('/employees/add')}
-          className="px-4 py-2 bg-[#0d5c4b] hover:bg-[#0a4a3c] text-white rounded-lg transition-colors text-sm font-medium"
+          className={`h-10 rounded-2xl px-4 text-sm font-medium transition-colors ${
+            isDark ? 'bg-white text-[#111113] hover:bg-gray-200' : 'bg-[#0a4f42] text-white hover:bg-[#083f35]'
+          }`}
         >
           + Добавить мастера
         </Button>
@@ -166,8 +155,8 @@ export default function MastersPage() {
       {showFilters && (
         <div className={`mb-6 p-4 rounded-lg border animate-fade-in ${
           isDark 
-            ? 'bg-[#2a3441] border-[#0d5c4b]/30' 
-            : 'bg-gray-50 border-gray-200'
+            ? 'bg-white/[0.02] border-white/10' 
+            : 'bg-white border-black/10'
         }`}>
           <div className="flex flex-wrap gap-4 items-end">
             {/* Поиск по имени */}
@@ -180,8 +169,8 @@ export default function MastersPage() {
                 placeholder="Введите имя..."
                 className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d5c4b] focus:border-transparent transition-all ${
                   isDark 
-                    ? 'bg-[#1e2530] border-[#0d5c4b]/30 text-gray-200 placeholder-gray-500'
-                    : 'bg-white border-gray-200 text-gray-800 placeholder-gray-400'
+                    ? 'bg-white/[0.04] border-white/10 text-gray-200 placeholder-gray-500'
+                    : 'bg-[#f5f5f7] border-black/[0.08] text-gray-800 placeholder-gray-400'
                 }`}
               />
             </div>
@@ -194,8 +183,8 @@ export default function MastersPage() {
                 onChange={(e) => setStatusFilter(e.target.value as 'active' | 'inactive' | 'all')}
                 className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d5c4b] focus:border-transparent transition-all ${
                   isDark 
-                    ? 'bg-[#1e2530] border-[#0d5c4b]/30 text-gray-200'
-                    : 'bg-white border-gray-200 text-gray-800'
+                    ? 'bg-white/[0.04] border-white/10 text-gray-200'
+                    : 'bg-[#f5f5f7] border-black/[0.08] text-gray-800'
                 }`}
               >
                 <option value="active">Работает</option>
@@ -212,8 +201,8 @@ export default function MastersPage() {
               }}
               className={`px-4 py-2 rounded-lg text-sm transition-colors font-medium ${
                 isDark 
-                  ? 'bg-[#1e2530] hover:bg-[#1e2530]/80 text-gray-300'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  ? 'bg-white/[0.06] hover:bg-white/[0.1] text-gray-300'
+                  : 'bg-black/[0.04] hover:bg-black/[0.08] text-gray-700'
               }`}
             >
               Сбросить
@@ -223,11 +212,11 @@ export default function MastersPage() {
       )}
 
       {/* Таблица */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
+      <div className="overflow-x-auto rounded-[20px] border animate-fade-in shadow-sm">
+        <table className={`w-full border-collapse text-sm ${isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-black/10'}`}>
           <thead>
             <tr className={`border-b-2 ${
-              isDark ? 'border-[#0d5c4b]/30 bg-[#2a3441]' : 'border-gray-200 bg-gray-50'
+              isDark ? 'border-white/10 bg-white/[0.02]' : 'border-black/10 bg-black/[0.02]'
             }`}>
               <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>ID</th>
               <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Имя</th>
@@ -267,8 +256,8 @@ export default function MastersPage() {
                     key={item.id} 
                     className={`border-b transition-colors cursor-pointer ${
                       isDark 
-                        ? 'border-[#0d5c4b]/20 hover:bg-[#2a3441]' 
-                        : 'border-gray-100 hover:bg-gray-50'
+                        ? 'border-white/10 hover:bg-white/[0.04]' 
+                        : 'border-black/10 hover:bg-black/[0.02]'
                     }`}
                     onClick={() => router.push(`/employees/${item.id}`)}
                   >

@@ -7,6 +7,9 @@ import { logger } from '@/lib/logger'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { LoadingScreen } from '@/components/ui/loading-screen'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
+import { NetworkError } from '@/components/ui/network-error'
+import { LoadingState } from '@/components/ui/loading-state'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 
@@ -39,11 +42,28 @@ function OrdersContent() {
   const [cityFilter, setCityFilter] = useState(() => searchParams.get('city') || '')
   const [masterFilter, setMasterFilter] = useState(() => searchParams.get('master') || '')
   const [showFilters, setShowFilters] = useState(() => {
+<<<<<<< Updated upstream
     // Показываем фильтры если есть активные фильтры в URL
     return !!(searchParams.get('status') || searchParams.get('city') || searchParams.get('master') || 
               searchParams.get('rkId') || searchParams.get('equipmentTypeId') || 
               searchParams.get('dateFrom') || searchParams.get('dateTo') ||
               searchParams.get('searchId') || searchParams.get('searchPhone') || searchParams.get('searchAddress'))
+=======
+    // Показываем фильтры если есть активные фильтры в URL или переход с нижнего дока (?filters=1)
+    return !!(
+      searchParams.get('filters') === '1' ||
+      searchParams.get('status') ||
+      searchParams.get('city') ||
+      searchParams.get('master') ||
+      searchParams.get('rk') ||
+      searchParams.get('typeEquipment') ||
+      searchParams.get('dateFrom') ||
+      searchParams.get('dateTo') ||
+      searchParams.get('searchId') ||
+      searchParams.get('searchPhone') ||
+      searchParams.get('searchAddress')
+    )
+>>>>>>> Stashed changes
   })
   
   // Новые фильтры
@@ -506,46 +526,43 @@ function OrdersContent() {
       default: return 'bg-gray-500 text-white'
     }
   }
+
+  if (error) {
+    return (
+      <div className={`transition-colors duration-300 ${isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'}`}>
+        <div className="px-4 pb-4 pt-6">
+          <NetworkError
+            isDark={isDark}
+            onRetry={loadOrders}
+            message={error !== 'Ошибка загрузки заказов' ? error : undefined}
+          />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
-      isDark ? 'bg-[#1e2530]' : 'bg-white'
+      isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'
     }`}>
-      <div className="px-4 py-6">
+      {/* pt-0 на мобилке: иначе py-6 даёт зазор над sticky-табами до скролла, после скролла полоса «прыгает» к хедеру */}
+      <div className="px-4 pb-6 pt-0 md:pt-6">
         <div className="w-full">
-          <div className={`transition-colors duration-300 ${isDark ? 'bg-[#1e2530]' : 'bg-white'}`}>
+          <div className={`transition-colors duration-300 ${isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'}`}>
             
 
-            {/* Состояние загрузки */}
-            {loading && (
-              <div className="text-center py-8 animate-fade-in">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-                <p className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Загрузка заказов...</p>
-              </div>
-            )}
-
-            {/* Ошибка */}
-            {error && (
-              <div className={`rounded-lg p-4 mb-6 animate-slide-in-left ${
-                isDark ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'
-              }`}>
-                <p className={`font-medium ${isDark ? 'text-red-400' : 'text-red-600'}`}>{error}</p>
-                <button 
-                  onClick={loadOrders}
-                  className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 hover:shadow-md"
-                >
-                  Попробовать снова
-                </button>
-              </div>
-            )}
-
-            {/* Табы статусов + иконка фильтров */}
-            <div className="mb-4 animate-slide-in-left">
+            {/* Табы статусов + иконка фильтров — закреплены при вертикальном скролле */}
+            <div
+              className={`sticky z-30 -mx-4 mb-4 border-b px-4 py-2.5 backdrop-blur-xl animate-slide-in-left top-[calc(4rem+env(safe-area-inset-top,0px))] md:top-0 ${
+                isDark
+                  ? 'border-white/10 bg-[#111113]/92 supports-[backdrop-filter]:bg-[#111113]/88'
+                  : 'border-black/[0.06] bg-[#f5f5f7]/92 supports-[backdrop-filter]:bg-[#f5f5f7]/88'
+              }`}
+            >
               <div className="flex items-center gap-2">
                 {/* Табы с прокруткой */}
                 <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
-                  <div className={`flex gap-1 p-1 rounded-lg w-max ${
-                    isDark ? 'bg-[#2a3441]' : 'bg-gray-100'
-                  }`}>
+                  <div className="flex gap-2 w-max">
                     {[
                       { id: 'all', label: 'Все' },
                       { id: 'Ожидает', label: 'Ожидает' },
@@ -557,14 +574,10 @@ function OrdersContent() {
                       <button
                         key={tab.id}
                         onClick={() => handleStatusTabChange(tab.id)}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
+                        className={`min-h-[40px] px-4 text-sm font-medium rounded-2xl transition-all duration-200 whitespace-nowrap ${
                           statusTab === tab.id
-                            ? isDark 
-                              ? 'bg-[#0d5c4b] text-white shadow-sm'
-                              : 'bg-[#0d5c4b] text-white shadow-sm'
-                            : isDark
-                              ? 'text-gray-400 hover:text-gray-200 hover:bg-[#3a4451]'
-                              : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                            ? (isDark ? 'bg-white/[0.08] text-white' : 'bg-[#0a4f42] text-white')
+                            : (isDark ? 'text-white/92 hover:bg-white/[0.04] hover:text-white bg-transparent' : 'text-[#3a3a3c] hover:-translate-y-[1px] hover:bg-black/[0.035] hover:text-[#111113] bg-transparent')
                         }`}
                       >
                         {tab.label}
@@ -576,10 +589,10 @@ function OrdersContent() {
                 {/* Иконка фильтров */}
                 <button
                   onClick={openFiltersPanel}
-                  className={`relative flex-shrink-0 p-2 rounded-lg transition-all duration-200 ${
+                  className={`relative flex items-center justify-center min-h-[40px] w-[40px] flex-shrink-0 rounded-2xl transition-all duration-200 bg-transparent ${
                     isDark 
-                      ? 'bg-[#2a3441] hover:bg-[#3a4451] text-gray-400 hover:text-teal-400'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-teal-600'
+                      ? 'text-white/92 hover:bg-white/[0.04] hover:text-white' 
+                      : 'text-[#3a3a3c] hover:-translate-y-[1px] hover:bg-black/[0.035] hover:text-[#111113]'
                   }`}
                   title="Фильтры"
                 >
@@ -588,279 +601,264 @@ function OrdersContent() {
                   </svg>
                   {/* Индикатор активных фильтров */}
                   {(searchId || searchPhone || searchAddress || statusFilter || cityFilter || masterFilter || rkFilter || typeEquipmentFilter || dateFrom || dateTo) && (
-                    <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full border-2 ${
-                      isDark ? 'border-[#1e2530]' : 'border-white'
-                    }`}></span>
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-[#b3261e] rounded-full"></span>
                   )}
                 </button>
               </div>
             </div>
 
-            {/* Выезжающая панель фильтров справа */}
-            {showFilters && (
-              <>
-                {/* Затемнение фона */}
-                <div 
-                  className={`fixed inset-0 z-40 transition-opacity duration-300 ${
-                    isDark ? 'bg-black/50' : 'bg-black/30'
-                  }`}
-                  onClick={() => setShowFilters(false)}
-                />
-                
-                {/* Панель фильтров */}
-                <div className={`fixed top-16 md:top-0 right-0 h-[calc(100%-4rem)] md:h-full w-full sm:w-80 shadow-xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto ${
-                  isDark ? 'bg-[#2a3441]' : 'bg-white'
-                }`}>
+            {/* Выезжающая панель фильтров справа (всегда в DOM для плавной анимации) */}
+            <>
+              {/* Затемнение фона */}
+              <div 
+                className={`fixed inset-0 z-[10040] transition-opacity duration-300 ${
+                  showFilters ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                } ${
+                  isDark ? 'bg-black/50' : 'bg-black/30 backdrop-blur-sm'
+                }`}
+                onClick={() => setShowFilters(false)}
+              />
+              
+              {/* Панель фильтров */}
+              <div className={`fixed right-0 top-[calc(4rem+env(safe-area-inset-top,0px))] z-[10050] h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] w-full transform overflow-y-auto transition-all duration-300 ease-out sm:w-[360px] md:right-4 md:top-4 md:h-[calc(100vh-2rem)] md:rounded-[30px] ${
+                showFilters ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0'
+              } ${
+                isDark 
+                  ? 'bg-[#111113]/92 backdrop-blur-xl border-l md:border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.35)]' 
+                  : 'bg-white border-l md:border border-black/[0.08] shadow-[0_24px_60px_rgba(15,23,42,0.12)]'
+              }`}>
                   {/* Заголовок панели - только на десктопе */}
-                  <div className={`hidden md:flex sticky top-0 border-b px-4 py-3 items-center justify-between z-10 ${
-                    isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'
+                  <div className={`hidden md:flex sticky top-0 border-b px-4 py-4 items-center justify-start z-10 ${
+                    isDark ? 'bg-[#111113]/40 backdrop-blur-md border-white/10' : 'bg-white border-black/[0.08]'
                   }`}>
-                    <h2 className={`text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Фильтры</h2>
                     <button
                       onClick={() => setShowFilters(false)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-[#3a4451]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                      title="Закрыть"
+                      className="flex h-10 w-10 items-center justify-center rounded-xl text-[#6e6e73] transition-colors hover:bg-black/[0.04] hover:text-[#111113] dark:text-white/60 dark:hover:bg-white/[0.05] dark:hover:text-white"
+                      title="Скрыть фильтры"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 18 6-6-6-6" />
                       </svg>
                     </button>
                   </div>
 
                   {/* Кнопка скрыть - только на мобильных */}
                   <div className={`md:hidden sticky top-0 border-b px-4 py-3 z-10 ${
-                    isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'
+                    isDark ? 'bg-[#111113]/40 backdrop-blur-md border-white/10' : 'bg-white border-black/[0.08]'
                   }`}>
                     <button
                       onClick={() => setShowFilters(false)}
-                      className={`w-full py-2.5 px-4 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                        isDark ? 'bg-[#3a4451] hover:bg-[#4a5461] text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                      className={`w-full py-3 px-4 rounded-2xl text-base font-medium transition-colors flex items-center justify-center gap-2 ${
+                        isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-white' : 'bg-black/[0.04] hover:bg-black/[0.07] text-[#111113]'
                       }`}
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                      </svg>
                       Скрыть фильтры
                     </button>
                   </div>
 
                   {/* Содержимое фильтров */}
-                  <div className="p-4 space-y-4">
+                  <div className="p-6 space-y-8">
                     {/* Секция: Поиск */}
-                    <div className="space-y-3">
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Поиск</h3>
+                    <div className="space-y-4">
+                      <h3 className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/55'}`}>Поиск</h3>
                       
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>№ заказа</label>
+                      <div className="space-y-3">
                         <input
                           type="text"
                           value={draftSearchId}
                           onChange={(e) => setDraftSearchId(e.target.value)}
-                          placeholder="ID заказа..."
-                          className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
+                          placeholder="№ заказа..."
+                          className={`w-full min-h-[44px] px-4 py-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#0a4f42]/18 focus:ring-offset-0 dark:focus:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a4f42]/18 focus-visible:ring-offset-0 dark:focus-visible:ring-white/20 transition-all shadow-sm ${
                             isDark 
-                              ? 'bg-[#3a4451] border-gray-600 text-gray-100 placeholder-gray-500'
-                              : 'bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400'
+                              ? 'bg-white/[0.04] text-white placeholder-white/30'
+                              : 'border border-[#cfd2d8] bg-white text-[#111113] placeholder:text-[#8e8e93] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
                           }`}
                         />
-                      </div>
-                      
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Телефон</label>
                         <input
                           type="text"
                           value={draftSearchPhone}
                           onChange={(e) => setDraftSearchPhone(e.target.value)}
                           placeholder="Номер телефона..."
-                          className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
+                          className={`w-full min-h-[44px] px-4 py-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#0a4f42]/18 focus:ring-offset-0 dark:focus:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a4f42]/18 focus-visible:ring-offset-0 dark:focus-visible:ring-white/20 transition-all shadow-sm ${
                             isDark 
-                              ? 'bg-[#3a4451] border-gray-600 text-gray-100 placeholder-gray-500'
-                              : 'bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400'
+                              ? 'bg-white/[0.04] text-white placeholder-white/30'
+                              : 'border border-[#cfd2d8] bg-white text-[#111113] placeholder:text-[#8e8e93] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
                           }`}
                         />
-                      </div>
-                      
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Адрес</label>
                         <input
                           type="text"
                           value={draftSearchAddress}
                           onChange={(e) => setDraftSearchAddress(e.target.value)}
                           placeholder="Адрес..."
-                          className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
+                          className={`w-full min-h-[44px] px-4 py-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#0a4f42]/18 focus:ring-offset-0 dark:focus:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a4f42]/18 focus-visible:ring-offset-0 dark:focus-visible:ring-white/20 transition-all shadow-sm ${
                             isDark 
-                              ? 'bg-[#3a4451] border-gray-600 text-gray-100 placeholder-gray-500'
-                              : 'bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400'
+                              ? 'bg-white/[0.04] text-white placeholder-white/30'
+                              : 'border border-[#cfd2d8] bg-white text-[#111113] placeholder:text-[#8e8e93] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
                           }`}
                         />
                       </div>
                     </div>
 
-                    <hr className={isDark ? 'border-gray-700' : 'border-gray-200'} />
+                    <hr className={isDark ? 'border-white/10' : 'border-black/[0.06]'} />
 
                     {/* Секция: Основные фильтры */}
-                    <div className="space-y-3">
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Основные</h3>
+                    <div className="space-y-4">
+                      <h3 className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/55'}`}>Основные</h3>
                       
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Статус</label>
+                      <div className="space-y-3">
                         <Select value={draftStatusFilter || "all"} onValueChange={(value) => setDraftStatusFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
+                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
+                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
+                          }`}>
                             <SelectValue placeholder="Все статусы" />
                           </SelectTrigger>
-                          <SelectContent className={isDark ? 'bg-[#2a3441] border-gray-600' : 'bg-white border-gray-200'}>
-                            <SelectItem value="all" className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>Все статусы</SelectItem>
+                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
+                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все статусы</SelectItem>
                             {Array.isArray(allStatuses) && allStatuses.map(status => (
-                              <SelectItem key={status} value={status} className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>{status}</SelectItem>
+                              <SelectItem key={status} value={status} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{status}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
-                      
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Город</label>
+
                         <Select value={draftCityFilter || "all"} onValueChange={(value) => setDraftCityFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
+                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
+                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
+                          }`}>
                             <SelectValue placeholder="Все города" />
                           </SelectTrigger>
-                          <SelectContent className={isDark ? 'bg-[#2a3441] border-gray-600' : 'bg-white border-gray-200'}>
-                            <SelectItem value="all" className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>Все города</SelectItem>
+                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
+                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все города</SelectItem>
                             {Array.isArray(allCities) && allCities.map(city => (
-                              <SelectItem key={city} value={city} className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>{city}</SelectItem>
+                              <SelectItem key={city} value={city} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{city}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
-                      
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Мастер</label>
+
                         <Select value={draftMasterFilter || "all"} onValueChange={(value) => setDraftMasterFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
+                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
+                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
+                          }`}>
                             <SelectValue placeholder="Все мастера" />
                           </SelectTrigger>
-                          <SelectContent className={isDark ? 'bg-[#2a3441] border-gray-600' : 'bg-white border-gray-200'}>
-                            <SelectItem value="all" className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>Все мастера</SelectItem>
+                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
+                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все мастера</SelectItem>
                             {Array.isArray(allMasters) && allMasters.map(master => (
-                              <SelectItem key={master.id} value={master.id.toString()} className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>{master.name}</SelectItem>
+                              <SelectItem key={master.id} value={master.id.toString()} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{master.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
-                    <hr className={isDark ? 'border-gray-700' : 'border-gray-200'} />
+                    <hr className={isDark ? 'border-white/10' : 'border-black/[0.06]'} />
 
                     {/* Секция: Дополнительные */}
-                    <div className="space-y-3">
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Дополнительно</h3>
+                    <div className="space-y-4">
+                      <h3 className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/55'}`}>Дополнительно</h3>
                       
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>РК</label>
+                      <div className="space-y-3">
                         <Select value={draftRkFilter || "all"} onValueChange={(value) => setDraftRkFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
+                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
+                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
+                          }`}>
                             <SelectValue placeholder="Все РК" />
                           </SelectTrigger>
-                          <SelectContent className={isDark ? 'bg-[#2a3441] border-gray-600' : 'bg-white border-gray-200'}>
-                            <SelectItem value="all" className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>Все РК</SelectItem>
+                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
+                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все РК</SelectItem>
                             {Array.isArray(allRks) && allRks.map(rk => (
-                              <SelectItem key={rk} value={rk} className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>{rk}</SelectItem>
+                              <SelectItem key={rk} value={rk} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{rk}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
-                      
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Направление</label>
+
                         <Select value={draftTypeEquipmentFilter || "all"} onValueChange={(value) => setDraftTypeEquipmentFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
+                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
+                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
+                          }`}>
                             <SelectValue placeholder="Все направления" />
                           </SelectTrigger>
-                          <SelectContent className={isDark ? 'bg-[#2a3441] border-gray-600' : 'bg-white border-gray-200'}>
-                            <SelectItem value="all" className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>Все направления</SelectItem>
+                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
+                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все направления</SelectItem>
                             {Array.isArray(allTypeEquipments) && allTypeEquipments.map(type => (
-                              <SelectItem key={type} value={type} className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>{type}</SelectItem>
+                              <SelectItem key={type} value={type} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{type}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
-                    <hr className={isDark ? 'border-gray-700' : 'border-gray-200'} />
+                    <hr className={isDark ? 'border-white/10' : 'border-black/[0.06]'} />
 
                     {/* Секция: Даты */}
-                    <div className="space-y-3">
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Период</h3>
+                    <div className="space-y-4">
+                      <h3 className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/55'}`}>Период</h3>
                       
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Тип даты</label>
+                      <div className="space-y-3">
                         <Select value={draftDateType} onValueChange={(value: 'create' | 'close' | 'meeting') => setDraftDateType(value)}>
-                          <SelectTrigger className={`w-full ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
+                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
+                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
+                          }`}>
                             <SelectValue placeholder="Тип даты" />
                           </SelectTrigger>
-                          <SelectContent className={isDark ? 'bg-[#2a3441] border-gray-600' : 'bg-white border-gray-200'}>
-                            <SelectItem value="create" className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>Дата создания</SelectItem>
-                            <SelectItem value="close" className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>Дата закрытия</SelectItem>
-                            <SelectItem value="meeting" className={isDark ? 'text-gray-100 focus:bg-[#3a4451] focus:text-teal-400' : 'text-gray-800 focus:bg-teal-50 focus:text-teal-700'}>Дата встречи</SelectItem>
+                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
+                            <SelectItem value="create" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Дата создания</SelectItem>
+                            <SelectItem value="close" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Дата закрытия</SelectItem>
+                            <SelectItem value="meeting" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Дата встречи</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>С</label>
-                          <input
-                            type="date"
-                            value={draftDateFrom}
-                            onChange={(e) => setDraftDateFrom(e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
-                              isDark 
-                                ? 'bg-[#3a4451] border-gray-600 text-gray-100'
-                                : 'bg-gray-50 border-gray-200 text-gray-800'
-                            }`}
-                          />
-                        </div>
-                        <div>
-                          <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>По</label>
-                          <input
-                            type="date"
-                            value={draftDateTo}
-                            onChange={(e) => setDraftDateTo(e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
-                              isDark 
-                                ? 'bg-[#3a4451] border-gray-600 text-gray-100'
-                                : 'bg-gray-50 border-gray-200 text-gray-800'
-                            }`}
-                          />
-                        </div>
+                        
+                        <DateRangePicker
+                          startDate={draftDateFrom}
+                          endDate={draftDateTo}
+                          onChange={(start, end) => {
+                            setDraftDateFrom(start)
+                            setDraftDateTo(end)
+                          }}
+                          isDark={isDark}
+                        />
                       </div>
                     </div>
                   </div>
 
                   {/* Нижняя панель с кнопками */}
-                  <div className={`sticky bottom-0 border-t px-4 py-3 flex gap-2 ${
-                    isDark ? 'bg-[#2a3441] border-gray-700' : 'bg-white border-gray-200'
+                  <div className={`sticky bottom-0 border-t px-6 py-4 flex gap-3 ${
+                    isDark ? 'bg-[#111113]/40 backdrop-blur-md border-white/10' : 'bg-white border-black/[0.08]'
                   }`}>
                     <button
                       onClick={resetFilters}
-                      className={`flex-1 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+                      className={`flex-1 py-3.5 rounded-2xl text-[15px] font-semibold transition-colors ${
                         isDark 
-                          ? 'bg-[#3a4451] hover:bg-[#4a5461] text-gray-300'
-                          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                          ? 'bg-white/[0.04] hover:bg-white/[0.08] text-white'
+                          : 'border border-[#cfd2d8] bg-white hover:bg-[#f3f4f6] text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
                       }`}
                     >
                       Сбросить
                     </button>
                     <button
                       onClick={applyFilters}
-                      className="flex-1 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors text-sm font-medium"
+                      className={`flex-1 py-3.5 rounded-2xl transition-colors text-[15px] font-semibold ${
+                        isDark
+                          ? 'bg-white hover:bg-gray-200 text-[#111113]'
+                          : 'bg-[#0a4f42] hover:bg-[#0a4f42]/90 text-white shadow-md shadow-[#0a4f42]/20'
+                      }`}
                     >
                       Применить
                     </button>
                   </div>
                 </div>
               </>
+            {/* Конец панели фильтров */}
+
+            {/* Состояние загрузки */}
+            {loading && <LoadingState isDark={isDark} message="Загрузка заказов..." />}
+
+            {/* Ошибка */}
+            {error && (
+              <NetworkError 
+                isDark={isDark} 
+                onRetry={loadOrders} 
+                message={error !== 'Ошибка загрузки заказов' ? error : undefined} 
+              />
             )}
 
             {/* Десктопная таблица */}
@@ -876,7 +874,7 @@ function OrdersContent() {
                 isDark ? 'bg-[#2a3441]' : 'bg-white'
               }`}>
                 <thead>
-                  <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451] border-[#0d5c4b]' : 'bg-gray-50 border-[#0d5c4b]'}`}>
+                  <tr className={`border-b-2 ${isDark ? 'bg-white/[0.04] border-white/20' : 'bg-black/[0.02] border-black/10'}`}>
                     <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>ID</th>
                     <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Тип заказа</th>
                     <th className={`text-left py-2 px-2 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>РК</th>
@@ -899,8 +897,8 @@ function OrdersContent() {
                       key={order.id}
                       className={`border-b transition-colors cursor-pointer ${
                         isDark 
-                          ? 'border-gray-700 hover:bg-[#3a4451]'
-                          : 'border-gray-200 hover:bg-teal-50'
+                          ? 'border-white/10 hover:bg-white/[0.04]'
+                          : 'border-black/10 hover:bg-black/[0.02]'
                       }`}
                       onClick={() => handleOrderClick(order.id)}
                     >
@@ -925,7 +923,7 @@ function OrdersContent() {
                         </span>
                       </td>
                       <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{order.master?.name || '-'}</td>
-                      <td className={`py-2 px-2 font-semibold ${isDark ? 'text-teal-400' : 'text-gray-800'}`}>
+                      <td className={`py-2 px-2 font-semibold ${isDark ? 'text-white' : 'text-[#111113]'}`}>
                         {order.result && typeof order.result === 'number' 
                           ? (() => {
                               try {
@@ -950,10 +948,10 @@ function OrdersContent() {
               {Array.isArray(safeOrders) && safeOrders.map((order) => (
                 <div 
                   key={order.id}
-                  className={`rounded-xl overflow-hidden border cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md ${
+                  className={`rounded-[20px] overflow-hidden border cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md ${
                     isDark 
-                      ? 'bg-[#2a3441] border-gray-700 hover:border-teal-600'
-                      : 'bg-white border-gray-200 hover:border-teal-300'
+                      ? 'bg-white/[0.02] border-white/10 hover:border-white/30'
+                      : 'bg-white border-black/10 hover:border-black/30'
                   }`}
                   onClick={() => handleOrderClick(order.id)}
                 >
@@ -1003,7 +1001,7 @@ function OrdersContent() {
                         {order.status?.name || '-'}
                       </span>
                       {order.result && typeof order.result === 'number' && (
-                        <span className={`font-bold text-sm ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
+                        <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-[#111113]'}`}>
                           {order.result.toLocaleString()} ₽
                         </span>
                       )}

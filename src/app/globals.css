@@ -101,12 +101,20 @@ html, body {
 
 /* Тёмная тема - применяется через класс на html (устанавливается скриптом до рендеринга) */
 html.dark {
-  background-color: #1e2530;
+  background-color: #111113;
   color-scheme: dark;
 }
 
 html.dark body {
-  background-color: #1e2530;
+  background-color: #111113;
+}
+
+/* Disable transitions for one frame during theme toggle to avoid split repaint */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+  animation: none !important;
 }
 
 /* Навигация/Сайдбар - стили для предотвращения мерцания при загрузке */
@@ -173,11 +181,22 @@ html.dark header.header-main .nav-item-active {
 
 /* Main content - предотвращение мерцания */
 main.main-content {
-  background-color: white !important;
+  background-color: #f5f5f7 !important;
 }
 
 html.dark main.main-content {
-  background-color: #1e2530 !important;
+  background-color: #111113 !important;
+}
+
+@media (min-width: 768px) {
+  main.main-content {
+    margin-left: 18rem !important;
+    transition: margin-left 0.3s ease;
+  }
+
+  html.sidebar-collapsed main.main-content {
+    margin-left: 8.5rem !important;
+  }
 }
 
 /* Navigation Icon Hover Effect - как в callcentre */
@@ -263,24 +282,49 @@ html.dark main.main-content {
   }
 }
 
-/* Кастомные скроллбары */
+/* Кастомные скроллбары (светлая тема по умолчанию) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #e8eaee;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a6b68;
+  background: rgba(10, 79, 66, 0.45);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #1a5a57;
+  background: rgba(10, 79, 66, 0.65);
+}
+
+/* Тёмная тема: нейтральный ползунок на тёмном треке (лучше читается на #111113) */
+html.dark ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 4px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.34);
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(10, 79, 66, 0.5) #e8eaee;
+}
+
+html.dark {
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.06);
 }
 
 /* Скрытый скроллбар для горизонтальной прокрутки */
@@ -509,22 +553,24 @@ html.dark main.main-content {
   background-color: rgba(20, 184, 166, 0.1);
 }
 
-/* Force remove outline for login inputs */
-input:focus,
-input:focus-visible,
-input:focus-within,
-input[type="text"]:focus,
-input[type="password"]:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  border: 2px solid #14b8a6 !important;
-}
-
 /* Custom focus styles for login form */
 .login-input:focus {
   outline: none !important;
   border-color: #14b8a6 !important;
   box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2) !important;
+}
+
+.login-page-input:focus,
+.login-page-input:focus-visible,
+.login-page-input:focus-within,
+.login-page-input[type="text"]:focus,
+.login-page-input[type="text"]:focus-visible,
+.login-page-input[type="password"]:focus,
+.login-page-input[type="password"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-color: transparent !important;
 }
 
 /* Nuclear option - remove all browser outlines */

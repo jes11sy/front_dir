@@ -6,6 +6,8 @@ import ExcelJS from 'exceljs'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
+import { LoadingState } from '@/components/ui/loading-state'
+import { NetworkError } from '@/components/ui/network-error'
 
 function MastersReportContent() {
   const { theme } = useDesignStore()
@@ -238,26 +240,17 @@ function MastersReportContent() {
   return (
     <div>
       {/* Состояние загрузки */}
-      {loading && (
-        <div className="text-center py-8 animate-fade-in">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-          <div className={`text-xl mt-4 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Загрузка отчета...</div>
-        </div>
-      )}
+      {loading && <LoadingState isDark={isDark} message="Загрузка отчета..." />}
 
       {/* Состояние ошибки */}
       {error && (
-        <div className="text-center py-8 animate-slide-in-left">
-          <div className={`rounded-lg p-6 ${isDark ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
-            <div className={`text-xl mb-4 ${isDark ? 'text-red-400' : 'text-red-600'}`}>Ошибка: {error}</div>
-            <button 
-              onClick={() => loadMastersReport()}
-              className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-md"
-            >
-              Попробовать снова
-            </button>
-          </div>
-        </div>
+        <NetworkError
+          isDark={isDark}
+          onRetry={() => loadMastersReport()}
+          title="Ошибка загрузки отчета"
+          message={error}
+          buttonText="Попробовать снова"
+        />
       )}
 
       {/* Основной контент */}

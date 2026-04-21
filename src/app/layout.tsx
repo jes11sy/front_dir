@@ -51,7 +51,7 @@ export default function RootLayout({
                     var theme = data.state && data.state.theme;
                     if (theme === 'dark') {
                       document.documentElement.classList.add('dark');
-                      document.documentElement.style.backgroundColor = '#1e2530';
+                      document.documentElement.style.backgroundColor = '#111113';
                       document.documentElement.style.colorScheme = 'dark';
                     }
                   }
@@ -69,10 +69,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               nav.nav-main, aside.sidebar-main, header.header-main, main.main-content {
-                background-color: white !important;
+                background-color: #f5f5f7 !important;
               }
               html.dark nav.nav-main, html.dark aside.sidebar-main, html.dark header.header-main, html.dark main.main-content {
-                background-color: #1e2530 !important;
+                background-color: #111113 !important;
               }
               nav.nav-main, aside.sidebar-main, header.header-main {
                 border-color: #e5e7eb;

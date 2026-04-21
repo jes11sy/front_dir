@@ -491,9 +491,9 @@ export class ApiClient {
       // 🔧 FIX: Если мы на странице /login, НЕ пытаемся refresh/logout (избегаем бесконечного цикла)
       const isOnLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login'
       
-      // Если 401/403 ошибка и это не логин/рефреш - пытаемся обновить токен
-      // 403 может быть из-за истекшего токена, который прошел JWT validation но не прошел роли
-      if ((response.status === 401 || response.status === 403) && !url.includes('/auth/login') && !url.includes('/auth/refresh') && !isOnLoginPage) {
+      // Если 401 ошибка и это не логин/рефреш - пытаемся обновить токен.
+      // 403 (forbidden) обрабатываем как ошибку прав без редиректа на /login.
+      if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh') && !isOnLoginPage) {
         if (this.isRefreshing) {
           // Если токен уже обновляется, ждем завершения
           return new Promise((resolve, reject) => {

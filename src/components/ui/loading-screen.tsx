@@ -1,8 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import { useDesignStore } from '@/store/design.store'
-import { useState, useEffect } from 'react'
 
 interface LoadingScreenProps {
   /** Текст под спиннером (не используется в новом дизайне) */
@@ -11,28 +9,6 @@ interface LoadingScreenProps {
   fullScreen?: boolean
   /** Дополнительные классы */
   className?: string
-}
-
-/**
- * Хук для определения темы без мелькания
- * Сначала проверяет CSS класс dark на html, потом синхронизируется со store
- */
-function useThemeWithoutFlash() {
-  const { theme } = useDesignStore()
-  const [isDark, setIsDark] = useState(() => {
-    // На сервере или при первом рендере проверяем CSS класс
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark')
-    }
-    return false
-  })
-
-  useEffect(() => {
-    // После гидратации синхронизируемся со store
-    setIsDark(theme === 'dark')
-  }, [theme])
-
-  return isDark
 }
 
 /**
@@ -47,27 +23,34 @@ export function LoadingScreen({
   fullScreen = true,
   className = ''
 }: LoadingScreenProps) {
-  const isDark = useThemeWithoutFlash()
-
   const content = (
-    <div className="flex flex-col items-center justify-center px-4">
-      {/* Логотип */}
-      <div className="mb-8">
-        <Image 
-          src={isDark ? "/images/logo_dark_v2.png" : "/images/logo_light_v2.png"} 
-          alt="Новые Схемы" 
-          width={200} 
-          height={50} 
-          className="h-12 w-auto" 
+    <div
+      className="flex flex-col items-center justify-center px-4"
+      style={{
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif'
+      }}
+    >
+      <div className="mb-7">
+        <Image
+          src="/images/logo_light_v2.png"
+          alt="Новые Схемы"
+          width={272}
+          height={60}
+          className="h-[52px] w-auto object-contain opacity-95 dark:hidden"
+          priority
+        />
+        <Image
+          src="/images/logo_dark_v2.png"
+          alt="Новые Схемы"
+          width={272}
+          height={60}
+          className="hidden h-[52px] w-auto object-contain opacity-95 dark:block"
           priority
         />
       </div>
 
-      {/* Спиннер */}
-      <div className="relative w-12 h-12">
-        <div className={`w-full h-full rounded-full border-4 ${isDark ? 'border-[#0d5c4b]/30' : 'border-[#0d5c4b]/20'}`} />
-        <div className={`absolute inset-0 rounded-full border-4 border-transparent border-t-[#0d5c4b] animate-spin`} />
-      </div>
+      <div className="h-12 w-12 animate-spin rounded-full border-2 border-transparent border-b-[#0a4f42] dark:border-b-white" />
     </div>
   )
 
@@ -75,14 +58,24 @@ export function LoadingScreen({
   // Класс dark устанавливается синхронным скриптом в layout.tsx до рендеринга React
   if (fullScreen) {
     return (
-      <div className={`min-h-screen min-h-[100dvh] flex items-center justify-center bg-white dark:bg-[#1e2530] ${className}`}>
+      <div
+        className={`relative flex min-h-screen min-h-[100dvh] items-center justify-center overflow-hidden bg-[#f5f5f7] text-[#1d1d1f] transition-colors duration-300 dark:bg-[#111113] dark:text-white ${className}`}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,_#ffffff,_#f5f5f7),radial-gradient(circle_at_top,_rgba(0,113,227,0.06),_transparent_28%)] dark:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.05),_transparent_24%),linear-gradient(180deg,_#111113,_#0c0c0d)]"
+        />
+        <div
+          className="pointer-events-none absolute left-1/2 top-16 h-40 w-40 -translate-x-1/2 rounded-full bg-[#0071e3]/6 blur-3xl dark:bg-white/[0.025]"
+        />
         {content}
       </div>
     )
   }
 
   return (
-    <div className={`flex items-center justify-center py-12 bg-white dark:bg-[#1e2530] ${className}`}>
+    <div
+      className={`flex items-center justify-center bg-[#f5f5f7] py-12 text-[#1d1d1f] transition-colors duration-300 dark:bg-[#111113] dark:text-white ${className}`}
+    >
       {content}
     </div>
   )
@@ -106,8 +99,8 @@ export function LoadingSpinner({
 
   return (
     <div className={`relative ${sizeClasses[size]} ${className}`}>
-      <div className={`${sizeClasses[size]} rounded-full border-2 border-[#0d5c4b]/20`} />
-      <div className={`absolute top-0 left-0 ${sizeClasses[size]} rounded-full border-2 border-transparent border-t-[#0d5c4b] animate-spin`} />
+      <div className={`${sizeClasses[size]} rounded-full border-2 border-black/10 dark:border-white/20`} />
+      <div className={`absolute top-0 left-0 ${sizeClasses[size]} animate-spin rounded-full border-2 border-transparent border-t-[#0a4f42] dark:border-t-white`} />
     </div>
   )
 }
@@ -148,7 +141,7 @@ export function LoadingOverlay({
     <div className="relative">
       {children}
       {isLoading && (
-        <div className="absolute inset-0 backdrop-blur-sm flex items-center justify-center z-50 bg-white/80 dark:bg-[#1e2530]/80">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm dark:bg-[#111113]/80">
           <LoadingState message={message} />
         </div>
       )}

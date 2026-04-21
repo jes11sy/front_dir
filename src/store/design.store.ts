@@ -7,6 +7,34 @@ import { saveSettings, getSettings } from '@/lib/settings-storage'
 export type DesignVersion = 'v1' | 'v2'
 export type ThemeMode = 'light' | 'dark'
 
+const applyThemeToDocument = (theme: ThemeMode) => {
+  if (typeof document === 'undefined') return
+
+  const html = document.documentElement
+  if (theme === 'dark') {
+    html.classList.add('dark')
+    html.style.backgroundColor = '#111113'
+    html.style.colorScheme = 'dark'
+  } else {
+    html.classList.remove('dark')
+    html.style.backgroundColor = '#f5f5f7'
+    html.style.colorScheme = ''
+  }
+}
+
+const disableTransitionsDuringThemeChange = () => {
+  if (typeof document === 'undefined') return
+
+  const html = document.documentElement
+  html.classList.add('theme-switching')
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      html.classList.remove('theme-switching')
+    })
+  })
+}
+
 interface DesignState {
   version: DesignVersion
   theme: ThemeMode
@@ -39,12 +67,16 @@ export const useDesignStore = create<DesignState>()(
       },
 
       setTheme: (theme) => {
+        disableTransitionsDuringThemeChange()
+        applyThemeToDocument(theme)
         set({ theme })
         saveSettings({ theme }).catch(() => {})
       },
 
       toggleTheme: () => {
         const newTheme = get().theme === 'light' ? 'dark' : 'light'
+        disableTransitionsDuringThemeChange()
+        applyThemeToDocument(newTheme)
         set({ theme: newTheme })
         saveSettings({ theme: newTheme }).catch(() => {})
       },

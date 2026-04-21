@@ -1,27 +1,50 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Image from 'next/image'
+import Link from 'next/link'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#114643'}}>
-      <div className="max-w-md w-full space-y-8 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="backdrop-blur-lg shadow-2xl border-0 rounded-2xl" style={{backgroundColor: '#15282f'}}>
-          <CardHeader className="text-center pb-8">
-            <div className="mx-auto mb-6">
-              <div className="text-6xl font-bold text-white mb-4">404</div>
-              <CardTitle className="text-2xl text-white">Страница не найдена</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-white/70">
-              Запрашиваемая страница не существует или была перемещена.
-            </p>
-          </CardContent>
-        </Card>
-        
-        <div className="text-center mt-8">
-          <p className="text-white/70 text-sm">
-            © 2025 Новые Схемы. Все права защищены.
-          </p>
+    <div className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-[#f5f5f7] px-4 text-[#1d1d1f] transition-colors duration-300 dark:bg-[#111113] dark:text-white">
+      <div className="w-full max-w-[380px]">
+        <div className="mb-7 flex justify-center">
+          <Image
+            src="/images/logo_light_v2.png"
+            alt="Новые Схемы"
+            width={272}
+            height={60}
+            className="h-[52px] w-auto object-contain opacity-95 dark:hidden"
+            priority
+          />
+          <Image
+            src="/images/logo_dark_v2.png"
+            alt="Новые Схемы"
+            width={272}
+            height={60}
+            className="hidden h-[52px] w-auto object-contain opacity-95 dark:block"
+            priority
+          />
+        </div>
+
+        <p className="text-center text-[56px] font-semibold leading-none tracking-tight text-[#0a4f42] dark:text-white">
+          404
+        </p>
+        <h1 className="mt-2 text-center text-[36px] font-semibold leading-tight">Страница не найдена</h1>
+        <p className="mx-auto mt-3 max-w-[330px] text-center text-[16px] text-[#6e6e73] dark:text-white/65">
+          Такой страницы нет. Проверь адрес или перейди в рабочие разделы.
+        </p>
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="/orders"
+            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#0a4f42] px-5 text-[17px] font-medium text-white transition-colors hover:bg-[#083f35] dark:bg-white dark:text-[#111113] dark:hover:bg-white/90"
+          >
+            К заказам
+          </Link>
+          <Link
+            href="/login"
+            className="inline-flex h-12 w-full items-center justify-center rounded-full border border-[#cfd2d8] bg-transparent px-5 text-[17px] font-medium text-[#111113] transition-colors hover:bg-white/55 dark:border-white/25 dark:text-white dark:hover:bg-white/[0.08]"
+          >
+            Войти
+          </Link>
         </div>
       </div>
     </div>

@@ -7,12 +7,15 @@ import { logger } from '@/lib/logger'
 import { toast } from '@/components/ui/toast'
 import { useDesignStore } from '@/store/design.store'
 import { ArrowLeft } from 'lucide-react'
+import { LoadingState } from '@/components/ui/loading-state'
+import { NetworkError } from '@/components/ui/network-error'
 
 function MasterHandoverDetailContent() {
   const router = useRouter()
   const params = useParams()
   const masterId = params.id as string
   const { theme } = useDesignStore()
+  const isDark = theme === 'dark'
 
   const [masterData, setMasterData] = useState<any>(null)
   const [orders, setOrders] = useState<any[]>([])
@@ -103,28 +106,25 @@ function MasterHandoverDetailContent() {
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-[#1e2530]' : 'bg-gray-50'
+        isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'
       }`}>
-        <div className="text-center">
-          <div className={`animate-spin rounded-full h-10 w-10 border-2 mx-auto mb-3 ${
-            theme === 'dark' ? 'border-[#0d5c4b] border-t-transparent' : 'border-[#0d5c4b] border-t-transparent'
-          }`}></div>
-          <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Загрузка...</p>
-        </div>
+        <LoadingState isDark={isDark} message="Загрузка сдач мастера..." />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className={`min-h-screen p-4 transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-[#1e2530]' : 'bg-gray-50'
+      <div className={`min-h-screen px-4 py-6 transition-colors duration-300 ${
+        isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'
       }`}>
-        <div className={`rounded-lg p-4 ${
-          theme === 'dark' ? 'bg-red-900/30 border border-red-800' : 'bg-red-50 border border-red-200'
-        }`}>
-          <p className={theme === 'dark' ? 'text-red-400' : 'text-red-600'}>{error}</p>
-        </div>
+        <NetworkError
+          isDark={isDark}
+          onRetry={() => window.location.reload()}
+          title="Ошибка загрузки"
+          message={error}
+          buttonText="Обновить"
+        />
       </div>
     )
   }
@@ -132,40 +132,142 @@ function MasterHandoverDetailContent() {
   if (!masterData) {
     return (
       <div className={`min-h-screen flex items-center justify-center transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-[#1e2530]' : 'bg-gray-50'
+        isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'
       }`}>
-        <p className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>Мастер не найден</p>
+        <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>Мастер не найден</p>
       </div>
     )
   }
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
-      theme === 'dark' ? 'bg-[#1e2530]' : 'bg-gray-50'
+      isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'
     }`}>
-      {/* Шапка с кнопкой назад и именем мастера */}
-      <div className={`sticky top-0 z-10 px-4 py-3 flex items-center gap-4 ${
-        theme === 'dark' ? 'bg-[#2a3441] border-b border-[#0d5c4b]/30' : 'bg-white border-b border-gray-200'
-      }`}>
-        <button
-          onClick={handleBack}
-          className={`p-2 rounded-lg transition-colors ${
-            theme === 'dark' 
-              ? 'hover:bg-[#1e2530] text-gray-400 hover:text-[#0d5c4b]' 
-              : 'hover:bg-gray-100 text-gray-600 hover:text-[#0d5c4b]'
-          }`}
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className={`font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
-            {masterData.name}
-          </h1>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            {masterData.cities?.join(', ') || '—'}
-          </p>
+      <div className="px-4 py-6">
+        {/* Шапка */}
+        <div className={`mb-4 rounded-[20px] border px-4 py-4 ${
+          isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-black/10'
+        }`}>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBack}
+              className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
+                isDark
+                  ? 'text-white/75 hover:bg-white/[0.06] hover:text-white'
+                  : 'text-[#6e6e73] hover:bg-black/[0.04] hover:text-[#111113]'
+              }`}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className={`font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                {masterData.name}
+              </h1>
+              <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                {masterData.cities?.join(', ') || '—'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Таблица заказов */}
+        {orders.length === 0 ? (
+          <div className={`rounded-[20px] border py-16 text-center ${
+            isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-black/10'
+          }`}>
+            <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>
+              Нет заказов для сдачи
+            </p>
+          </div>
+        ) : (
+          <div className="w-full overflow-x-auto">
+            <table className={`w-full border-collapse text-sm min-w-[800px] rounded-[20px] overflow-hidden ${
+              isDark ? 'bg-white/[0.02] border border-white/10' : 'bg-white border border-black/10'
+            }`}>
+              <thead>
+                <tr className={isDark ? 'border-b border-white/10 bg-white/[0.02]' : 'border-b border-black/10 bg-black/[0.02]'}>
+                  <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>ID</th>
+                  <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Адрес</th>
+                  <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Проблема</th>
+                  <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Итог</th>
+                  <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Сдача</th>
+                  <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Статус</th>
+                  <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Чек</th>
+                  <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order: any) => (
+                  <tr
+                    key={order.id}
+                    className={`transition-colors ${
+                      isDark ? 'border-b border-white/10 hover:bg-white/[0.04]' : 'border-b border-black/10 hover:bg-black/[0.02]'
+                    }`}
+                  >
+                    <td className={`py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      #{order.id}
+                    </td>
+                    <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {order.address || '—'}
+                    </td>
+                    <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {order.problem || '—'}
+                    </td>
+                    <td className={`py-3 px-4 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {order.result?.toLocaleString() || 0} ₽
+                    </td>
+                    <td className={`py-3 px-4 font-semibold ${isDark ? 'text-white' : 'text-[#0a4f42]'}`}>
+                      {order.masterChange?.toLocaleString() || 0} ₽
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.cashSubmissionStatus)}`}>
+                        {order.cashSubmissionStatus || 'Не указан'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      {order.cashReceiptDoc ? (
+                        <a
+                          href={getS3Url(order.cashReceiptDoc) || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-sm underline ${isDark ? 'text-white/80 hover:text-white' : 'text-[#0a4f42] hover:text-[#083f35]'}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Открыть
+                        </a>
+                      ) : (
+                        <span className={isDark ? 'text-gray-600' : 'text-gray-400'}>—</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      {(order.cashSubmissionStatus === 'На проверке' || order.cashSubmissionStatus === 'Не отправлено') && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => handleApproveRequest(order.id, e)}
+                            className={`py-1.5 px-3 text-xs rounded-lg transition-colors font-medium ${
+                              isDark ? 'bg-white text-[#111113] hover:bg-gray-200' : 'bg-[#0a4f42] hover:bg-[#083f35] text-white'
+                            }`}
+                          >
+                            Да
+                          </button>
+                          <button
+                            onClick={(e) => handleRejectRequest(order.id, e)}
+                            className="py-1.5 px-3 text-xs rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors font-medium"
+                          >
+                            Нет
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         </div>
       </div>
+<<<<<<< Updated upstream
 
       {/* Таблица заказов */}
       {orders.length === 0 ? (
@@ -260,6 +362,8 @@ function MasterHandoverDetailContent() {
           </table>
         </div>
       )}
+=======
+>>>>>>> Stashed changes
     </div>
   )
 }
