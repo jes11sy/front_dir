@@ -553,52 +553,6 @@ function ExpenseContent() {
             {/* Таблица */}
             {!loading && !error && (
               <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
-<<<<<<< Updated upstream
-                <table className={`w-full border-collapse text-[11px] min-w-[600px] rounded-lg shadow-lg ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
-                  <thead>
-                    <tr className={`border-b-2 ${isDark ? 'bg-[#3a4451]' : 'bg-gray-50'}`} style={{borderColor: '#ef4444'}}>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>ID</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Тип</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Город</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Назначение платежа</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Сумма</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Комментарий</th>
-                      <th className={`text-left py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Дата</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentData.map((item) => {
-                    const getTypeColor = (type: string) => {
-                      switch (type) {
-                        case 'приход': return '#0d5c4b'
-                        case 'расход': return '#ef4444'
-                        default: return '#6b7280'
-                      }
-                    }
-                      
-                      return (
-                        <tr 
-                          key={item.id} 
-                          className={`border-b transition-colors cursor-pointer ${isDark ? 'hover:bg-[#3a4451] border-gray-700' : 'hover:bg-red-50 border-gray-200'}`}
-                          onClick={() => router.push(`/cash/expense/view/${item.id}`)}
-                        >
-                          <td className={`py-3 px-3 font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{item.id}</td>
-                          <td className="py-3 px-3">
-                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" style={{backgroundColor: getTypeColor(item.name)}}>
-                              {item.name}
-                            </span>
-                          </td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || directorCities[0] || 'Москва'}</td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
-                          <td className={`py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-red-600'}`}>{Number(item.amount).toLocaleString()} ₽</td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.createdAt)}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-=======
                 {currentData.length === 0 ? (
                   <div className={`text-center py-12 rounded-lg shadow-lg ${isDark ? 'bg-[#2a3441]' : 'bg-white'}`}>
                     <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isDark ? 'bg-[#3a4451]' : 'bg-gray-100'}`}>
@@ -667,18 +621,17 @@ function ExpenseContent() {
                             </td>
                             <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || directorCities[0] || 'Москва'}</td>
                             <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
-                            <td className={`py-2 px-2 font-semibold ${isDark ? 'text-white' : 'text-[#111113]'}`}>
+                            <td className={`py-2 px-2 font-semibold ${isDark ? 'text-white' : 'text-red-600'}`}>
                               {Number(item.amount).toLocaleString()} ₽
                             </td>
                             <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
-                            <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.dateCreate)}</td>
+                            <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.createdAt)}</td>
                           </tr>
                         )
                       })}
                     </tbody>
                   </table>
                 )}
->>>>>>> Stashed changes
               </div>
             )}
 

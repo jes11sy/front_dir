@@ -500,68 +500,6 @@ export default function ProfilePage() {
             )}
           </div>
 
-<<<<<<< Updated upstream
-          {/* Разделитель */}
-          <div className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`} />
-
-          {/* Информация */}
-          <div className="space-y-4">
-            {/* Города */}
-            <div className={`flex justify-between items-center py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Города</span>
-              <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>{cities.length > 0 ? cities.join(', ') : 'Не указаны'}</span>
-            </div>
-
-            {/* Дата регистрации */}
-            <div className={`flex justify-between items-center py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Дата регистрации</span>
-              <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>
-                {user?.createdAt ? formatDate(user.createdAt) : 'Не указана'}
-              </span>
-            </div>
-
-            {/* Примечание */}
-            <div className={`flex justify-between items-start py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Примечание</span>
-              {isEditing ? (
-                <textarea
-                  value={formData.note}
-                  onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                  className={`w-64 text-right bg-transparent border rounded-lg p-2 focus:border-teal-500 focus:outline-none resize-none ${isDark ? 'text-gray-200 border-gray-600' : 'text-gray-900 border-gray-200'}`}
-                  rows={2}
-                />
-              ) : (
-                <span className={`text-right max-w-xs ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>{user?.note || 'Не указано'}</span>
-              )}
-            </div>
-
-            {/* Telegram ID */}
-            <div className={`flex justify-between items-center py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Telegram</span>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={formData.telegramId}
-                  onChange={(e) => setFormData({ ...formData, telegramId: e.target.value })}
-                  className={`w-64 text-right bg-transparent border-b focus:border-teal-500 focus:outline-none ${isDark ? 'text-gray-200 border-gray-600' : 'text-gray-900 border-gray-300'}`}
-                  placeholder="@username"
-                />
-              ) : (
-                <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>{formData.telegramId || 'Не указан'}</span>
-              )}
-            </div>
-
-            {/* Push-уведомления */}
-            <div className={`py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-              <div className="flex justify-between items-center">
-                <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Push-уведомления</span>
-                <div className="flex items-center gap-3">
-                  {pushLoading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                      <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Проверка...</span>
-                    </div>
-=======
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-4">
               {/* Информация */}
@@ -576,7 +514,7 @@ export default function ProfilePage() {
                 <div className={`flex justify-between items-center py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
                   <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Дата регистрации</span>
                   <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>
-                    {user?.createdAt ? formatDate(user.createdAt) : user?.dateCreate ? formatDate(user.dateCreate) : 'Не указана'}
+                    {user?.createdAt ? formatDate(user.createdAt) : 'Не указана'}
                   </span>
                 </div>
                 <div className={`flex justify-between items-start py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
@@ -588,7 +526,6 @@ export default function ProfilePage() {
                       className={`w-64 text-right bg-transparent border rounded-lg p-2 focus:outline-none resize-none ${isDark ? 'focus:border-gray-600 text-gray-200 border-gray-600' : 'focus:border-teal-500 text-gray-900 border-gray-200'}`}
                       rows={2}
                     />
->>>>>>> Stashed changes
                   ) : (
                     <span className={`text-right max-w-xs ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>{user?.note || 'Не указано'}</span>
                   )}

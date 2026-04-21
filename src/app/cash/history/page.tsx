@@ -504,17 +504,10 @@ function HistoryContent() {
                           <td className={`py-2 px-2 font-semibold ${item.name === 'приход' ? (isDark ? 'text-emerald-400' : 'text-[#0d5c4b]') : (isDark ? 'text-red-400' : 'text-red-600')}`}>
                             {Number(item.amount).toLocaleString()} ₽
                           </td>
-<<<<<<< Updated upstream
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.createdAt)}</td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.nameCreate}</td>
-                          <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
-=======
                           <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
-                          <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.dateCreate)}</td>
+                          <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.createdAt)}</td>
                           <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.nameCreate}</td>
                           <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
->>>>>>> Stashed changes
                             {item.receiptDoc ? (
                               <button 
                                 className={`underline transition-colors ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}

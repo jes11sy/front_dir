@@ -580,21 +580,13 @@ function IncomeContent() {
                                 {item.name}
                               </span>
                             </td>
-<<<<<<< Updated upstream
-                            <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || directorCities[0] || 'Москва'}</td>
-                            <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
-                            <td className={`py-3 px-3 font-semibold ${isDark ? 'text-gray-200' : 'text-[#0d5c4b]'}`}>{Number(item.amount).toLocaleString()} ₽</td>
-                            <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
-                            <td className={`py-3 px-3 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.createdAt)}</td>
-=======
                             <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || directorCities[0] || 'Москва'}</td>
                             <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
                             <td className={`py-2 px-2 font-semibold ${isDark ? 'text-white' : 'text-[#111113]'}`}>
                               {Number(item.amount).toLocaleString()} ₽
                             </td>
                             <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.note || '-'}</td>
-                            <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.dateCreate)}</td>
->>>>>>> Stashed changes
+                            <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{formatDate(item.createdAt)}</td>
                           </tr>
                         )
                       })}

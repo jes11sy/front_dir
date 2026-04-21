@@ -42,28 +42,20 @@ function OrdersContent() {
   const [cityFilter, setCityFilter] = useState(() => searchParams.get('city') || '')
   const [masterFilter, setMasterFilter] = useState(() => searchParams.get('master') || '')
   const [showFilters, setShowFilters] = useState(() => {
-<<<<<<< Updated upstream
-    // Показываем фильтры если есть активные фильтры в URL
-    return !!(searchParams.get('status') || searchParams.get('city') || searchParams.get('master') || 
-              searchParams.get('rkId') || searchParams.get('equipmentTypeId') || 
-              searchParams.get('dateFrom') || searchParams.get('dateTo') ||
-              searchParams.get('searchId') || searchParams.get('searchPhone') || searchParams.get('searchAddress'))
-=======
     // Показываем фильтры если есть активные фильтры в URL или переход с нижнего дока (?filters=1)
     return !!(
       searchParams.get('filters') === '1' ||
       searchParams.get('status') ||
       searchParams.get('city') ||
       searchParams.get('master') ||
-      searchParams.get('rk') ||
-      searchParams.get('typeEquipment') ||
+      searchParams.get('rkId') ||
+      searchParams.get('equipmentTypeId') ||
       searchParams.get('dateFrom') ||
       searchParams.get('dateTo') ||
       searchParams.get('searchId') ||
       searchParams.get('searchPhone') ||
       searchParams.get('searchAddress')
     )
->>>>>>> Stashed changes
   })
   
   // Новые фильтры
