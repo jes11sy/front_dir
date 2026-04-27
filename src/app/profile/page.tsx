@@ -10,6 +10,7 @@ import { User, Edit2, LogOut, Eye, EyeOff, Save, X, Loader2, Settings, FileText,
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { LoadingState } from '@/components/ui/loading-state'
 import { NetworkError } from '@/components/ui/network-error'
+import { getFormFieldClass, formControlResetClass } from '@/components/ui/form-styles'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -47,6 +48,7 @@ export default function ProfilePage() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
+  const compactFieldClass = `${getFormFieldClass(isDark, 'md')} h-10 px-3 py-2`
 
   // Push настройки
   const [showPushSettings, setShowPushSettings] = useState(false)
@@ -461,7 +463,7 @@ export default function ProfilePage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={`text-xl bg-transparent border-b focus:outline-none ${isDark ? 'focus:border-gray-600 text-gray-100 border-gray-600' : 'focus:border-teal-500 text-gray-900 border-gray-300'}`}
+                    className={`${compactFieldClass} text-xl bg-transparent border-b rounded-none px-0`}
                   />
                 ) : (
                   <h2 className={`text-[20px] font-semibold tracking-tight ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{user?.name || 'Пользователь'}</h2>
@@ -523,7 +525,7 @@ export default function ProfilePage() {
                     <textarea
                       value={formData.note}
                       onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                      className={`w-64 text-right bg-transparent border rounded-lg p-2 focus:outline-none resize-none ${isDark ? 'focus:border-gray-600 text-gray-200 border-gray-600' : 'focus:border-teal-500 text-gray-900 border-gray-200'}`}
+                      className={`${compactFieldClass} w-64 text-right resize-none`}
                       rows={2}
                     />
                   ) : (
@@ -537,7 +539,7 @@ export default function ProfilePage() {
                       type="text"
                       value={formData.telegramId}
                       onChange={(e) => setFormData({ ...formData, telegramId: e.target.value })}
-                      className={`w-64 text-right bg-transparent border-b focus:outline-none ${isDark ? 'focus:border-gray-600 text-gray-200 border-gray-600' : 'focus:border-teal-500 text-gray-900 border-gray-300'}`}
+                      className={`${compactFieldClass} w-64 text-right bg-transparent border-b rounded-none px-0`}
                       placeholder="@username"
                     />
                   ) : (
@@ -797,7 +799,7 @@ export default function ProfilePage() {
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                     placeholder="Текущий пароль"
-                    className={`h-[52px] w-full border-0 bg-transparent px-4 pr-12 text-[15px] outline-none ring-0 focus:outline-none focus:ring-0 ${
+                    className={`h-[52px] w-full border-0 bg-transparent px-4 pr-12 text-[15px] ${formControlResetClass} ${
                       isDark ? 'text-white placeholder:text-white/28' : 'text-[#1d1d1f] placeholder:text-[#8e8e93]'
                     }`}
                   />
@@ -824,7 +826,7 @@ export default function ProfilePage() {
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                     placeholder="Новый пароль"
-                    className={`h-[52px] w-full border-0 bg-transparent px-4 pr-12 text-[15px] outline-none ring-0 focus:outline-none focus:ring-0 ${
+                    className={`h-[52px] w-full border-0 bg-transparent px-4 pr-12 text-[15px] ${formControlResetClass} ${
                       isDark ? 'text-white placeholder:text-white/28' : 'text-[#1d1d1f] placeholder:text-[#8e8e93]'
                     }`}
                   />
@@ -851,7 +853,7 @@ export default function ProfilePage() {
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                     placeholder="Подтвердите пароль"
-                    className={`h-[52px] w-full border-0 bg-transparent px-4 pr-12 text-[15px] outline-none ring-0 focus:outline-none focus:ring-0 ${
+                    className={`h-[52px] w-full border-0 bg-transparent px-4 pr-12 text-[15px] ${formControlResetClass} ${
                       isDark ? 'text-white placeholder:text-white/28' : 'text-[#1d1d1f] placeholder:text-[#8e8e93]'
                     }`}
                   />

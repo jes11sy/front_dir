@@ -10,6 +10,7 @@ import { logger } from '@/lib/logger'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { Eye, EyeOff, ChevronDown, X, Upload, Check, ArrowLeft } from 'lucide-react'
+import { getFormFieldClass } from '@/components/ui/form-styles'
 
 
 function AddEmployeeContent() {
@@ -36,6 +37,7 @@ function AddEmployeeContent() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const formFieldClass = `${getFormFieldClass(isDark, 'lg')} h-12 rounded-lg`
 
   // Используем города из Zustand store (надёжный источник)
   const availableCities = user?.cities || []
@@ -223,11 +225,7 @@ function AddEmployeeContent() {
                     onChange={handleInputChange}
                     placeholder="Введите ФИО сотрудника"
                     required
-                    className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                      isDark 
-                        ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                        : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                    }`}
+                    className={formFieldClass}
                   />
                 </div>
 
@@ -247,11 +245,7 @@ function AddEmployeeContent() {
                       <button
                         type="button"
                         onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
-                        className={`w-full h-12 rounded-lg px-4 text-left flex items-center justify-between focus:ring-2 focus:ring-[#0d5c4b] focus:outline-none ${
-                          isDark 
-                            ? 'bg-[#1e2530] text-gray-100' 
-                            : 'bg-[#f5f5f0] text-gray-800'
-                        }`}
+                        className={`${formFieldClass} w-full px-4 text-left flex items-center justify-between`}
                       >
                         <span className={selectedCities.length === 0 ? (isDark ? 'text-gray-500' : 'text-gray-400') : (isDark ? 'text-gray-100' : 'text-gray-800')}>
                           {selectedCities.length === 0 ? 'Выберите города' : selectedCities.join(', ')}
@@ -313,11 +307,7 @@ function AddEmployeeContent() {
                     value={formData.notes}
                     onChange={handleInputChange}
                     placeholder="Введите заметку о сотруднике"
-                    className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                      isDark 
-                        ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                        : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                    }`}
+                    className={formFieldClass}
                   />
                 </div>
 
@@ -332,11 +322,7 @@ function AddEmployeeContent() {
                       value={formData.telegramId}
                       onChange={handleInputChange}
                       placeholder="Введите Telegram ID"
-                      className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                        isDark 
-                          ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                          : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                      }`}
+                      className={formFieldClass}
                     />
                   </div>
                   <div>
@@ -348,11 +334,7 @@ function AddEmployeeContent() {
                       value={formData.chatId}
                       onChange={handleInputChange}
                       placeholder="Введите Chat ID"
-                      className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                        isDark 
-                          ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                          : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                      }`}
+                      className={formFieldClass}
                     />
                   </div>
                 </div>
@@ -369,11 +351,7 @@ function AddEmployeeContent() {
                       onChange={handleInputChange}
                       placeholder="Введите логин"
                       required
-                      className={`flex-1 h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                        isDark 
-                          ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                          : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                      }`}
+                      className={`${formFieldClass} flex-1`}
                     />
                     <Button
                       type="button"
@@ -399,11 +377,7 @@ function AddEmployeeContent() {
                         onChange={handleInputChange}
                         placeholder="Введите пароль"
                         required
-                        className={`h-12 pr-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                          isDark 
-                            ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                            : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                        }`}
+                        className={`${formFieldClass} pr-12`}
                       />
                       <button
                         type="button"

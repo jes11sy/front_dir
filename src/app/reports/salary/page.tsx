@@ -7,6 +7,7 @@ import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { LoadingState } from '@/components/ui/loading-state'
 import { NetworkError } from '@/components/ui/network-error'
+import { getFormFieldClass } from '@/components/ui/form-styles'
 
 const RATE = 0.07
 
@@ -278,12 +279,12 @@ function SalaryReportContent() {
                       <div>
                         <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>С</label>
                         <input type="date" value={draftStartDate} onChange={(e) => setDraftStartDate(e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-200 text-gray-800'}`} />
+                          className={`${getFormFieldClass(isDark, 'md')} rounded-lg text-sm`} />
                       </div>
                       <div>
                         <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>По</label>
                         <input type="date" value={draftEndDate} onChange={(e) => setDraftEndDate(e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-200 text-gray-800'}`} />
+                          className={`${getFormFieldClass(isDark, 'md')} rounded-lg text-sm`} />
                       </div>
                     </div>
                   </div>

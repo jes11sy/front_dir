@@ -13,6 +13,7 @@ import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { Eye, EyeOff, ChevronDown, X, Upload, Check, ArrowLeft, RefreshCw, Download, Trash2 } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/loading-screen'
+import { getFormFieldClass } from '@/components/ui/form-styles'
 
 
 function EmployeeViewContent() {
@@ -44,6 +45,7 @@ function EmployeeViewContent() {
   const [contractDragOver, setContractDragOver] = useState(false)
   
   const [showPassword, setShowPassword] = useState(false)
+  const formFieldClass = `${getFormFieldClass(isDark, 'lg')} h-12 rounded-lg`
 
   // Используем города из Zustand store (надёжный источник)
   const availableCities = Array.isArray(user?.cities) ? user.cities : []
@@ -379,11 +381,7 @@ function EmployeeViewContent() {
                     onChange={handleInputChange}
                     placeholder="Введите ФИО сотрудника"
                     required
-                    className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                      isDark 
-                        ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                        : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                    }`}
+                    className={formFieldClass}
                   />
                 </div>
 
@@ -398,11 +396,7 @@ function EmployeeViewContent() {
                       value={employee.login || ''}
                       onChange={handleInputChange}
                       placeholder="Введите логин"
-                      className={`flex-1 h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                        isDark 
-                          ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                          : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                      }`}
+                      className={`${formFieldClass} flex-1`}
                     />
                     <Button
                       type="button"
@@ -428,11 +422,7 @@ function EmployeeViewContent() {
                         value={employee.password || ''}
                         onChange={handleInputChange}
                         placeholder={hasPassword ? "Введите новый для изменения" : "Введите пароль"}
-                        className={`h-12 pr-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                          isDark 
-                            ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                            : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                        }`}
+                        className={`${formFieldClass} pr-12`}
                       />
                       <button
                         type="button"
@@ -469,11 +459,7 @@ function EmployeeViewContent() {
                         <button
                           type="button"
                           onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
-                          className={`w-full h-12 rounded-lg px-4 text-left flex items-center justify-between focus:ring-2 focus:ring-[#0d5c4b] focus:outline-none ${
-                            isDark 
-                              ? 'bg-[#1e2530] text-gray-100' 
-                              : 'bg-[#f5f5f0] text-gray-800'
-                          }`}
+                          className={`${formFieldClass} w-full px-4 text-left flex items-center justify-between`}
                         >
                           <span className={selectedCities.length === 0 ? (isDark ? 'text-gray-500' : 'text-gray-400') : (isDark ? 'text-gray-100' : 'text-gray-800')}>
                             {selectedCities.length === 0 ? 'Выберите' : `${selectedCities.length} выбрано`}
@@ -531,11 +517,7 @@ function EmployeeViewContent() {
                       <button
                         type="button"
                         onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                        className={`w-full h-12 rounded-lg px-4 text-left flex items-center justify-between focus:ring-2 focus:ring-[#0d5c4b] focus:outline-none ${
-                          isDark 
-                            ? 'bg-[#1e2530] text-gray-100' 
-                            : 'bg-[#f5f5f0] text-gray-800'
-                        }`}
+                        className={`${formFieldClass} w-full px-4 text-left flex items-center justify-between`}
                       >
                         <span>{employee.status === 'active' ? 'Работает' : employee.status === 'inactive' ? 'Уволен' : '—'}</span>
                         <ChevronDown className={`w-5 h-5 transition-transform ${isDark ? 'text-gray-500' : 'text-gray-400'} ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
@@ -572,11 +554,7 @@ function EmployeeViewContent() {
                     value={employee.note || ''}
                     onChange={handleInputChange}
                     placeholder="Введите заметку о сотруднике"
-                    className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                      isDark 
-                        ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                        : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                    }`}
+                    className={formFieldClass}
                   />
                 </div>
 
@@ -591,11 +569,7 @@ function EmployeeViewContent() {
                       value={employee.tgId || ''}
                       onChange={handleInputChange}
                       placeholder="Введите Telegram ID"
-                      className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                        isDark 
-                          ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                          : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                      }`}
+                      className={formFieldClass}
                     />
                   </div>
                   <div>
@@ -607,11 +581,7 @@ function EmployeeViewContent() {
                       value={employee.chatId || ''}
                       onChange={handleInputChange}
                       placeholder="Введите Chat ID"
-                      className={`h-12 border-0 rounded-lg focus:ring-2 focus:ring-[#0d5c4b] ${
-                        isDark 
-                          ? 'bg-[#1e2530] text-gray-100 placeholder:text-gray-500' 
-                          : 'bg-[#f5f5f0] text-gray-800 placeholder:text-gray-400'
-                      }`}
+                      className={formFieldClass}
                     />
                   </div>
                 </div>

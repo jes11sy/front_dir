@@ -12,6 +12,12 @@ import { LoadingState } from '@/components/ui/loading-state'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
+import {
+  getFormFieldClass,
+  getFormSelectContentClass,
+  getFormSelectItemClass,
+  getFormSelectTriggerClass,
+} from '@/components/ui/form-styles'
 
 // Ключ для сохранения позиции прокрутки
 const SCROLL_POSITION_KEY = 'orders_scroll_position'
@@ -519,6 +525,11 @@ function OrdersContent() {
     }
   }
 
+  const filterFieldClass = `${getFormFieldClass(isDark, 'lg')} min-h-[44px] px-4`
+  const filterSelectTriggerClass = `${getFormSelectTriggerClass(isDark, 'lg')} min-h-[44px] px-4`
+  const filterSelectContentClass = getFormSelectContentClass(isDark)
+  const filterSelectItemClass = getFormSelectItemClass(isDark)
+
   if (error) {
     return (
       <div className={`transition-colors duration-300 ${isDark ? 'bg-[#111113]' : 'bg-[#f5f5f7]'}`}>
@@ -660,33 +671,21 @@ function OrdersContent() {
                           value={draftSearchId}
                           onChange={(e) => setDraftSearchId(e.target.value)}
                           placeholder="№ заказа..."
-                          className={`w-full min-h-[44px] px-4 py-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#0a4f42]/18 focus:ring-offset-0 dark:focus:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a4f42]/18 focus-visible:ring-offset-0 dark:focus-visible:ring-white/20 transition-all shadow-sm ${
-                            isDark 
-                              ? 'bg-white/[0.04] text-white placeholder-white/30'
-                              : 'border border-[#cfd2d8] bg-white text-[#111113] placeholder:text-[#8e8e93] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
-                          }`}
+                          className={filterFieldClass}
                         />
                         <input
                           type="text"
                           value={draftSearchPhone}
                           onChange={(e) => setDraftSearchPhone(e.target.value)}
                           placeholder="Номер телефона..."
-                          className={`w-full min-h-[44px] px-4 py-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#0a4f42]/18 focus:ring-offset-0 dark:focus:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a4f42]/18 focus-visible:ring-offset-0 dark:focus-visible:ring-white/20 transition-all shadow-sm ${
-                            isDark 
-                              ? 'bg-white/[0.04] text-white placeholder-white/30'
-                              : 'border border-[#cfd2d8] bg-white text-[#111113] placeholder:text-[#8e8e93] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
-                          }`}
+                          className={filterFieldClass}
                         />
                         <input
                           type="text"
                           value={draftSearchAddress}
                           onChange={(e) => setDraftSearchAddress(e.target.value)}
                           placeholder="Адрес..."
-                          className={`w-full min-h-[44px] px-4 py-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#0a4f42]/18 focus:ring-offset-0 dark:focus:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a4f42]/18 focus-visible:ring-offset-0 dark:focus-visible:ring-white/20 transition-all shadow-sm ${
-                            isDark 
-                              ? 'bg-white/[0.04] text-white placeholder-white/30'
-                              : 'border border-[#cfd2d8] bg-white text-[#111113] placeholder:text-[#8e8e93] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
-                          }`}
+                          className={filterFieldClass}
                         />
                       </div>
                     </div>
@@ -699,43 +698,37 @@ function OrdersContent() {
                       
                       <div className="space-y-3">
                         <Select value={draftStatusFilter || "all"} onValueChange={(value) => setDraftStatusFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
-                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
-                          }`}>
+                          <SelectTrigger className={filterSelectTriggerClass}>
                             <SelectValue placeholder="Все статусы" />
                           </SelectTrigger>
-                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
-                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все статусы</SelectItem>
+                          <SelectContent className={filterSelectContentClass}>
+                            <SelectItem value="all" className={filterSelectItemClass}>Все статусы</SelectItem>
                             {Array.isArray(allStatuses) && allStatuses.map(status => (
-                              <SelectItem key={status} value={status} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{status}</SelectItem>
+                              <SelectItem key={status} value={status} className={filterSelectItemClass}>{status}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
 
                         <Select value={draftCityFilter || "all"} onValueChange={(value) => setDraftCityFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
-                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
-                          }`}>
+                          <SelectTrigger className={filterSelectTriggerClass}>
                             <SelectValue placeholder="Все города" />
                           </SelectTrigger>
-                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
-                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все города</SelectItem>
+                          <SelectContent className={filterSelectContentClass}>
+                            <SelectItem value="all" className={filterSelectItemClass}>Все города</SelectItem>
                             {Array.isArray(allCities) && allCities.map(city => (
-                              <SelectItem key={city} value={city} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{city}</SelectItem>
+                              <SelectItem key={city} value={city} className={filterSelectItemClass}>{city}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
 
                         <Select value={draftMasterFilter || "all"} onValueChange={(value) => setDraftMasterFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
-                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
-                          }`}>
+                          <SelectTrigger className={filterSelectTriggerClass}>
                             <SelectValue placeholder="Все мастера" />
                           </SelectTrigger>
-                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
-                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все мастера</SelectItem>
+                          <SelectContent className={filterSelectContentClass}>
+                            <SelectItem value="all" className={filterSelectItemClass}>Все мастера</SelectItem>
                             {Array.isArray(allMasters) && allMasters.map(master => (
-                              <SelectItem key={master.id} value={master.id.toString()} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{master.name}</SelectItem>
+                              <SelectItem key={master.id} value={master.id.toString()} className={filterSelectItemClass}>{master.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -750,29 +743,25 @@ function OrdersContent() {
                       
                       <div className="space-y-3">
                         <Select value={draftRkFilter || "all"} onValueChange={(value) => setDraftRkFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
-                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
-                          }`}>
+                          <SelectTrigger className={filterSelectTriggerClass}>
                             <SelectValue placeholder="Все РК" />
                           </SelectTrigger>
-                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
-                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все РК</SelectItem>
+                          <SelectContent className={filterSelectContentClass}>
+                            <SelectItem value="all" className={filterSelectItemClass}>Все РК</SelectItem>
                             {Array.isArray(allRks) && allRks.map(rk => (
-                              <SelectItem key={rk} value={rk} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{rk}</SelectItem>
+                              <SelectItem key={rk} value={rk} className={filterSelectItemClass}>{rk}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
 
                         <Select value={draftTypeEquipmentFilter || "all"} onValueChange={(value) => setDraftTypeEquipmentFilter(value === "all" ? "" : value)}>
-                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
-                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
-                          }`}>
+                          <SelectTrigger className={filterSelectTriggerClass}>
                             <SelectValue placeholder="Все направления" />
                           </SelectTrigger>
-                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
-                            <SelectItem value="all" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Все направления</SelectItem>
+                          <SelectContent className={filterSelectContentClass}>
+                            <SelectItem value="all" className={filterSelectItemClass}>Все направления</SelectItem>
                             {Array.isArray(allTypeEquipments) && allTypeEquipments.map(type => (
-                              <SelectItem key={type} value={type} className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>{type}</SelectItem>
+                              <SelectItem key={type} value={type} className={filterSelectItemClass}>{type}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -787,15 +776,13 @@ function OrdersContent() {
                       
                       <div className="space-y-3">
                         <Select value={draftDateType} onValueChange={(value: 'create' | 'close' | 'meeting') => setDraftDateType(value)}>
-                          <SelectTrigger className={`w-full min-h-[44px] px-4 rounded-2xl text-[15px] shadow-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 data-[state=open]:border-[rgba(10,79,66,0.55)] data-[state=open]:ring-2 data-[state=open]:ring-[rgba(10,79,66,0.22)] data-[state=open]:ring-offset-0 dark:border-white/15 dark:focus:!border-white/30 dark:focus:!ring-[rgba(255,255,255,0.2)] dark:data-[state=open]:!border-white/30 dark:data-[state=open]:!ring-[rgba(255,255,255,0.2)] ${
-                            isDark ? 'bg-white/[0.04] text-white' : 'border border-[#cfd2d8] bg-white text-[#111113] shadow-[0_1px_2px_rgba(15,23,42,0.06)] focus:border-[#0a4f42]/45 focus:ring-[#0a4f42]/18'
-                          }`}>
+                          <SelectTrigger className={filterSelectTriggerClass}>
                             <SelectValue placeholder="Тип даты" />
                           </SelectTrigger>
-                          <SelectContent className={`rounded-2xl border-0 shadow-xl ${isDark ? 'bg-[#1e1e20]' : 'bg-white'}`}>
-                            <SelectItem value="create" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Дата создания</SelectItem>
-                            <SelectItem value="close" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Дата закрытия</SelectItem>
-                            <SelectItem value="meeting" className={`rounded-xl mx-1 my-0.5 cursor-pointer ${isDark ? 'text-white focus:bg-white/10 focus:text-white' : 'text-[#111113] focus:bg-black/5 focus:text-[#111113]'}`}>Дата встречи</SelectItem>
+                          <SelectContent className={filterSelectContentClass}>
+                            <SelectItem value="create" className={filterSelectItemClass}>Дата создания</SelectItem>
+                            <SelectItem value="close" className={filterSelectItemClass}>Дата закрытия</SelectItem>
+                            <SelectItem value="meeting" className={filterSelectItemClass}>Дата встречи</SelectItem>
                           </SelectContent>
                         </Select>
                         

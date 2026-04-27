@@ -8,6 +8,7 @@ import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { LoadingState } from '@/components/ui/loading-state'
 import { NetworkError } from '@/components/ui/network-error'
+import { getFormFieldClass } from '@/components/ui/form-styles'
 
 function MastersReportContent() {
   const { theme } = useDesignStore()
@@ -386,7 +387,7 @@ function MastersReportContent() {
                           type="date"
                           value={draftStartDate}
                           onChange={(e) => setDraftStartDate(e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-200 text-gray-800'}`}
+                          className={`${getFormFieldClass(isDark, 'md')} rounded-lg text-sm`}
                         />
                       </div>
                       <div>
@@ -395,7 +396,7 @@ function MastersReportContent() {
                           type="date"
                           value={draftEndDate}
                           onChange={(e) => setDraftEndDate(e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${isDark ? 'bg-[#3a4451] border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-200 text-gray-800'}`}
+                          className={`${getFormFieldClass(isDark, 'md')} rounded-lg text-sm`}
                         />
                       </div>
                     </div>
