@@ -106,7 +106,7 @@ async function generateEncryptionKey(salt: Uint8Array): Promise<CryptoKey> {
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt,
+      salt: salt as unknown as BufferSource,
       iterations: 100000,
       hash: 'SHA-256',
     },
@@ -127,7 +127,7 @@ async function encryptToken(token: string): Promise<SavedToken> {
 
   const encodedData = new TextEncoder().encode(token)
   const encryptedBuffer = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: iv as unknown as BufferSource },
     key,
     encodedData
   )
@@ -156,9 +156,9 @@ async function decryptToken(saved: SavedToken): Promise<string | null> {
     const key = await generateEncryptionKey(salt)
 
     const decryptedBuffer = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: iv as unknown as BufferSource },
       key,
-      encryptedData
+      encryptedData as unknown as BufferSource
     )
 
     return new TextDecoder().decode(decryptedBuffer)

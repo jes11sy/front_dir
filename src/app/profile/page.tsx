@@ -181,7 +181,7 @@ export default function ProfilePage() {
       const updatedUser = await apiClient.getCurrentUserProfile()
       if (updatedUser) {
         const { sanitizeObject } = await import('@/lib/sanitize')
-        localStorage.setItem('user', JSON.stringify(sanitizeObject(updatedUser as Record<string, unknown>)))
+        localStorage.setItem('user', JSON.stringify(sanitizeObject(updatedUser as unknown as Record<string, unknown>)))
       }
 
       setIsEditing(false)

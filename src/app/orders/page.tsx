@@ -431,7 +431,6 @@ function OrdersContent() {
     setDraftDateFrom('')
     setDraftDateTo('')
     // Сбрасываем основные фильтры
-    setSearchTerm('')
     setSearchId('')
     setSearchPhone('')
     setSearchAddress('')

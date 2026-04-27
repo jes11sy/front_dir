@@ -34,14 +34,14 @@ export const OrderInfoTab: React.FC<OrderInfoTabProps> = ({ order }) => {
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">РК</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.rk}
+            {order.rk?.name || '-'}
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Город</label>
           <div className="px-3 py-2 rounded-lg text-white" style={{backgroundColor: '#1a3a3a'}}>
-            {order.city}
+            {order.city?.name || '-'}
           </div>
         </div>
 

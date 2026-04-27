@@ -79,7 +79,9 @@ function AvitoChatContent({ params }: { params: Promise<{ id: string }> }) {
     if (voiceMessages.length === 0) return messages
 
     try {
-      const voiceIds = voiceMessages.map(msg => msg.content?.voice?.voice_id).filter(Boolean)
+      const voiceIds = voiceMessages
+        .map((msg) => msg.content?.voice?.voice_id)
+        .filter((voiceId): voiceId is string => Boolean(voiceId))
       const response = await apiClient.getAvitoVoiceUrls(avitoAccountName, voiceIds)
       
       return messages.map(msg => {

@@ -3,13 +3,14 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { apiClient, Employee } from '@/lib/api'
+import { apiClient, Master } from '@/lib/api'
 import { OptimizedPagination } from '@/components/ui/optimized-pagination'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
 import { LoadingState } from '@/components/ui/loading-state'
 import { NetworkError } from '@/components/ui/network-error'
 import { getFormFieldClass } from '@/components/ui/form-styles'
+import { getCityName } from '@/shared/lib/city'
 
 export default function MastersPage() {
   const router = useRouter()
@@ -17,7 +18,7 @@ export default function MastersPage() {
   const { user } = useAuthStore()
   const isDark = theme === 'dark'
   const [currentPage, setCurrentPage] = useState(1)
-  const [employees, setEmployees] = useState<Employee[]>([])
+  const [employees, setEmployees] = useState<Master[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const itemsPerPage = 10
@@ -39,7 +40,10 @@ export default function MastersPage() {
         const safeData = Array.isArray(data) ? data : []
         const filteredEmployees = safeData.filter(employee => {
           if (directorCities.length === 0) return true
-          return employee.cities && Array.isArray(employee.cities) && employee.cities.some((city: { id: number; name: string }) => directorCities.includes(city.name))
+          return employee.cities && Array.isArray(employee.cities) && employee.cities.some((city) => {
+            const cityName = getCityName(city)
+            return cityName ? directorCities.includes(cityName) : false
+          })
         })
         
         setEmployees(filteredEmployees)
@@ -102,7 +106,7 @@ export default function MastersPage() {
   // Проверка есть ли активные фильтры (кроме дефолтного)
   const hasActiveFilters = searchName.trim() !== '' || statusFilter !== 'active'
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return 'Не указана'
     return new Date(dateString).toLocaleDateString('ru-RU')
   }
@@ -241,7 +245,7 @@ export default function MastersPage() {
                   return 'Не указан'
                 }
                 
-                const cities = Array.isArray(item.cities) ? item.cities.map((c: { id: number; name: string }) => c.name) : []
+                const cities = Array.isArray(item.cities) ? item.cities.map((c) => getCityName(c)).filter(Boolean) : []
                 const statusWork = item.status
                 
                 return (

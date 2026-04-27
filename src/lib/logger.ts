@@ -2,6 +2,7 @@
  * Безопасный logger для frontend
  * Не логирует чувствительные данные в production
  */
+import { env } from '@/shared/config/env'
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -15,8 +16,7 @@ class Logger {
   private sensitiveKeys = ['password', 'token', 'access_token', 'refresh_token', 'secret', 'apiKey', 'authorization'];
 
   constructor() {
-    // Проверяем NODE_ENV (стандартная переменная Next.js) или NEXT_PUBLIC_ENV
-    this.isDevelopment = process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_ENV !== 'production';
+    this.isDevelopment = env.nodeEnv !== 'production' && env.appEnv !== 'production';
   }
 
   /**

@@ -1,7 +1,8 @@
 import { fetchWithRetry as fetchWithRetryUtil, getUserFriendlyErrorMessage, classifyNetworkError, type NetworkError } from './fetch-with-retry'
 import { logger } from './logger'
+import { env } from '@/shared/config/env'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.lead-schem.ru/api/v1'
+const API_BASE_URL = env.apiUrl
 
 /**
  * Безопасный парсинг JSON ответа
@@ -46,6 +47,11 @@ export interface User {
   name: string
   role: string
   cities: string[]
+  note?: string
+  tgId?: string
+  chatId?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface LoginResponse {
@@ -129,9 +135,12 @@ export interface OrdersStats {
 export interface Master {
   id: number
   name: string
+  login?: string
   cityIds: number[]
   cities?: { id: number; name: string }[]
   status: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface Call {
@@ -162,7 +171,7 @@ export interface Employee {
   password?: string
   hasPassword?: boolean
   cityIds: number[]
-  cities?: { id: number; name: string }[]
+  cities?: Array<{ id: number; name: string } | string>
   status: 'active' | 'inactive'
   createdAt: string
   note?: string
@@ -178,6 +187,7 @@ export interface CreateEmployeeDto {
   login?: string
   password?: string
   cityIds?: number[]
+  cities?: string[]
   status?: 'active' | 'inactive'
   note?: string
   tgId?: string
@@ -191,7 +201,7 @@ export interface CashTransaction {
   name: string
   amount: number
   cityId?: number
-  city?: { id: number; name: string }
+  city?: { id: number; name: string } | string
   note?: string
   receiptDoc?: string
   receiptDocs?: string[]
@@ -557,7 +567,7 @@ export class ApiClient {
       }
       
       // Логируем детали только в development
-      if (process.env.NODE_ENV === 'development') {
+      if (env.nodeEnv === 'development') {
         console.error('Network Error:', {
           type: networkError.type,
           url,
@@ -1302,7 +1312,7 @@ export class ApiClient {
     return result.data || result
   }
 
-  async createCashTransaction(data: Partial<CashTransaction>): Promise<CashTransaction> {
+  async createCashTransaction(data: Partial<CashTransaction> & { city?: string }): Promise<CashTransaction> {
     logger.debug('Creating cash transaction', { name: data.name, amount: data.amount })
     
     const response = await this.safeFetch(`${this.baseURL}/cash`, {
@@ -1498,6 +1508,15 @@ export class ApiClient {
     return { filePath: result.data.key }
   }
 
+  // Backward-compatible aliases kept for older hooks.
+  async uploadCashExpenseReceipt(file: File): Promise<{ filePath: string }> {
+    return this.uploadReceipt(file, 'cash')
+  }
+
+  async uploadCashIncomeReceipt(file: File): Promise<{ filePath: string }> {
+    return this.uploadReceipt(file, 'cash')
+  }
+
   // Reports API
   async getCityReport(filters?: { city?: string; startDate?: string; endDate?: string }): Promise<CityReport[]> {
     const params = new URLSearchParams();
@@ -1558,7 +1577,7 @@ export class ApiClient {
   }
 
   // Методы для работы с профилем пользователя
-  async getCurrentUserProfile(): Promise<any> {
+  async getCurrentUserProfile(): Promise<User> {
     const response = await this.safeFetch(`${this.baseURL}/users/profile`, {
       method: 'GET',
     })
@@ -1573,10 +1592,12 @@ export class ApiClient {
   }
 
   async updateUserProfile(data: {
+    name?: string;
+    note?: string;
     telegramId?: string;
     contract?: string;
     passport?: string;
-  }): Promise<any> {
+  }): Promise<User> {
     const response = await fetch(`${this.baseURL}/users/profile`, {
       method: 'PUT',
       headers: {
@@ -1776,8 +1797,11 @@ export class ApiClient {
       throw new Error(errorMessage)
     }
 
-    const result = await safeParseJson(response, [])
-    return Array.isArray(result) ? result : (result.data || [])
+    const result = await safeParseJson<{ data?: OrderHistoryItem[] } | OrderHistoryItem[]>(response, [])
+    if (Array.isArray(result)) {
+      return result
+    }
+    return Array.isArray(result.data) ? result.data : []
   }
 
   // Push Notifications API (Director)
@@ -1852,7 +1876,7 @@ export interface OrderHistoryItem {
 
 // Push Notifications
 export interface PushSubscriptionJSON {
-  endpoint: string;
+  endpoint?: string;
   keys: {
     p256dh: string;
     auth: string;

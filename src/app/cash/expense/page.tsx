@@ -12,6 +12,7 @@ import { useMultipleFileUpload } from '@/hooks/useMultipleFileUpload'
 import { X, Download, ArrowUpFromLine } from 'lucide-react'
 import { useDesignStore } from '@/store/design.store'
 import { useAuthStore } from '@/store/auth.store'
+import { getCityName } from '@/shared/lib/city'
 
 function ExpenseContent() {
   const router = useRouter()
@@ -67,7 +68,6 @@ function ExpenseContent() {
   const cities = useMemo(() => directorCities.map(city => ({
     value: city.toLowerCase().replace(/\s+/g, '_'),
     label: city
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   })), [directorCitiesKey])
 
   const purposes = useMemo(() => [
@@ -619,7 +619,7 @@ function ExpenseContent() {
                                 {item.name}
                               </span>
                             </td>
-                            <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.city || directorCities[0] || 'Москва'}</td>
+                            <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{getCityName(item.city, directorCities[0] || 'Москва')}</td>
                             <td className={`py-2 px-2 ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>{item.paymentPurpose || '-'}</td>
                             <td className={`py-2 px-2 font-semibold ${isDark ? 'text-white' : 'text-red-600'}`}>
                               {Number(item.amount).toLocaleString()} ₽

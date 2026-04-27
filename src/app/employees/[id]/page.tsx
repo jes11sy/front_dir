@@ -14,6 +14,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { Eye, EyeOff, ChevronDown, X, Upload, Check, ArrowLeft, RefreshCw, Download, Trash2 } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/loading-screen'
 import { getFormFieldClass } from '@/components/ui/form-styles'
+import { normalizeCityNames } from '@/shared/lib/city'
 
 
 function EmployeeViewContent() {
@@ -57,7 +58,7 @@ function EmployeeViewContent() {
         const data = await apiClient.getEmployee(parseInt(employeeId))
         setEmployee({ ...data, password: '' })
         setHasPassword(data.hasPassword || false)
-        setSelectedCities(data.cities)
+        setSelectedCities(normalizeCityNames(data.cities))
         
         if (data.passport) {
           const passportUrl = await getSignedUrl(data.passport)
@@ -246,7 +247,7 @@ function EmployeeViewContent() {
       const updatedEmployee = await apiClient.updateEmployee(employee.id, employeeData)
       
       setEmployee(prev => prev ? { ...updatedEmployee, password: prev.password } : updatedEmployee)
-      setSelectedCities(updatedEmployee.cities)
+      setSelectedCities(normalizeCityNames(updatedEmployee.cities))
       
       if (employeeData.password) setHasPassword(true)
       

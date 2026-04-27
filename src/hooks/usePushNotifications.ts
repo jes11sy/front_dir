@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiClient } from '@/lib/api';
+import { env } from '@/shared/config/env';
 
 // VAPID публичный ключ - должен совпадать с бэкендом
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+const VAPID_PUBLIC_KEY = env.vapidPublicKey;
 
 interface PushSubscriptionState {
   isSupported: boolean;
@@ -87,7 +88,7 @@ export const usePushNotifications = () => {
   const [isUnsubscribing, setIsUnsubscribing] = useState(false);
   
   // Ref для доступа к функции подписки в useEffect
-  const subscribeRef = useRef<() => Promise<void>>();
+  const subscribeRef = useRef<(() => Promise<void>) | null>(null);
 
   // Обработка сообщения от SW о смене подписки
   useEffect(() => {
@@ -327,13 +328,23 @@ export const usePushNotifications = () => {
       console.log('[Push Director] Подписываемся на PushManager...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
       });
       console.log('[Push Director] Подписка получена:', subscription.endpoint);
 
       // Отправляем подписку на сервер (директора используют обычный endpoint)
       console.log('[Push Director] Отправляем подписку на сервер...');
-      const response = await apiClient.subscribeToPush(subscription.toJSON());
+      const subscriptionJson = subscription.toJSON();
+      if (!subscriptionJson.endpoint || !subscriptionJson.keys?.p256dh || !subscriptionJson.keys?.auth) {
+        throw new Error('Подписка браузера вернула неполные данные')
+      }
+      const response = await apiClient.subscribeToPush({
+        endpoint: subscriptionJson.endpoint,
+        keys: {
+          p256dh: subscriptionJson.keys.p256dh,
+          auth: subscriptionJson.keys.auth,
+        },
+      });
       console.log('[Push Director] Ответ сервера:', response);
 
       if (!response.success) {

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getSignedUrl } from '@/lib/s3-utils'
 import { apiClient, CashTransaction } from '@/lib/api'
+import { getCityName } from '@/shared/lib/city'
+import { env } from '@/shared/config/env'
 
 function IncomeViewContent() {
   const params = useParams()
@@ -120,7 +122,7 @@ function IncomeViewContent() {
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 text-sm sm:text-base">Город:</span>
-                <span className="text-gray-800 text-sm sm:text-base">{transaction.city || 'Не указан'}</span>
+                <span className="text-gray-800 text-sm sm:text-base">{getCityName(transaction.city, 'Не указан')}</span>
               </div>
 
               <div className="flex justify-between items-center">
@@ -197,7 +199,7 @@ function IncomeViewContent() {
                                     } catch (error) {
                                       console.error('Ошибка получения подписанного URL:', error)
                                       // Fallback на прямой URL
-                                      const fallbackUrl = `${process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles'}/${transaction.receiptDoc}`
+                                      const fallbackUrl = `${env.s3BaseUrl}/${transaction.receiptDoc}`
                                       window.open(fallbackUrl, '_blank')
                                     }
                                   })

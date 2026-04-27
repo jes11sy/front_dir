@@ -2,6 +2,7 @@
  * Утилиты для обработки сетевых ошибок и retry логики
  * БЕЗОПАСНО: Не ломает существующий функционал, только улучшает
  */
+import { env } from '@/shared/config/env'
 
 export type NetworkErrorType = 
   | 'NETWORK_ERROR'      // Нет интернета
@@ -146,7 +147,7 @@ export async function fetchWithRetry(
           : retryOptions.retryDelay
         
         // Логируем попытку
-        if (process.env.NODE_ENV === 'development') {
+        if (env.nodeEnv === 'development') {
           console.log(
             `🔄 502/503/504 retry ${attempt + 1}/${retryOptions.maxRetries} ` +
             `for ${url} after ${delay}ms (status: ${response.status})`
@@ -181,7 +182,7 @@ export async function fetchWithRetry(
         : retryOptions.retryDelay
       
       // Логируем попытку (только в development)
-      if (process.env.NODE_ENV === 'development') {
+      if (env.nodeEnv === 'development') {
         console.log(
           `🔄 Retry attempt ${attempt + 1}/${retryOptions.maxRetries} ` +
           `for ${url} after ${delay}ms (error: ${networkError.type})`

@@ -3,10 +3,10 @@
  */
 
 import React from 'react';
+import { env } from '@/shared/config/env';
 
-// ✅ FIX #173: URL берутся из env, fallback для разработки
-const S3_BASE_URL = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://s3.twcstorage.ru/f7eead03-crmfiles';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.lead-schem.ru/api/v1';
+const S3_BASE_URL = env.s3BaseUrl;
+const API_BASE_URL = env.apiUrl;
 
 /**
  * Получить прямую ссылку на файл в S3

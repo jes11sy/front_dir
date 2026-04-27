@@ -33,7 +33,7 @@ API: https://api.test-shem.ru
 ### 1. Установка
 
 ```bash
-cd frontend
+cd "frontend dir"
 npm install
 ```
 
@@ -74,6 +74,12 @@ src/
 │   ├── master-handover/    # Передача мастеру
 │   ├── reports/            # Отчеты
 │   └── profile/            # Профиль
+├── features/               # Доменные модули (новая структура)
+│   ├── cash/
+│   └── notifications/
+├── shared/
+│   ├── config/             # Централизованные env-конфиги
+│   └── lib/                # Общие утилиты
 ├── components/
 │   ├── ui/                 # UI компоненты
 │   ├── optimized/          # Оптимизированные (React.memo)
@@ -162,6 +168,8 @@ import SkeletonCard from '@/components/optimized/SkeletonCard'
 | `npm run build` | Production build |
 | `npm run start` | Production сервер |
 | `npm run lint` | ESLint проверка |
+| `npm run typecheck` | TypeScript проверка |
+| `npm run verify` | Полная проверка: lint + typecheck + build |
 
 ---
 

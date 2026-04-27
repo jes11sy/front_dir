@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { getSignedUrl } from '@/lib/s3-utils'
 import { apiClient, CashTransaction } from '@/lib/api'
 import { Download } from 'lucide-react'
+import { getCityName } from '@/shared/lib/city'
 
 // Компонент для отображения одного чека
 function ReceiptItem({ url, docPath, index }: { url: string; docPath: string; index: number }) {
@@ -196,7 +197,7 @@ function ExpenseViewContent() {
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 text-sm sm:text-base">Город:</span>
-                <span className="text-gray-800 text-sm sm:text-base">{transaction.city || 'Не указан'}</span>
+                <span className="text-gray-800 text-sm sm:text-base">{getCityName(transaction.city, 'Не указан')}</span>
               </div>
 
               <div className="flex justify-between items-center">

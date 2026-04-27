@@ -2,6 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { logger } from '@/lib/logger'
+import { env } from '@/shared/config/env'
 
 interface Props {
   children: ReactNode
@@ -62,7 +63,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   Произошла непредвиденная ошибка. Пожалуйста, попробуйте обновить страницу.
                 </p>
                 
-                {process.env.NODE_ENV === 'development' && this.state.error && (
+                {env.nodeEnv === 'development' && this.state.error && (
                   <details className="mb-6 text-left">
                     <summary className="cursor-pointer text-yellow-400 mb-2">
                       Детали ошибки (только в development)

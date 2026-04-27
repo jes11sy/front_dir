@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { LoadingState } from '@/components/ui/loading-state'
 import { NetworkError } from '@/components/ui/network-error'
 import { getFormFieldClass } from '@/components/ui/form-styles'
+import { getCityName } from '@/shared/lib/city'
 
 const RATE = 0.07
 
@@ -383,7 +384,7 @@ function SalaryReportContent() {
                       {history.map((tx) => (
                         <tr key={tx.id} className={`border-b transition-colors ${isDark ? 'border-gray-700 hover:bg-[#3a4451]' : 'hover:bg-teal-50'}`}>
                           <td className={`py-3 px-4 whitespace-nowrap ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{formatDate(tx.createdAt)}</td>
-                          <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{tx.city || '—'}</td>
+                          <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{getCityName(tx.city, '—')}</td>
                           <td className={`py-3 px-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{tx.note || '—'}</td>
                           <td className={`py-3 px-4 font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatNumber(tx.amount)} ₽</td>
                         </tr>

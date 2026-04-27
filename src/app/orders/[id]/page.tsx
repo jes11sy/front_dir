@@ -6,6 +6,7 @@ import { apiClient, Order, Master, Call } from '@/lib/api'
 import CustomSelect from '@/components/optimized/CustomSelect'
 import { StatusSelect } from '@/components/orders/StatusSelect'
 import { logger } from '@/lib/logger'
+import { getCityName } from '@/shared/lib/city'
 import { useOrder, useOrderCalls } from '@/hooks/useOrder'
 import { useMultipleFileUpload } from '@/hooks/useMultipleFileUpload'
 import { OrderMasterTab } from '@/components/orders/OrderMasterTab'
@@ -295,7 +296,7 @@ function OrderDetailContent({ params }: { params: Promise<{ id: string }> }) {
               await apiClient.createCashTransaction({
                 name: 'приход',
                 amount: masterChangeAmount,
-                city: order.city,
+                city: getCityName(order.city),
                 note: `Итог по заказу: ${resultAmount}₽`,
                 paymentPurpose: `Заказ №${order.id}`
               })

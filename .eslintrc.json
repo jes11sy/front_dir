@@ -1,3 +1,37 @@
 {
-  "extends": ["next/core-web-vitals"]
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "no-duplicate-imports": "error"
+  },
+  "overrides": [
+    {
+      "files": ["src/components/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@/app/**"],
+                "message": "Компоненты и hooks не должны зависеть от route-слоя app."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-properties": [
+          "error",
+          {
+            "object": "process",
+            "property": "env",
+            "message": "Используйте централизованный env-конфиг из src/shared/config/env."
+          }
+        ]
+      }
+    }
+  ]
 }
